@@ -1,11 +1,13 @@
 __author__ = 'chaoweichen'
 from collections import deque
 from . import candidates
+from . import representation
 
 def generate(A):
     q = deque()
     q.append(A)
-    v = len(A[0])+1
+    v = representation.from_scalars(A).v
+
     while q:
         simple_sym_graph = q.pop()
         if len(simple_sym_graph) == v - 1:
@@ -16,5 +18,5 @@ def generate(A):
 
 def advance_simple_sym_graph(A):
     for c in candidates.generate(A):
-        AA = tuple(A) + (tuple(c),)
+        AA = A + (c,)
         yield AA

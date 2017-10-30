@@ -13,6 +13,7 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 
 '''
 from two_dist_set import strong_graph
+from two_dist_set import representation
 
 if __name__ == '__main__':
 
@@ -20,10 +21,7 @@ if __name__ == '__main__':
 
     v, k, l, u = map(int, sys.argv[1:5])
 
-    A = tuple(1 if i < k else 0 for i in range(v - 1))
-    A = (A,)  # tuple in a tuple
-
-    assert len(A[0]) == v - 1
+    A = (2**(v-1) - 2**(v-k-1),)  # tuple of numbers
 
     for ans in strong_graph.generate(seed=A, v=v, k=k, l=l, u=u):
         print(ans)

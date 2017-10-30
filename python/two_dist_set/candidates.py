@@ -1,8 +1,8 @@
 __author__ = 'chaoweichen'
 
+from . import representation
 import numpy as np
 import itertools
-
 
 def _cumsum(A):
     col = len(A[-1]) # 6
@@ -13,7 +13,8 @@ def _cumsum(A):
     return cumsum
 
 
-def generate(A):
+def generate(As):
+    A = representation.from_scalars(As).to_vectors()
     k = sum(A[0]) # 4
     col = len(A[-1]) # 6
     used = sum(a[-col] for a in A) # 2
@@ -38,9 +39,18 @@ def generate(A):
 
     for indices in itertools.combinations(range(v-r), k-used):
         if is_maintain_reverse_sorted_when_adding_1_at(indices):
-            candidate = np.zeros(v-r, dtype=np.int)
-            candidate[[indices]] = 1
+            # candidate = np.zeros(v-r, dtype=np.int)
+            # candidate[[indices]] = 1
+            # yield candidate
+
+            # if 0, add 16
+            # if 1, add 8
+            # if 2, add 4
+            # if 3, add 2
+            # if 4, add 1
+            candidate = sum(1 << (v-r-i-1) for i in indices)
             yield candidate
+
 
 
 def test_io():
