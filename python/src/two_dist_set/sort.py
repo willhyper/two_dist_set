@@ -3,13 +3,15 @@ from collections import deque, namedtuple
 
 SortInstruct = namedtuple('SortInstruct', 'row colrange div_index')
 
+
 class AdjMat:
     def __init__(self, Mat):
         self.Mat = Mat
+        self.v = Mat.shape[0]
 
     def sort(self):
-        first_zero_index = self._sort(0, (1, v))
-        si = SortInstruct(row=0, colrange=(1, v), div_index=first_zero_index)
+        first_zero_index = self._sort(0, (1, self.v))
+        si = SortInstruct(row=0, colrange=(1, self.v), div_index=first_zero_index)
         q = deque()
         q.append(si)
 
@@ -53,7 +55,7 @@ class AdjMat:
         a = M[row, colrange[0]:colrange[1]]
         i = np.argsort(-a)  # large element first, so negate a.
 
-        ii = np.arange(v)
+        ii = np.arange(self.v)
         ii[colrange[0]: colrange[1]] = i + colrange[0]
 
         S = M
@@ -76,34 +78,3 @@ def sort(A):
     AM = AdjMat(A)
     AM.sort()
     return AM.Mat
-
-if __name__ == '__main__':
-    v, k, l, u = 9, 4, 1, 2
-
-    A = np.array([
-        [0, 1, 0, 0, 1, 1, 0, 0, 1],
-        [1, 0, 1, 0, 0, 0, 1, 0, 1],
-        [0, 1, 0, 1, 1, 0, 1, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 1, 1],
-        [1, 0, 1, 1, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 1, 1, 0],
-        [0, 1, 1, 0, 0, 1, 0, 1, 0],
-        [0, 0, 0, 1, 0, 1, 1, 0, 1],
-        [1, 1, 0, 1, 0, 0, 0, 1, 0]
-    ])
-
-    B = np.array([
-        [0, 1, 1, 1, 1, 0, 0, 0, 0],
-        [1, 0, 1, 0, 0, 1, 1, 0, 0],
-        [1, 1, 0, 0, 0, 0, 0, 1, 1],
-        [1, 0, 0, 0, 1, 1, 0, 1, 0],
-        [1, 0, 0, 1, 0, 0, 1, 0, 1],
-        [0, 1, 0, 1, 0, 0, 1, 1, 0],
-        [0, 1, 0, 0, 1, 1, 0, 0, 1],
-        [0, 0, 1, 1, 0, 1, 0, 0, 1],
-        [0, 0, 1, 0, 1, 0, 1, 1, 0]
-    ])
-
-    Asorted = sort(A)
-
-    assert np.array_equal(Asorted, B)
