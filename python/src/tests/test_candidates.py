@@ -1,7 +1,30 @@
-from two_dist_set import candidates, globalz
+__author__ = 'chaoweichen'
+
+from two_dist_set.problem_database import problems
+from two_dist_set import representation, candidates
+from pprint import pprint
+
+import pytest
+
+
+@pytest.mark.parametrize('v,k,l,u,expected', problems)
+def test_candidates(v, k, l, u, expected):
+    adj_matrix = expected[0]
+    scalars = representation.from_matrix(adj_matrix,v,k,l,u).to_scalars()
+
+    pprint(adj_matrix)
+    pprint(scalars)
+
+    for slice in range(1, len(scalars)):
+        current_state = scalars[:slice]
+        ans = scalars[slice]
+
+        possible_candidates = list(candidates.generate(current_state,v,k,l,u))
+        assert ans in possible_candidates
+        print(current_state, ans, possible_candidates)
+
 
 def test_9_4_1_2():
-    globalz.set_problem(9,4,1,2)
     A = (240, 14, 56)
 
     Ans = (24, 20, 17, 12, 9, 6, 5)
@@ -14,39 +37,14 @@ def test_9_4_1_2():
     #   [0, 0, 1, 0, 1],
     #  ]
 
-    for c, a in zip(candidates.generate(A), Ans):
+    for c, a in zip(candidates.generate(A,9,4,1,2), Ans):
         assert c == a
 
-def test_13_6_2_3():
-    globalz.set_problem(13,6,2,3)
 
-    Q_and_A = (4032, 1592, 294, 149, 77, 99, 26, 11, 14, 1, 3, 0)
+def test_13_6_2_3():
+
+    # Q_and_A = (4032, 1592, 294, 149, 77, 99, 26, 11, 14, 1, 3, 0)
 
     A = (4032,)
-    weaks = list(candidates.generate(A))
+    weaks = list(candidates.generate(A,9,4,1,2))
     assert 1592 in weaks
-
-    N = len(Q_and_A)
-    for n in range(1,N):
-        q = Q_and_A[:n]
-        a = Q_and_A[n]
-
-        weaks = list(candidates.generate(q))
-        assert a in weaks
-        print(q,a,weaks)
-
-        # (4032,) 1592 [1984, 1952, 1840, 1592, 1084, 62]
-        # (4032, 1592) 294 [960, 928, 900, 816, 804, 774, 568, 564, 550, 519, 480, 452, 432, 420, 390, 312, 308, 294, 263, 60, 54, 39]
-        # (4032, 1592, 294) 149 [480, 464, 452, 449, 432, 420, 417, 408, 404, 401, 390, 389, 312, 308, 305, 294, 293, 284, 281, 278, 277, 263, 240, 228, 225, 216, 212, 209, 198, 197, 184, 180, 177, 166, 165, 156, 153, 150, 149, 135, 60, 57, 54, 53, 39, 30, 29, 23]
-
-        # this steps takes super long. converge too slow.
-        # (4032, 1592, 294, 149) 77 [240, 232, 228, 226, 225, 216, 212, 210, 209, 204, 202, 201, 198, 197, 195, 184, 180, 178, 177, 172, 170, 169, 166, 165, 163, 156, 154, 153, 150, 149, 147, 142, 141, 139, 135, 120, 116, 114, 113, 108, 106, 105, 102, 101, 99, 92, 90, 89, 86, 85, 83, 78, 77, 75, 71, 60, 58, 57, 54, 53, 51, 46, 45, 43, 39, 30, 29, 27, 23, 15]
-
-        # (4032, 1592, 294, 149, 77) 99 [120, 116, 114, 113, 108, 106, 105, 102, 101, 99, 92, 90, 89, 86, 85, 83, 78, 77, 75, 71, 60, 58, 57, 54, 53, 51, 46, 45, 43, 39, 30, 29, 27, 23, 15]
-        # (4032, 1592, 294, 149, 77, 99) 26 [56, 52, 50, 49, 44, 42, 41, 38, 37, 35, 28, 26, 25, 22, 21, 19, 14, 13, 11, 7]
-        # (4032, 1592, 294, 149, 77, 99, 26) 11 [28, 26, 25, 22, 21, 19, 14, 13, 11, 7]
-        # (4032, 1592, 294, 149, 77, 99, 26, 11) 14 [14, 13, 11, 7]
-        # (4032, 1592, 294, 149, 77, 99, 26, 11, 14) 1 [4, 2, 1]
-        # (4032, 1592, 294, 149, 77, 99, 26, 11, 14, 1) 3 [3]
-        # (4032, 1592, 294, 149, 77, 99, 26, 11, 14, 1, 3) 0 [0]
-

@@ -1,6 +1,5 @@
 __author__ = 'chaoweichen'
 
-from . import globalz
 import numpy as np
 import itertools
 
@@ -16,7 +15,7 @@ def _cumsum(As, iteration):
     return cumsum, used
 
 
-def generate(As):
+def generate(As,v,k,l,u):
     # As = (240, 14, 56)
 
     # A = ((1, 1, 1, 1, 0, 0, 0, 0),    <= 8 = 9 - 1 = v - 1
@@ -27,7 +26,7 @@ def generate(As):
     #                ^  ^  ^  ^  ^
     #      cumsum = 10  6  4  4  0      <=len(cumsum) = 5 = 6 - 1 = col - 1
 
-    v, k, row = globalz.v, globalz.k, len(As)
+    row = len(As)
 
     cumsum_len = v - len(As) - 1
     cumsum, used = _cumsum(As, cumsum_len) # need a cumsum array whose length is col - 1

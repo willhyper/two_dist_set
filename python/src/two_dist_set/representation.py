@@ -1,6 +1,5 @@
 __author__ = 'chaoweichen'
 import numpy as np
-from . import globalz
 
 class dec2bin:
     @staticmethod
@@ -26,8 +25,12 @@ class dec2bin:
 
 
 class SRG:
-    def __init__(self, num):
+    def __init__(self, num, v, m, l, u):
         self.data = tuple(num)
+        self.v = v
+        self.m = m
+        self.l = l
+        self.u = u
 
     def to_scalars(self):
         return self.data
@@ -35,7 +38,7 @@ class SRG:
     def to_vectors(self):
         out = ()
         for i, n in enumerate(self.data, start=1):
-            e = dec2bin.encode(n, digit=globalz.v-i)
+            e = dec2bin.encode(n, digit=self.v-i)
             out +=(e,)
 
         return out
@@ -54,7 +57,7 @@ class SRG:
         return to_construct
 
 
-def from_vectors(A):
+def from_vectors(A, v, m, l, u):
     out = ()
     for a in A:
         aa = np.array(a, dtype=np.int)
@@ -62,20 +65,20 @@ def from_vectors(A):
         p = 1 << np.arange(n - 1, -1, -1)
         out += (aa.dot(p),)
 
-    return SRG(out)
+    return SRG(out, v, m, l, u)
 
 
-def from_scalars(tuple_of_num):
-    return SRG(tuple_of_num)
+def from_scalars(tuple_of_num, v, m, l, u):
+    return SRG(tuple_of_num, v, m, l, u)
 
-def from_matrix(M):
+def from_matrix(M, v, m, l, u):
     out = []
     for i, row in enumerate(M):
         vec = row[i+1:]
         val = np.polyval(vec, 2)
         out.append(val)
     out = out[:-1]
-    return SRG(out)
+    return SRG(out, v, m, l, u)
 
 # [1 1 1 1 1 1 0 0 0 0 0 0] 4032
 # [1 1 0 0 0 1 1 1 0 0 0] 1592
