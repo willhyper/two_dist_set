@@ -57,5 +57,10 @@ def _satisfy_weak_condition(As, v, k, l, u):
             elif cumsum[i] > (cumsum[i - 1] if i - 1 in indices else cumsum[i - 1] - 1):
                 break
         else:
+            # if 0, add 16
+            # if 1, add 8
+            # if 2, add 4
+            # if 3, add 2
+            # if 4, add 1
             candidate = sum(1 << (cumsum_len - i - 1) for i in indices)
             yield candidate
