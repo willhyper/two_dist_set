@@ -19,7 +19,7 @@ if __name__ == '__main__':
     import sys
     v, k, l, u = map(int, sys.argv[1:5])
 
-    assert strong_graph.check_problem(v,k,l,u)
+    assert strong_graph.check_problem(v,k,l,u), f'{(v,k,l,u)} is not a strongly regular graph problem.'
     seed = strong_graph.generate_seed(v,k,l,u)
 
     #seed = (4032, 1592, 294, 149)#, 77, 99, 26, 11, 14, 1, 3, 0)
