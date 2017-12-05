@@ -1,10 +1,1 @@
-go/pkg/*
-go/.idea/*
 
-python/.idea/*
-python/src/.cache/*
-python/src/pytestdebug.log
-python/src/tests/.DS_Store
-python/src/tests/__pycache__/*
-python/src/two_dist_set/.DS_Store
-python/src/two_dist_set/__pycache__/*
