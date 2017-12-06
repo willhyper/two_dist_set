@@ -4,13 +4,12 @@ strongly regular graph generator
 http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 
 
-13 6 2 3
 15 6 1 3
 15 8 4 4
 65 32 15 16
 
 '''
-from two_dist_set import strong_graph
+from two_dist_set import strong_graph, representation
 from pprint import pprint
 
 
@@ -24,6 +23,6 @@ if __name__ == '__main__':
 
     #seed = (4032, 1592, 294, 149)#, 77, 99, 26, 11, 14, 1, 3, 0)
 
-    for ans in strong_graph.generate(seed, v, k, l, u):
-        pprint(ans)
 
+    ans = list(strong_graph.generate(seed, v, k, l, u))
+    pprint(ans)
