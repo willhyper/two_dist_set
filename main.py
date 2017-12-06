@@ -3,9 +3,10 @@
 strongly regular graph generator
 http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 
+16 6 2 2
+17 8 3 4
+21 10 5 4
 
-15 6 1 3
-15 8 4 4
 65 32 15 16
 
 '''
