@@ -1,3 +1,4 @@
 tests/__pycache__/
 two_dist_set/__pycache__/
 .idea
+.cache/
