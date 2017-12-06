@@ -3,7 +3,7 @@ from collections import deque
 
 import numpy as np
 import itertools
-
+from . import representation
 
 def generate(A, v, k, l, u):
     q = deque()
@@ -57,10 +57,4 @@ def _satisfy_weak_condition(As, v, k, l, u):
             elif cumsum[i] > (cumsum[i - 1] if i - 1 in indices else cumsum[i - 1] - 1):
                 break
         else:
-            # if indices includes 0, add 16
-            # if indices includes 1, add 8
-            # if indices includes 2, add 4
-            # if indices includes 3, add 2
-            # if indices includes 4, add 1
-            candidate = sum(1 << (cumsum_len - i - 1) for i in indices)
-            yield candidate
+            yield representation.ind2dec(indices, cumsum_len)

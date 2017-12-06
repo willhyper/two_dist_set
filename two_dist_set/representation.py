@@ -1,27 +1,38 @@
 __author__ = 'chaoweichen'
 import numpy as np
 
-class dec2bin:
-    @staticmethod
-    def encode(n, digit):
-        ans = []
-        while digit > 0:
-            i = n%2
-            ans.append(i)
-            n >>= 1
-            digit -= 1
 
-        return tuple(reversed(ans))
+def ind2bin(ind, digit):
+    return tuple(1 if i in ind else 0 for i in range(digit))
 
-    @staticmethod
-    def decode(m):
-        l = len(m)
-        s = 0
-        p = 1 << l
-        for d in m:
-            p >>= 1
-            s += p if d else 0
-        return s
+def ind2dec(ind, digit):
+    # if ind includes 0, add 16
+    # if ind includes 1, add 8
+    # if ind includes 2, add 4
+    # if ind includes 3, add 2
+    # if ind includes 4, add 1
+    return sum(1 << (digit - i - 1) for i in ind)
+
+
+def dec2bin(n, digit):
+    ans = []
+    while digit > 0:
+        i = n % 2
+        ans.append(i)
+        n >>= 1
+        digit -= 1
+
+    return tuple(reversed(ans))
+
+
+def bin2dec(m):
+    l = len(m)
+    s = 0
+    p = 1 << l
+    for d in m:
+        p >>= 1
+        s += p if d else 0
+    return s
 
 
 class SRG:
@@ -38,8 +49,8 @@ class SRG:
     def to_vectors(self):
         out = ()
         for i, n in enumerate(self.data, start=1):
-            e = dec2bin.encode(n, digit=self.v-i)
-            out +=(e,)
+            e = dec2bin(n, digit=self.v - i)
+            out += (e,)
 
         return out
 
@@ -71,10 +82,11 @@ def from_vectors(A, v, m, l, u):
 def from_scalars(tuple_of_num, v, m, l, u):
     return SRG(tuple_of_num, v, m, l, u)
 
+
 def from_matrix(M, v, m, l, u):
     out = []
     for i, row in enumerate(M):
-        vec = row[i+1:]
+        vec = row[i + 1:]
         val = np.polyval(vec, 2)
         out.append(val)
     out = out[:-1]
