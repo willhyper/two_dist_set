@@ -5,21 +5,6 @@ import numpy as np
 import itertools
 from . import representation
 
-def generate(A, v, k, l, u):
-    q = deque()
-    q.append(A)
-
-    while q:
-        simple_sym_graph = q.pop()
-        if len(simple_sym_graph) == v - 1:  # data structure property. when met, graph is complete
-            # print(len(q), simple_sym_graph)
-            yield simple_sym_graph  # weak
-        else:
-
-            weak_candidates = sorted(_satisfy_weak_condition(simple_sym_graph, v, k, l, u))
-            for c in weak_candidates:
-                q.append(simple_sym_graph + (c,))
-
 
 def _cumsum(As, iteration):
     cumsum = np.zeros(iteration, dtype=np.int)
@@ -31,7 +16,7 @@ def _cumsum(As, iteration):
     used = sum(a % 2 for a in As)
     return cumsum, used
 
-def _satisfy_weak_condition(As, v, k, l, u):
+def generate(As, v, k):
     # As = (240, 14, 56)
 
     # A = ((1, 1, 1, 1, 0, 0, 0, 0),    <= 8 = 9 - 1 = v - 1

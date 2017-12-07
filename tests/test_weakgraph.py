@@ -1,16 +1,17 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set.problem_database import problems
+from two_dist_set.problem_database import *
 from two_dist_set import representation, weak_graph
 from pprint import pprint
 
 import pytest
 
+problems = [problem_15_8_4_4, problem_21_10_5_4]
 
 @pytest.mark.parametrize('v,k,l,u,expected', problems)
 def test_candidates(v, k, l, u, expected):
     adj_matrix = expected[0]
-    scalars = representation.from_matrix(adj_matrix,v,k,l,u).to_scalars()
+    scalars = representation.from_matrix(adj_matrix, v, k, l, u).to_scalars()
 
     pprint(adj_matrix)
     pprint(scalars)
@@ -19,7 +20,7 @@ def test_candidates(v, k, l, u, expected):
         current_state = scalars[:slice]
         ans = scalars[slice]
 
-        possible_candidates = list(weak_graph._satisfy_weak_condition(current_state,v,k,l,u))
+        possible_candidates = list(weak_graph.generate(current_state, v, k))
         assert ans in possible_candidates
         print(current_state, ans, possible_candidates)
 
@@ -37,14 +38,13 @@ def test_9_4_1_2():
     #   [0, 0, 1, 0, 1],
     #  ]
 
-    for c, a in zip(weak_graph._satisfy_weak_condition(A,9,4,1,2), Ans):
+    for c, a in zip(weak_graph.generate(A, 9, 4), Ans):
         assert c == a
 
 
 def test_13_6_2_3():
-
     # Q_and_A = (4032, 1592, 294, 149, 77, 99, 26, 11, 14, 1, 3, 0)
 
     A = (4032,)
-    weaks = list(weak_graph._satisfy_weak_condition(A,9,4,1,2))
+    weaks = list(weak_graph.generate(A, 9, 4))
     assert 1592 in weaks

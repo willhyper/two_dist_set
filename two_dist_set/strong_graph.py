@@ -26,7 +26,7 @@ def generate(seed, v, k, l, u):
             row = len(graph)
             cumsum_len = v - row - 1
 
-            weak_candidates = weak_graph._satisfy_weak_condition(graph, v, k, l, u)
+            weak_candidates = weak_graph.generate(graph, v, k)
             for dec in weak_candidates:
                 binn = np.array(representation.dec2bin(dec, cumsum_len), dtype=np.int)
                 for xx in range(row):
