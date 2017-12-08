@@ -8,15 +8,22 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 '''
 from two_dist_set import strong_graph
 from pprint import pprint
-
+import time
 
 if __name__ == '__main__':
 
     import sys
     v, k, l, u = map(int, sys.argv[1:5])
 
-    assert strong_graph.check_problem(v,k,l,u), f'{(v,k,l,u)} is not a strongly regular graph problem.'
+    strong_graph.assert_arg(v,k,l,u)
     seed = strong_graph.generate_seed(v,k,l,u)
 
-    ans = list(strong_graph.generate(seed, v, k, l, u))
+    ans = []
+    start = time.time()
+    for s in strong_graph.generate(seed, v, k, l, u):
+        now = time.time()
+        elapsed_s, start = now - start, now
+        print(s,'elapsed', elapsed_s)
+        ans.append(s)
+
     pprint(ans)
