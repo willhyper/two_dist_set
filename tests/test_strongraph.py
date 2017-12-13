@@ -1,6 +1,5 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set.srg import SRG
 from two_dist_set import strong_graph
 from two_dist_set.problem_database import *
 
@@ -38,10 +37,9 @@ def test_strong(v, k, l, u, expected):
     print('expected determinant', det_expected)
     print('expected (eigenvalue, multiplicity)', em_expected)
 
-    s = SRG(v, k, l, u)
     seed = strong_graph.generate_seed(v, k, l, u)
-    s.add(seed)
-    for mat in strong_graph.generate(s):
+
+    for mat in strong_graph.generate(seed):
         eigval, eigvec = np.linalg.eig(mat)
 
         eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
