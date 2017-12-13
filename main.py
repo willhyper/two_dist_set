@@ -36,4 +36,4 @@ if __name__ == '__main__':
     elapsed_total = time.time() - start_dummy
     pprint(ans)
 
-    print(f'totally elapsed {elapsed_s} s')
+    print(f'totally elapsed {elapsed_total} s')
