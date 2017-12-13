@@ -1,9 +1,9 @@
 __author__ = 'chaoweichen'
 import numpy as np
 from . import weak_graph
-from collections import deque
 from two_dist_set.srg import SRG
-
+from collections import deque
+import multiprocessing
 
 def assert_arg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
@@ -63,7 +63,34 @@ def determinant(v: int, k: int, l: int, u: int):
     return int(round(prod))
 
 
+def strong_filter(s: SRG):
+    row = s.state
+    unknown_len = s.v - row - 1
+
+    survivors = list()
+
+    if unknown_len == 0:
+        return survivors
+
+    M = s.to_matrix()
+    for vec in weak_graph.generate(s):
+
+        for xx in range(row):
+            inprod = s.l if M[xx, row] == 1 else s.u
+            rem = inprod - M[row, 0:row].dot(M[xx, 0:row])
+            if vec.dot(M[xx, -unknown_len:]) != rem:
+                break
+        else:
+            cp = s.copy()
+            cp.add(vec)
+            survivors.append(cp)
+
+    return survivors
+
 def generate(s: SRG):
+    cpu = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=cpu)
+
     q = deque()
     q.append(s)
 
@@ -73,18 +100,12 @@ def generate(s: SRG):
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s.to_matrix()
         else:
-            M = s.to_matrix()
-            row = s.state
-            unknown_len = s.v - row - 1
+            survivor_list = strong_filter(s)
 
-            for vec in weak_graph.generate(s):
+            list_of_list = pool.map(strong_filter, survivor_list)
+            for lst in list_of_list:
+                for ss in lst:
+                    q.append(ss)
 
-                for xx in range(row):
-                    inprod = s.l if M[xx, row] == 1 else s.u
-                    rem = inprod - M[row, 0:row].dot(M[xx, 0:row])
-                    if vec.dot(M[xx, -unknown_len:]) != rem:
-                        break
-                else:
-                    cp = s.copy()
-                    cp.add(vec)
-                    q.append(cp)
+            # for ss in survivor_list:
+            #     q.append(ss)
