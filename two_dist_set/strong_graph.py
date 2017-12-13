@@ -5,17 +5,17 @@ from collections import deque
 from two_dist_set.srg import SRG
 
 
-def assert_arg(v, k, l, u):
+def assert_arg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
 
-def generate_seed(v, k, l, u):
+def generate_seed(v: int, k: int, l: int, u: int):
     seed = np.zeros(v - 1, dtype=np.int)
     seed[:k] = 1
     return seed
 
 
-def assert_strong(mat, v, k, l, u):
+def assert_strong(mat, v: int, k: int, l: int, u: int):
     assert_arg(v, k, l, u)
 
     I = np.identity(v, dtype=np.int)
@@ -27,11 +27,11 @@ def assert_strong(mat, v, k, l, u):
     assert det == determinant(v, k, l, u)
 
 
-def conference(v, k, l, u):
+def conference(v: int, k: int, l: int, u: int):
     return 2 * k + (v - 1) * (l - u)
 
 
-def eig(v, k, l, u):
+def eig(v: int, k: int, l: int, u: int):
     conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer
 
     D = np.sqrt((l - u) ** 2 + 4 * (k - u))
@@ -44,7 +44,7 @@ def eig(v, k, l, u):
     return tuple(zip(eig, mul))
 
 
-def determinant(v, k, l, u):
+def determinant(v: int, k: int, l: int, u: int):
     prod = 1
     for e, m in eig(v, k, l, u):
         prod *= e ** m
@@ -54,7 +54,7 @@ def determinant(v, k, l, u):
 
 def generate(s: SRG):
     q = deque()
-    q.append(s)  # seed = (240, 76, 3)
+    q.append(s)
 
     while q:
         s = q.pop()

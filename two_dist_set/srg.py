@@ -29,15 +29,15 @@ class SRG:
         return f'SRG({self._state} : {self._encoded})'
 
     def to_matrix(self):
-        cp = self.copy()
-        i = cp.state
+        enc = self._encoded.copy()
+        i = self.state
         mat = np.zeros((self.v, self.v), dtype=np.int)
         while i > 0:
             # decoding
-            cp._encoded[i:] >>= 1
+            enc[i:] >>= 1
             i -= 1
-            v = cp._encoded[i:] % 2
-            cp._encoded[i:] -= v
+            v = enc[i:] % 2
+            enc[i:] -= v
 
             # assign to symmetric matrix
             mat[i, i + 1:] = v
