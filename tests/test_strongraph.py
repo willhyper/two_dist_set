@@ -46,8 +46,7 @@ def test_strong(v, k, l, u, expected):
 
         eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
 
-        det = 1
-        for e in eigval: det *= e
+        det = np.prod(eigval)
         det = int(round(det))
         assert det == det_expected, "determinant disagree"
 
