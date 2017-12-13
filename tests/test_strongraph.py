@@ -1,7 +1,6 @@
-from two_dist_set.srg import SRG
-
 __author__ = 'chaoweichen'
 
+from two_dist_set.srg import SRG
 from two_dist_set import strong_graph
 from two_dist_set.problem_database import *
 
@@ -31,8 +30,7 @@ problems.append(problem_17_8_3_4)
 # problems.append(problem_21_10_5_4)
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_strong(v, k, l, u, expected):
-
-    not_conference_graph = strong_graph.conference(v,k,l,u) != 0
+    not_conference_graph = strong_graph.conference(v, k, l, u) != 0
 
     em_expected = {e: m for e, m in strong_graph.eig(v, k, l, u)}
 
@@ -40,7 +38,7 @@ def test_strong(v, k, l, u, expected):
     print('expected determinant', det_expected)
     print('expected (eigenvalue, multiplicity)', em_expected)
 
-    s = SRG(v,k,l,u)
+    s = SRG(v, k, l, u)
     seed = strong_graph.generate_seed(v, k, l, u)
     s.add(seed)
     for mat in strong_graph.generate(s):
@@ -54,6 +52,6 @@ def test_strong(v, k, l, u, expected):
         assert det == det_expected, "determinant disagree"
 
         c = Counter(eigval)
-        em_actual = { k : c.get(k) for k in sorted(c.keys(), reverse=True)}
+        em_actual = {k: c.get(k) for k in sorted(c.keys(), reverse=True)}
 
         print('actual   (eigenvalue, multiplicity)', em_actual)

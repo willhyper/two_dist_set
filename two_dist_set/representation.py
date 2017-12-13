@@ -5,6 +5,7 @@ import numpy as np
 def ind2bin(ind, digit):
     return tuple(1 if i in ind else 0 for i in range(digit))
 
+
 def ind2dec(ind, digit):
     # if ind includes 0, add 16
     # if ind includes 1, add 8
@@ -91,17 +92,3 @@ def from_matrix(M, v, m, l, u):
         out.append(val)
     out = out[:-1]
     return SRG(out, v, m, l, u)
-
-# [1 1 1 1 1 1 0 0 0 0 0 0] 4032
-# [1 1 0 0 0 1 1 1 0 0 0] 1592
-# [0 1 0 0 1 0 0 1 1 0] 294
-# [0 1 0 0 1 0 1 0 1] 149
-# [0 1 0 0 1 1 0 1] 77
-# [1 1 0 0 0 1 1] 99
-# [0 1 1 0 1 0] 26
-# [0 1 0 1 1] 11
-# [1 1 1 0] 14
-# [0 0 1] 1
-# [1 1] 3
-# [0] 0
-# [] 0

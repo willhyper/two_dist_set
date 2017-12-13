@@ -5,7 +5,6 @@ __author__ = 'chaoweichen'
 import numpy as np
 from two_dist_set.problem_database import *
 from two_dist_set import weak_graph
-from pprint import pprint
 
 import pytest
 
