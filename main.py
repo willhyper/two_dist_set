@@ -26,10 +26,14 @@ if __name__ == '__main__':
 
     ans = []
     start = time.time()
+    start_dummy = start
     for s in strong_graph.generate(srg):
         now = time.time()
         elapsed_s, start = now - start, now
-        print(s, 'elapsed', elapsed_s)
+        print(s, f'elapsed {elapsed_s} s')
         ans.append(s)
 
+    elapsed_total = time.time() - start_dummy
     pprint(ans)
+
+    print(f'totally elapsed {elapsed_s} s')
