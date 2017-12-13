@@ -11,8 +11,9 @@ class SRG:
 
     def add(self, row):
         assert self._state + len(row) == self.v - 1, "length of row mismatches status"
-        self._encoded[i:] += row
-        self._encoded[i+1:] <<= 1
+
+        self._encoded[self._state:] += row
+        self._encoded[self._state+1:] <<= 1
         self._state += 1
 
     @property
