@@ -2,6 +2,7 @@ __author__ = 'chaoweichen'
 import numpy as np
 from . import weak_graph
 from collections import deque
+from two_dist_set.srg import SRG
 
 
 def assert_arg(v, k, l, u):
@@ -51,7 +52,7 @@ def determinant(v, k, l, u):
     return int(round(prod))
 
 
-def generate(s):
+def generate(s: SRG):
     q = deque()
     q.append(s)  # seed = (240, 76, 3)
 
@@ -63,14 +64,14 @@ def generate(s):
         else:
             M = s.to_matrix()
             row = s.state
-            cumsum_len = s.v - row - 1
+            unknown_len = s.v - row - 1
 
             for vec in weak_graph.generate(s):
 
                 for xx in range(row):
                     inprod = s.l if M[xx, row] == 1 else s.u
                     rem = inprod - M[row, 0:row].dot(M[xx, 0:row])
-                    if vec.dot(M[xx, -cumsum_len:]) != rem:
+                    if vec.dot(M[xx, -unknown_len:]) != rem:
                         break
                 else:
                     cp = s.copy()
