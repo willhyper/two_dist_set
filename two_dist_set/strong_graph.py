@@ -5,6 +5,7 @@ from two_dist_set.srg import SRG
 from collections import deque
 import multiprocessing
 
+
 def assert_arg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
@@ -63,14 +64,12 @@ def determinant(v: int, k: int, l: int, u: int):
     return int(round(prod))
 
 
-def strong_filter(s: SRG):
+def strong_generator(s: SRG):
     row = s.state
     unknown_len = s.v - row - 1
 
-    survivors = list()
-
     if unknown_len == 0:
-        return survivors
+        return
 
     M = s.to_matrix()
     for vec in weak_graph.generate(s):
@@ -83,9 +82,12 @@ def strong_filter(s: SRG):
         else:
             cp = s.copy()
             cp.add(vec)
-            survivors.append(cp)
+            yield cp
 
-    return survivors
+
+def strong_list(s: SRG):
+    return list(strong_generator(s))
+
 
 def generate(s: SRG):
     cpu = multiprocessing.cpu_count()
@@ -100,12 +102,9 @@ def generate(s: SRG):
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s.to_matrix()
         else:
-            survivor_list = strong_filter(s)
+            survivors = strong_list(s)
 
-            list_of_list = pool.map(strong_filter, survivor_list)
+            list_of_list = pool.map(strong_list, survivors)
             for lst in list_of_list:
                 for ss in lst:
                     q.append(ss)
-
-            # for ss in survivor_list:
-            #     q.append(ss)
