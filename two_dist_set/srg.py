@@ -45,3 +45,7 @@ class SRG:
 
         return mat
 
+    def to_matrix_essential(self):
+        M = self.to_matrix()
+        M = M[:self.state, :]
+        return M

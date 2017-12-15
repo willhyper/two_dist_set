@@ -71,8 +71,7 @@ def strong_generator(s: SRG):
     if unknown_len == 0:
         return
 
-    M = s.to_matrix()
-    M = M[:row, :] # todo: remove this
+    M = s.to_matrix_essential()
     M_left, M_ri, M_right = M[:,:row], M[:,row], M[:,row+1:]
 
     inner_prod_required = np.array([s.l if M[r, row] == 1 else s.u for r in range(row)])
