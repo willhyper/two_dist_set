@@ -72,17 +72,23 @@ def strong_generator(s: SRG):
         return
 
     M = s.to_matrix()
-    for vec in weak_graph.generate(s):
+    M = M[:row, :] # todo: remove this
+    M_left, M_ri, M_right = M[:,:row], M[:,row], M[:,row+1:]
 
-        for xx in range(row):
-            inprod = s.l if M[xx, row] == 1 else s.u
-            rem = inprod - M[row, 0:row].dot(M[xx, 0:row])
-            if vec.dot(M[xx, -unknown_len:]) != rem:
-                break
-        else:
+    inner_prod_required = np.array([s.l if M[r, row] == 1 else s.u for r in range(row)])
+    # inner_prod_required = np.ones(row) * s.u
+    # inner_prod_required[M_ri == 1] = s.l
+
+    k_used = M_ri.transpose() @ M_left
+    inner_prod_remain = inner_prod_required - k_used
+
+    for vec in weak_graph.generate(s):
+        inner_prod_actual = M_right @ vec
+        if np.array_equal(inner_prod_actual, inner_prod_remain):
             cp = s.copy()
             cp.add(vec)
             yield cp
+
 
 
 def strong_list(s: SRG):
