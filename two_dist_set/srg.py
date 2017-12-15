@@ -46,6 +46,19 @@ class SRG:
         return mat
 
     def to_matrix_essential(self):
-        M = self.to_matrix()
-        M = M[:self.state, :]
-        return M
+
+        enc = self._encoded.copy()
+        R, C, i = self.state, self.v, self.state
+        mat = np.zeros((R, C), dtype=np.int)
+        while i > 0:
+            # decoding
+            enc[i:] >>= 1
+            i -= 1
+            v = enc[i:] % 2
+            enc[i:] -= v
+
+            # assign to partial matrix
+            mat[i, i + 1:] = v
+            mat[i + 1:, i] = v[:R - i - 1]
+
+        return mat
