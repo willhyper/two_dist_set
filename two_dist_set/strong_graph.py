@@ -65,29 +65,30 @@ def determinant(v: int, k: int, l: int, u: int):
 
 
 def strong_generator(s: SRG):
-    row = s.state
-    unknown_len = s.v - row - 1
+    ri = s.state
+    unknown_len = s.v - ri - 1
 
     if unknown_len == 0:
         return
 
     M = s.to_matrix_essential()
-    M_left, M_ri, M_right = M[:,:row], M[:,row], M[:,row+1:]
+    M_left, M_ri, M_right = M[:, :ri], M[:, ri], M[:, ri + 1:]
 
-    inner_prod_required = np.array([s.l if M[r, row] == 1 else s.u for r in range(row)])
-    # inner_prod_required = np.ones(row) * s.u
-    # inner_prod_required[M_ri == 1] = s.l
+    inner_prod_required = np.array([s.l if M_ri[r] == 1 else s.u for r in range(ri)], dtype=np.int)
 
-    k_used = M_ri.transpose() @ M_left
+    k_used = M_left @ M_ri
     inner_prod_remain = inner_prod_required - k_used
 
     for vec in weak_graph.generate(s):
         inner_prod_actual = M_right @ vec
-        if np.array_equal(inner_prod_actual, inner_prod_remain):
+
+        for actual, remain in zip(inner_prod_actual, inner_prod_remain):
+            if actual != remain:
+                break
+        else:
             cp = s.copy()
             cp.add(vec)
             yield cp
-
 
 
 def strong_list(s: SRG):
