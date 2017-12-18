@@ -62,3 +62,13 @@ class SRG:
             mat[i + 1:, i] = v[:R - i - 1]
 
         return mat
+
+    @classmethod
+    def from_matrix(cls, mat, v, k, l, u):
+        s = SRG(v, k, l, u)
+        row_num = mat.shape[0]
+        for i in range(row_num):
+            row = mat[i, i+1:]
+            s.add(row)
+
+        return s
