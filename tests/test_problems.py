@@ -1,6 +1,6 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set import strong_graph
+from two_dist_set import strong_graph, util
 from two_dist_set.problem_database import *
 
 import numpy as np
@@ -14,7 +14,7 @@ problems.append(problem_13_6_2_3)
 # problems.append(problem_21_10_5_4)
 @pytest.mark.parametrize('v,k,l,u,expected', problems)
 def test_srg(v, k, l, u, expected):
-    seed = strong_graph.generate_seed(v, k, l, u)
+    seed = util.generate_seed(v, k, l, u)
 
     actual = list(strong_graph.generate(seed))
     assert len(actual) == len(expected)

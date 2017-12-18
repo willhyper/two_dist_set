@@ -13,23 +13,6 @@ def assert_arg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
 
-def generate_seed(v: int, k: int, l: int, u: int):
-    first_row = np.zeros(v - 1, dtype=np.int)
-    first_row[:k] = 1
-
-    s = SRG(v, k, l, u)
-    s.add(first_row)
-
-    second_row = np.zeros(v - 2, dtype=np.int)
-
-    remain_ones_number = k - l - 1
-    second_row[:l] = 1
-    second_row[k - 1:k + remain_ones_number - 1] = 1
-
-    s.add(second_row)
-    return s
-
-
 def assert_strong(mat, v: int, k: int, l: int, u: int):
     assert_arg(v, k, l, u)
 

@@ -6,7 +6,7 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 65 32 15 16
 
 '''
-from two_dist_set import strong_graph
+from two_dist_set import strong_graph, util
 from pprint import pprint
 import time
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     strong_graph.assert_arg(v, k, l, u)
 
-    seed = strong_graph.generate_seed(v, k, l, u)
+    seed = util.generate_seed(v, k, l, u)
 
     ans = []
     start = time.time()

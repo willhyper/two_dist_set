@@ -33,11 +33,11 @@ def test_strong(v, k, l, u, expected):
 
     em_expected = {e: m for e, m in util.eig(v, k, l, u)}
 
-    det_expected = strong_graph.determinant(v, k, l, u)
+    det_expected = util.determinant(v, k, l, u)
     print('expected determinant', det_expected)
     print('expected (eigenvalue, multiplicity)', em_expected)
 
-    seed = strong_graph.generate_seed(v, k, l, u)
+    seed = util.generate_seed(v, k, l, u)
 
     for mat in strong_graph.generate(seed):
         eigval, eigvec = np.linalg.eig(mat)

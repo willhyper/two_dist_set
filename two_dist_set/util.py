@@ -1,6 +1,8 @@
 from two_dist_set.conference import conference
 import numpy as np
 
+from two_dist_set.srg import SRG
+
 
 def eig(v: int, k: int, l: int, u: int):
     conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer
@@ -21,3 +23,20 @@ def determinant(v: int, k: int, l: int, u: int):
         prod *= e ** m
 
     return int(round(prod))
+
+
+def generate_seed(v: int, k: int, l: int, u: int):
+    first_row = np.zeros(v - 1, dtype=np.int)
+    first_row[:k] = 1
+
+    s = SRG(v, k, l, u)
+    s.add(first_row)
+
+    second_row = np.zeros(v - 2, dtype=np.int)
+
+    remain_ones_number = k - l - 1
+    second_row[:l] = 1
+    second_row[k - 1:k + remain_ones_number - 1] = 1
+
+    s.add(second_row)
+    return s
