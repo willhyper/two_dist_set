@@ -3,7 +3,7 @@ import numpy as np
 from . import weak_graph
 from two_dist_set.srg import SRG
 from collections import deque
-import multiprocessing
+from types import coroutine
 
 
 def assert_arg(v: int, k: int, l: int, u: int):
@@ -63,8 +63,8 @@ def determinant(v: int, k: int, l: int, u: int):
 
     return int(round(prod))
 
-
-def strong_generator(s: SRG):
+@coroutine
+def filter_coroutine(s: SRG):
     ri = s.state
     unknown_len = s.v - ri - 1
 
@@ -79,20 +79,30 @@ def strong_generator(s: SRG):
     k_used = M_left @ M_ri
     inner_prod_remain = inner_prod_required - k_used
 
-    for vec in weak_graph.generate(s):
+    pass_fail = None
+    while True:
+        vec = yield pass_fail
+        pass_fail = False
+
         inner_prod_actual = M_right @ vec
 
         for actual, remain in zip(inner_prod_actual, inner_prod_remain):
             if actual != remain:
                 break
         else:
+            pass_fail = True
+
+
+def strong_generator(s: SRG):
+    fltr = filter_coroutine(s)
+    fltr.send(None)  # prime
+
+    for weak in weak_graph.generate(s):
+        pass_fail = fltr.send(weak)
+        if pass_fail:
             cp = s.copy()
-            cp.add(vec)
+            cp.add(weak)
             yield cp
-
-
-def strong_list(s: SRG):
-    return list(strong_generator(s))
 
 
 def generate(s: SRG):
@@ -105,5 +115,5 @@ def generate(s: SRG):
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s.to_matrix()
         else:
-            for survivor in strong_generator(s):
-                q.append(survivor)
+            for strong in strong_generator(s):
+                q.append(strong)
