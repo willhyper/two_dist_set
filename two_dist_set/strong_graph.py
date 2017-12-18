@@ -96,9 +96,6 @@ def strong_list(s: SRG):
 
 
 def generate(s: SRG):
-    cpu = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=cpu)
-
     q = deque()
     q.append(s)
 
@@ -108,9 +105,5 @@ def generate(s: SRG):
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s.to_matrix()
         else:
-            survivors = strong_list(s)
-
-            list_of_list = pool.map(strong_list, survivors)
-            for lst in list_of_list:
-                for ss in lst:
-                    q.append(ss)
+            for survivor in strong_generator(s):
+                q.append(survivor)
