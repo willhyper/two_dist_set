@@ -1,6 +1,6 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set import strong_graph
+from two_dist_set import strong_graph, conference, util
 from two_dist_set.problem_database import *
 
 import numpy as np
@@ -29,9 +29,9 @@ problems.append(problem_17_8_3_4)
 # problems.append(problem_21_10_5_4)
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_strong(v, k, l, u, expected):
-    not_conference_graph = strong_graph.conference(v, k, l, u) != 0
+    not_conference_graph = conference.conference(v, k, l, u) != 0
 
-    em_expected = {e: m for e, m in strong_graph.eig(v, k, l, u)}
+    em_expected = {e: m for e, m in util.eig(v, k, l, u)}
 
     det_expected = strong_graph.determinant(v, k, l, u)
     print('expected determinant', det_expected)
