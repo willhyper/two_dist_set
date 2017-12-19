@@ -19,6 +19,23 @@ class SRG:
     def state(self):
         return self._state
 
+    @property
+    def encoded_representation(self):
+        return self._encoded
+
+    @property
+    def unknown_len_of_current_row(self):
+        return self.v - 1 - self._state  # 9 - 1 - 3 = 5
+
+    @property
+    def used_k_of_current_row(self):
+        dec = self._encoded[self._state - 1]
+        used = 0
+        while dec > 0:
+            used += dec % 2
+            dec >>= 1
+        return used
+
     def copy(self):
         cp = SRG(self.v, self.k, self.l, self.u)
         cp._encoded = np.copy(self._encoded)

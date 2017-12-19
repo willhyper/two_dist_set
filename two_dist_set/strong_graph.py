@@ -27,13 +27,13 @@ def assert_strong(mat, v: int, k: int, l: int, u: int):
 
 @coroutine
 def filter_coroutine(s: SRG):
-    ri = s.state
-    unknown_len = s.v - ri - 1
 
-    if unknown_len == 0:
+    if s.unknown_len_of_current_row == 0:
         return
 
     M = s.to_matrix_essential()
+    ri = s.state
+
     M_left, M_ri, M_right = M[:, :ri], M[:, ri], M[:, ri + 1:]
 
     inner_prod_required = np.array([s.l if M_ri[r] == 1 else s.u for r in range(ri)], dtype=np.int)

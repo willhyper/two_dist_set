@@ -6,7 +6,7 @@ import itertools
 
 
 @coroutine
-def filter_coroutine(s: SRG, unknown_len):
+def filter_coroutine(s: SRG):
     # A = ((1, 1, 1, 1, 0, 0, 0, 0),    <= 8 = 9 - 1 = v - 1
     #         (0, 0, 0, 1, 1, 1, 0),
     #            (1, 1, 1, 0, 0, 0),)   <= 6 = 9 - 3 = v - len(As) = col
@@ -14,7 +14,7 @@ def filter_coroutine(s: SRG, unknown_len):
     #      used = 2
     #                ^  ^  ^  ^  ^
     #      enc    = 10  6  4  4  0         <=len(enc) = 5 = 6 - 1 = col - 1
-    enc = s._encoded[-unknown_len:]
+    enc = s.encoded_representation[-s.unknown_len_of_current_row:]
 
     pass_fail = None
     while True:
@@ -30,25 +30,22 @@ def filter_coroutine(s: SRG, unknown_len):
             pass_fail = True
 
 
-def generator(s: SRG, unknown_len, remain):
-    for indices in itertools.combinations(range(unknown_len), remain):
+def generator(s: SRG):
+
+    remain = s.k - s.used_k_of_current_row
+
+    for indices in itertools.combinations(range(s.unknown_len_of_current_row), remain):
         yield indices
 
 
 def generate(s: SRG):
-    dec = s._encoded[s.state - 1]
-    used = 0
-    while dec > 0:
-        used += dec % 2
-        dec >>= 1
 
-    remain = s.k - used
-    unknown_len = s.v - 1 - s.state  # 9 - 1 - 3 = 5
+    unknown_len = s.unknown_len_of_current_row
 
-    fltr = filter_coroutine(s, unknown_len)
+    fltr = filter_coroutine(s)
     fltr.send(None)
 
-    for indices in generator(s, unknown_len, remain):
+    for indices in generator(s):
         pass_fail = fltr.send(indices)
         if pass_fail:
             binn = np.zeros(unknown_len, dtype=np.int)
