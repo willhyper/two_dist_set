@@ -1,3 +1,5 @@
+from two_dist_set.util import determinant
+
 __author__ = 'chaoweichen'
 
 from two_dist_set import strong_graph, conference, util
@@ -27,6 +29,7 @@ problems.append(problem_17_8_3_4)
 # problems.append()
 # problems.append()
 # problems.append(problem_21_10_5_4)
+
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_strong(v, k, l, u, expected):
     not_conference_graph = conference.conference(v, k, l, u) != 0
@@ -52,3 +55,62 @@ def test_strong(v, k, l, u, expected):
         em_actual = {k: c.get(k) for k in sorted(c.keys(), reverse=True)}
 
         print('actual   (eigenvalue, multiplicity)', em_actual)
+
+
+
+@pytest.mark.parametrize('v,k,l,u, expected', problems)
+def test_matrix_identity(v: int, k: int, l: int, u: int, expected):
+    I = np.identity(v, dtype=np.int)
+    J = np.ones((v, v), dtype=np.int)
+    const = (k - u) * I + u * J
+    for mat in expected:
+        assert np.array_equal(mat @ mat - (l - u) * mat, const)
+
+@pytest.mark.parametrize('v,k,l,u,expected', problems)
+def test_database(v, k, l, u, expected):
+    seed = util.generate_seed(v, k, l, u)
+
+    actual = list(strong_graph.generate(seed))
+    assert len(actual) == len(expected)
+
+    for g, e in zip(actual, expected):
+        assert np.array_equal(g, e)
+
+
+@pytest.mark.parametrize('v,k,l,u,expected', problems)
+def test_adj_matrix_property(v, k, l, u, expected):
+    '''
+
+    in any given partial adj matrix, a property holds.
+
+    For example, the first 3 row of question (9, 4, 1, 2) is known,
+    and the 4th row is under construction.
+    Once ?????, the 1x5 vector, is found. It must follow some requirements from the first 3 rows.
+
+    011110000
+    101001100
+    110000011
+    1000????? <= ????? = solution
+
+    test below is given the complete SRG matrix. Therefore, the solution is known.
+    We use the solution to test against the property
+    :param expected: a list of matrix
+    :return: None
+    '''
+    for mat in expected:
+        for ri in range(1,v-1):
+            #
+            solution = mat[ri, ri+1:]
+
+            # construct partial matrix
+            partial_mat = mat[:ri, :]
+
+            m_left, m_ri, m_right = partial_mat[:, :ri], partial_mat[:, ri], partial_mat[:, ri + 1:]
+
+            inner_prod_required = np.array([l if m_ri[r] == 1 else u for r in range(ri)], dtype=np.int)
+
+            inner_prod_known = m_left @ m_ri
+            inner_prod_remain = inner_prod_required - inner_prod_known
+            inner_prod_actual = m_right @ solution
+
+            assert np.array_equal(inner_prod_actual, inner_prod_remain)

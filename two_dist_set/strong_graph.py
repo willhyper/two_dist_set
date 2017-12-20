@@ -13,18 +13,6 @@ def assert_arg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
 
-def assert_strong(mat, v: int, k: int, l: int, u: int):
-    assert_arg(v, k, l, u)
-
-    I = np.identity(v, dtype=np.int)
-    J = np.ones((v, v), dtype=np.int)
-    const = (k - u) * I + u * J
-    assert np.array_equal(mat @ mat - (l - u) * mat, const)
-
-    det = np.rint(np.linalg.det(mat))
-    assert det == determinant(v, k, l, u)
-
-
 @coroutine
 def filter_coroutine(s: SRG):
 
