@@ -38,19 +38,14 @@ class SRG:
 
     @property
     def known_partial_vector_of_current_row(self):
-        dec = self._encoded[self._ri - 1]
-        decoded = list()
+        vec = np.zeros(self._ri, dtype=np.int)
+        ri = self._ri - 1
+        dec = self._encoded[ri]
         while dec > 0:
-            e = dec % 2
+            vec[ri] = dec % 2
             dec >>= 1
-            decoded.append(e)
-        return np.array(decoded[::-1], dtype=np.int)
-
-    def known_inner_prod_with_row(self, row):
-        mat = self.to_matrix_essential()
-        vec = mat[row, : self._ri]
-        known = self.known_partial_vector_of_current_row
-        return vec.dot(known)
+            ri -= 1
+        return vec
 
     def copy(self):
         cp = SRG(self.v, self.k, self.l, self.u)
