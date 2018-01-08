@@ -41,4 +41,5 @@ def test_add_sub_eq(v, k, l, u, expected):
     actual = last_state + d
 
     assert actual == expected_state
+    assert actual != last_state
 

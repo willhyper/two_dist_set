@@ -10,12 +10,14 @@ class SRG:
 
     def __add__(self, row):
         l = self.v - 1 - self._ri
-        assert len(row) == l , f"expect len(row)=={l} but got len({row})={len(row)}"
-        self._encoded[self._ri:] += row
-        self._encoded[self._ri + 1:] <<= 1
-        self._ri += 1
+        assert len(row) == l, f"expect len(row)=={l} but got len({row})={len(row)}"
 
-        return self
+        cp = self.copy()
+        cp._encoded[cp._ri:] += row
+        cp._encoded[cp._ri + 1:] <<= 1
+        cp._ri += 1
+
+        return cp
 
 
     def __sub__(self, other):
