@@ -8,12 +8,41 @@ class SRG:
         self._ri = 0
         self._encoded = np.zeros(v - 1, dtype=np.int)
 
-    def add(self, row):
-        assert self._ri + len(row) == self.v - 1, "length of row mismatches status"
-
+    def __add__(self, row):
+        l = self.v - 1 - self._ri
+        assert len(row) == l , f"expect len(row)=={l} but got len({row})={len(row)}"
         self._encoded[self._ri:] += row
         self._encoded[self._ri + 1:] <<= 1
         self._ri += 1
+
+        return self
+
+
+    def __sub__(self, other):
+
+        ri = self._ri
+        assert ri == other._ri + 1, "only allow subtraction between adjacent state"
+
+        this = self._encoded.copy()# [ri + 1:] >> 1
+        that = other._encoded.copy()
+
+        this[ri:] >>= 1
+        this = this[ri-1:]
+        that = that[ri-1:]
+
+        return this - that
+
+    def __eq__(self, other):
+        v = self.v == other.v
+        k = self.k == other.k
+        l = self.l == other.l
+        u = self.u == other.u
+
+        ri = self._ri == other._ri
+
+        enc = np.array_equal(self._encoded, other._encoded)
+
+        return ri and enc and v and k and l and u
 
     @property
     def state(self):
@@ -54,7 +83,30 @@ class SRG:
         return cp
 
     def __repr__(self):
-        return f'SRG({self._ri} : {self._encoded})'
+
+        # construct a string representing the known part of the matrix
+        mat = self.to_matrix_essential()
+        strr = ''
+        R, C = mat.shape
+        for r in range(R):
+            row = mat[r, :]
+            strr += str(row)[1:-1] + '\n'
+        strr = strr[:-1]  # remove the trailing \n
+        strr = strr.replace(' ', '')
+
+        current_known_partial_vec_str = str(self.known_partial_vector_of_current_row)[1:-1].replace(' ', '')
+
+        question = '?' * self.unknown_len_of_current_row
+
+
+        out = f'(v, k, l, u) = {self.v, self.k, self.l, self.u}\n'
+
+        out += strr + '\n'
+        out += current_known_partial_vec_str + '0' + question
+
+        out += f'\nSRG({self._ri} : {self._encoded})'
+
+        return out
 
     def to_matrix(self):
         enc = self._encoded.copy()
@@ -103,27 +155,6 @@ class SRG:
         row_num = mat.shape[0]
         for i in range(row_num):
             row = mat[i, i+1:]
-            s.add(row)
+            s += row
 
         return s
-
-    def current_question(self):
-
-        print(f'(v, k, l, u) = {self.v, self.k, self.l, self.u}')
-
-        # construct a string representing the known part of the matrix
-        mat = self.to_matrix_essential()
-        strr = ''
-        R, C = mat.shape
-        for r in range(R):
-            row = mat[r,:]
-            strr += str(row)[1:-1] + '\n'
-        strr = strr[:-1] # remove the trailing \n
-        strr = strr.replace(' ', '')
-
-        current_known_partial_vec_str = str(self.known_partial_vector_of_current_row)[1:-1].replace(' ', '')
-
-        question = '?' * self.unknown_len_of_current_row
-
-        print(strr)
-        print(current_known_partial_vec_str + '0' + question)

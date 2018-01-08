@@ -50,9 +50,7 @@ def strong_generator(s: SRG):
     for weak in weak_graph.generate(s):
         pass_fail = fltr.send(weak)
         if pass_fail:
-            cp = s.copy()
-            cp.add(weak)
-            yield cp
+            yield s.copy() + weak
 
 
 def generate(s: SRG):

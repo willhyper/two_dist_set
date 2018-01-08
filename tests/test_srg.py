@@ -1,7 +1,7 @@
 
 from two_dist_set.srg import SRG
 from two_dist_set.problem_database import *
-
+import two_dist_set
 import numpy as np
 import pytest
 
@@ -28,3 +28,17 @@ def test_data_structure(v, k, l, u, expected):
         s = SRG.from_matrix(expected_one, v, k, l, u)
         actual = s.to_matrix()
         assert np.array_equal(expected_one, actual)
+
+@pytest.mark.parametrize('v,k,l,u, expected', problems)
+def test_add_sub_eq(v, k, l, u, expected):
+    s = two_dist_set.util.generate_seed(v, k, l, u)
+    g = two_dist_set.strong_graph.strong_generator(s)
+    ss = next(g)
+
+    last_state = s.copy()
+    expected_state = ss.copy()
+    d = expected_state - last_state
+    actual = last_state + d
+
+    assert actual == expected_state
+

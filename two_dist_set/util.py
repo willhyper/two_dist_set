@@ -30,7 +30,7 @@ def generate_seed(v: int, k: int, l: int, u: int):
     first_row[:k] = 1
 
     s = SRG(v, k, l, u)
-    s.add(first_row)
+    s += first_row
 
     second_row = np.zeros(v - 2, dtype=np.int)
 
@@ -38,7 +38,7 @@ def generate_seed(v: int, k: int, l: int, u: int):
     second_row[:l] = 1
     second_row[k - 1:k + remain_ones_number - 1] = 1
 
-    s.add(second_row)
+    s += second_row
     return s
 
 

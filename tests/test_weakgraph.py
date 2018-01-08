@@ -21,7 +21,7 @@ def test_candidates(v, k, l, u, expected):
     i = s.state
     while i < v - 1:
         row = adj_matrix[i, i + 1:]
-        s.add(row)
+        s += row
 
         ans = adj_matrix[i + 1, i + 2:]
         weaks = list(weak_graph.generate(s))
