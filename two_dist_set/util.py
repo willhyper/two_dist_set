@@ -2,6 +2,7 @@ from two_dist_set.conference import conference
 import numpy as np
 
 from two_dist_set.srg import SRG
+from collections import defaultdict
 
 
 def eig(v: int, k: int, l: int, u: int):
@@ -61,3 +62,43 @@ def partition(s: int, bounds: tuple) -> tuple:
     else:
         if s <= bound:
             yield (s,)
+
+
+def gauss_eliminate(A, b):
+    '''
+    a non-ideal (buggy) version of Gauss elimination
+    :param A: m by n matrix
+    :param b: m by 1 vector
+    :return: A_reduced, b_reduced
+    '''
+    R, C = A.shape
+    b = np.expand_dims(b, axis=1)
+    Ab = np.hstack((A, b))
+
+    row_to_nonzero_columns = defaultdict(list)
+    for c in range(C):
+        nonzero_rows = Ab[:, c].nonzero()[0]
+        # [0] to select the 1st element in the tuple because Ab[:, c] is a 1D vector
+
+        if len(nonzero_rows) < 2:
+            continue
+
+        # use nonzero_rows to construct
+        row_to_nonzero_columns.clear()
+        for rr, cc in zip(*Ab[nonzero_rows, :].nonzero()):
+            row_to_nonzero_columns[rr].append(cc)
+
+        lenmap = map(len, row_to_nonzero_columns.values())
+        argmin = np.argmin(list(lenmap))
+        row_0 = nonzero_rows[argmin]
+        row_rest = np.setdiff1d(nonzero_rows, row_0)
+
+        e = Ab[row_0, c]
+        if e != 1:
+            Ab[row_rest, :] *= e
+
+        v = Ab[row_0, :].reshape((1, -1))
+        ratio = Ab[row_rest, c].reshape((-1, 1))
+        Ab[row_rest, :] -= ratio @ v
+
+    return Ab[:, :-1], Ab[:, -1]
