@@ -24,10 +24,16 @@ problems.append(problem_17_8_3_4)
 
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_data_structure(v, k, l, u, expected):
-    for expected_one in expected:
-        s = SRG.from_matrix(expected_one, v, k, l, u)
-        actual = s.to_matrix()
-        assert np.array_equal(expected_one, actual)
+    for mat_expected in expected:
+        s = SRG.from_matrix(mat_expected, v, k, l, u)
+
+        mat_actual = s.to_matrix()
+        assert np.array_equal(mat_expected, mat_actual)
+
+        mat_partial_actual = s.to_matrix_essential()
+        mat_partial_expected = mat_expected[:s.state, :]
+        assert np.array_equal(mat_partial_expected, mat_partial_actual)
+
 
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_add_sub_eq(v, k, l, u, expected):

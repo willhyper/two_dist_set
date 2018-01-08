@@ -4,6 +4,7 @@ __author__ = 'chaoweichen'
 
 from two_dist_set import strong_graph, conference, util
 from two_dist_set.problem_database import *
+from two_dist_set.srg import SRG
 
 import numpy as np
 from collections import Counter
@@ -98,19 +99,19 @@ def test_adj_matrix_property(v, k, l, u, expected):
     :return: None
     '''
     for mat in expected:
-        for ri in range(1,v-1):
-            #
-            solution = mat[ri, ri+1:]
+        for ri in range(1, v-1):
 
-            # construct partial matrix
             partial_mat = mat[:ri, :]
+            s = SRG.from_matrix(partial_mat, v, k, l, u)
 
-            m_left, m_ri, m_right = partial_mat[:, :ri], partial_mat[:, ri], partial_mat[:, ri + 1:]
+            m_right, inner_prod_remain = s.question()
 
-            inner_prod_required = np.array([l if m_ri[r] == 1 else u for r in range(ri)], dtype=np.int)
+            # part 1: solution is known: mat[ri, ri + 1:]
+            solution = mat[ri, ri + 1:]
+            assert np.array_equal(m_right @ solution, inner_prod_remain)
 
-            inner_prod_known = m_left @ m_ri
-            inner_prod_remain = inner_prod_required - inner_prod_known
-            inner_prod_actual = m_right @ solution
+            # part 2: solution is not known: generate candidates from strong_generator
+            for s2 in strong_graph.strong_generator(s):
+                candidate = s2 - s
+                assert np.array_equal(m_right @ candidate, inner_prod_remain)
 
-            assert np.array_equal(inner_prod_actual, inner_prod_remain)

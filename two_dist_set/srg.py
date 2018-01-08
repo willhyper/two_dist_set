@@ -160,3 +160,25 @@ class SRG:
             s += row
 
         return s
+
+    def question(self, include_k=True):
+
+        mat = self.to_matrix_essential()
+        ri = self._ri
+        m_left, m_ri, m_right = mat[:, :ri], mat[:, ri], mat[:, ri + 1:]
+
+        inner_prod_required = np.array([self.l if m_ri[r] == 1 else self.u for r in range(ri)], dtype=np.int)
+
+        inner_prod_known = m_left @ m_ri
+        inner_prod_remain = inner_prod_required - inner_prod_known
+
+        if include_k:
+            R, C = m_right.shape
+            constrain_k_vec = np.ones(C, dtype=np.int)
+            constrain_k_remain = self.k - sum(m_ri)
+            m_right_w_k = np.vstack((m_right, constrain_k_vec))
+            inner_prod_remain_w_k = np.concatenate((inner_prod_remain, (constrain_k_remain,)))
+
+            return m_right_w_k, inner_prod_remain_w_k
+        else:
+            return m_right, inner_prod_remain
