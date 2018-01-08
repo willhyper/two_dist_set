@@ -1,7 +1,5 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set.util import determinant
-
 import numpy as np
 from . import weak_graph
 from two_dist_set.srg import SRG
@@ -50,7 +48,7 @@ def strong_generator(s: SRG):
     for weak in weak_graph.generate(s):
         pass_fail = fltr.send(weak)
         if pass_fail:
-            yield s.copy() + weak
+            yield s + weak
 
 
 def generate(s: SRG):
