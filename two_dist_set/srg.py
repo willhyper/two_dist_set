@@ -1,5 +1,7 @@
 __author__ = 'chaoweichen'
 import numpy as np
+from collections import deque
+from . import strong_graph
 
 
 class SRG:
@@ -19,18 +21,17 @@ class SRG:
 
         return cp
 
-
     def __sub__(self, other):
 
         ri = self._ri
         assert ri == other._ri + 1, "only allow subtraction between adjacent state"
 
-        this = self._encoded.copy()# [ri + 1:] >> 1
+        this = self._encoded.copy()  # [ri + 1:] >> 1
         that = other._encoded.copy()
 
         this[ri:] >>= 1
-        this = this[ri-1:]
-        that = that[ri-1:]
+        this = this[ri - 1:]
+        that = that[ri - 1:]
 
         return this - that
 
@@ -65,7 +66,7 @@ class SRG:
         while dec > 0:
             used += dec % 2
             dec >>= 1
-        return used # = sum(self.known_partial_vector_of_current_row)
+        return used  # = sum(self.known_partial_vector_of_current_row)
 
     @property
     def known_partial_vector_of_current_row(self):
@@ -99,7 +100,6 @@ class SRG:
         current_known_partial_vec_str = str(self.known_partial_vector_of_current_row)[1:-1].replace(' ', '')
 
         question = '?' * self.unknown_len_of_current_row
-
 
         out = f'(v, k, l, u) = {self.v, self.k, self.l, self.u}\n'
 
@@ -156,7 +156,7 @@ class SRG:
         s = SRG(v, k, l, u)
         row_num = mat.shape[0]
         for i in range(row_num):
-            row = mat[i, i+1:]
+            row = mat[i, i + 1:]
             s += row
 
         return s
@@ -182,3 +182,17 @@ class SRG:
             return m_right_w_k, inner_prod_remain_w_k
         else:
             return m_right, inner_prod_remain
+
+
+def solve(s: SRG):
+    q = deque()
+    q.append(s)
+
+    while q:
+        s = q.pop()
+
+        if s.state == s.v - 1:  # data structure property. when met, graph is complete
+            yield s.to_matrix()
+        else:
+            for strong in strong_graph.advance(s):
+                q.append(strong)

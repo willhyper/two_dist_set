@@ -4,7 +4,7 @@ __author__ = 'chaoweichen'
 
 from two_dist_set import strong_graph, conference, util
 from two_dist_set.problem_database import *
-from two_dist_set.srg import SRG
+from two_dist_set import srg
 
 import numpy as np
 from collections import Counter
@@ -43,7 +43,7 @@ def test_strong(v, k, l, u, expected):
 
     seed = util.generate_seed(v, k, l, u)
 
-    for mat in strong_graph.generate(seed):
+    for mat in srg.solve(seed):
         eigval, eigvec = np.linalg.eig(mat)
 
         eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
@@ -71,7 +71,7 @@ def test_matrix_identity(v: int, k: int, l: int, u: int, expected):
 def test_database(v, k, l, u, expected):
     seed = util.generate_seed(v, k, l, u)
 
-    actual = list(strong_graph.generate(seed))
+    actual = list(srg.solve(seed))
     assert len(actual) == len(expected)
 
     for g, e in zip(actual, expected):
@@ -102,7 +102,7 @@ def test_adj_matrix_property(v, k, l, u, expected):
         for ri in range(1, v-1):
 
             partial_mat = mat[:ri, :]
-            s = SRG.from_matrix(partial_mat, v, k, l, u)
+            s = srg.SRG.from_matrix(partial_mat, v, k, l, u)
 
             m_right, inner_prod_remain = s.question()
 
@@ -111,7 +111,7 @@ def test_adj_matrix_property(v, k, l, u, expected):
             assert np.array_equal(m_right @ solution, inner_prod_remain)
 
             # part 2: solution is not known: generate candidates from strong_generator
-            for s2 in strong_graph.strong_generator(s):
+            for s2 in strong_graph.advance(s):
                 candidate = s2 - s
                 assert np.array_equal(m_right @ candidate, inner_prod_remain)
 

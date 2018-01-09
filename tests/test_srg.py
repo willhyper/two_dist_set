@@ -38,7 +38,7 @@ def test_data_structure(v, k, l, u, expected):
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_add_sub_eq(v, k, l, u, expected):
     s = two_dist_set.util.generate_seed(v, k, l, u)
-    g = two_dist_set.strong_graph.strong_generator(s)
+    g = two_dist_set.strong_graph.advance(s)
     ss = next(g)
 
     last_state = s.copy()

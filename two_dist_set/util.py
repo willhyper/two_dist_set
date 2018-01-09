@@ -5,6 +5,10 @@ from two_dist_set.srg import SRG
 from collections import defaultdict
 
 
+def assert_arg(v: int, k: int, l: int, u: int):
+    assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
+
+
 def eig(v: int, k: int, l: int, u: int):
     conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer
 

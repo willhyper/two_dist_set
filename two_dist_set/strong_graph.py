@@ -1,31 +1,16 @@
 __author__ = 'chaoweichen'
 
-import numpy as np
 from . import weak_graph
 from two_dist_set.srg import SRG
-from collections import deque
 from types import coroutine
-
-
-def assert_arg(v: int, k: int, l: int, u: int):
-    assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
 
 @coroutine
 def filter_coroutine(s: SRG):
-
     if s.unknown_len_of_current_row == 0:
         return
 
-    M = s.to_matrix_essential()
-    ri = s.state
-
-    M_left, M_ri, M_right = M[:, :ri], M[:, ri], M[:, ri + 1:]
-
-    inner_prod_required = np.array([s.l if M_ri[r] == 1 else s.u for r in range(ri)], dtype=np.int)
-
-    k_used = M_left @ M_ri
-    inner_prod_remain = inner_prod_required - k_used
+    M_right, inner_prod_remain = s.question()
 
     pass_fail = None
     while True:
@@ -41,25 +26,15 @@ def filter_coroutine(s: SRG):
             pass_fail = True
 
 
-def strong_generator(s: SRG):
+def _advance(s: SRG):
     fltr = filter_coroutine(s)
     fltr.send(None)  # prime
 
-    for weak in weak_graph.generate(s):
+    for weak in weak_graph.advance(s):
         pass_fail = fltr.send(weak)
         if pass_fail:
             yield s + weak
 
 
-def generate(s: SRG):
-    q = deque()
-    q.append(s)
-
-    while q:
-        s = q.pop()
-
-        if s.state == s.v - 1:  # data structure property. when met, graph is complete
-            yield s.to_matrix()
-        else:
-            for strong in strong_generator(s):
-                q.append(strong)
+def advance(s: SRG):
+    yield from _advance(s)

@@ -38,7 +38,7 @@ def generator(s: SRG):
         yield indices
 
 
-def generate(s: SRG):
+def advance(s: SRG):
 
     unknown_len = s.unknown_len_of_current_row
 

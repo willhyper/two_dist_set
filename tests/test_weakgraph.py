@@ -24,7 +24,7 @@ def test_candidates(v, k, l, u, expected):
         s += row
 
         ans = adj_matrix[i + 1, i + 2:]
-        weaks = list(weak_graph.generate(s))
+        weaks = list(weak_graph.advance(s))
         for w in weaks:
             if np.array_equal(ans, w):
                 break
