@@ -2,139 +2,76 @@ __author__ = 'chaoweichen'
 
 import two_dist_set
 
-from two_dist_set import strong_graph, conference, util
+from two_dist_set import util, strong_graph
 from two_dist_set.problem_database import *
-from two_dist_set import srg
+
 
 import numpy as np
-from collections import Counter, deque
+from collections import deque
 
 import pytest
 
-problems = []
-problems.append(problem_4_2_0_2)
-problems.append(problem_5_2_0_1)
-problems.append(problem_6_3_0_3)
-problems.append(problem_6_4_2_4)
-problems.append(problem_9_4_1_2)
-problems.append(problem_10_3_0_1)
-problems.append(problem_10_6_3_4)
-problems.append(problem_12_6_0_6)
-problems.append(problem_13_6_2_3)
-problems.append(problem_15_8_4_4)
-problems.append(problem_16_5_0_2)
-problems.append(problem_16_6_2_2)
-problems.append(problem_16_9_4_6)
-problems.append(problem_16_10_6_6)
-problems.append(problem_17_8_3_4)
+problems_efficient = []
+problems_efficient.append(problem_4_2_0_2)
+problems_efficient.append(problem_5_2_0_1)
+problems_efficient.append(problem_6_3_0_3)
+problems_efficient.append(problem_6_4_2_4)
+problems_efficient.append(problem_9_4_1_2)
+# problems_efficient.append(problem_10_3_0_1)
+# problems_efficient.append(problem_10_6_3_4)
+# problems_efficient.append(problem_12_6_0_6)
+# problems_efficient.append(problem_13_6_2_3)
+# problems_efficient.append(problem_15_8_4_4)
+# problems_efficient.append(problem_16_5_0_2)
+problems_efficient.append(problem_16_6_2_2)
+problems_efficient.append(problem_16_9_4_6)
+problems_efficient.append(problem_16_10_6_6)
+problems_efficient.append(problem_17_8_3_4)
+
+problems_all = problems_efficient.copy()
+# problems_all.append(problem_21_10_4_5)  # no solution. 164s weak. 295.94s partition.
+# problems_all.append(problem_21_10_5_4)  # 33.8s weak. 56.3s partition.
+problems_all.append(problem_25_8_3_2)  # 1.77s weak. 0.44s partition.
+# problems_all.append(problem_25_12_5_6)  # Total 15! solutions. too many. only list the first
+# problems_all.append(problem_26_10_3_4)  # Total 10! solutions. too many. only list the first
+# problems_all.append(problem_27_10_1_5)  # 256.58s weak. 93.93s partition
 
 
-# problems.append()
-# problems.append()
-# problems.append(problem_21_10_5_4)
-
-@pytest.mark.parametrize('v,k,l,u, expected', problems)
-def test_strong(v, k, l, u, expected):
-    not_conference_graph = conference.conference(v, k, l, u) != 0
-
-    em_expected = {e: m for e, m in util.eig(v, k, l, u)}
-
-    det_expected = util.determinant(v, k, l, u)
-    print('expected determinant', det_expected)
-    print('expected (eigenvalue, multiplicity)', em_expected)
-
+@pytest.mark.parametrize('v,k,l,u,database', problems_all)
+def test_weak_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
     seed = util.generate_seed(v, k, l, u)
 
-    for srg_done in srg.solve(seed):
-        mat = srg_done.to_matrix()
-        eigval, eigvec = np.linalg.eig(mat)
-
-        eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
-
-        det = np.prod(eigval)
-        det = int(round(det))
-        assert det == det_expected, "determinant disagree"
-
-        c = Counter(eigval)
-        em_actual = {k: c.get(k) for k in sorted(c.keys(), reverse=True)}
-
-        print('actual   (eigenvalue, multiplicity)', em_actual)
-
-
-@pytest.mark.parametrize('v,k,l,u, expected', problems)
-def test_matrix_identity(v: int, k: int, l: int, u: int, expected):
-    I = np.identity(v, dtype=np.int)
-    J = np.ones((v, v), dtype=np.int)
-    const = (k - u) * I + u * J
-    for mat in expected:
-        assert np.array_equal(mat @ mat - (l - u) * mat, const)
-
-
-@pytest.mark.parametrize('v,k,l,u,expected', problems)
-def test_database(v, k, l, u, expected):
-    seed = util.generate_seed(v, k, l, u)
-
-    actual_srgs = list(srg.solve(seed))
-    assert len(actual_srgs) == len(expected)
+    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_weak))
+    assert len(actual_srgs) == len(database)
 
     actual_srgs.sort()
 
-    for actual_srg, expected_matrix in zip(actual_srgs, expected):
+    for actual_srg, expected_matrix in zip(actual_srgs, database):
         actual_matrix = actual_srg.to_matrix()
         assert np.array_equal(actual_matrix, expected_matrix)
 
 
-@pytest.mark.parametrize('v,k,l,u, expected', problems)
-def test_database_matrix_is_sorted(v, k, l, u, expected):
-    actual = expected
-    srg_actual = [two_dist_set.srg.SRG.from_matrix(mat, v, k, l, u) for mat in actual]
+@pytest.mark.parametrize('v,k,l,u,database', problems_all)
+def test_partition_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
+    seed = util.generate_seed(v, k, l, u)
 
-    srg_expected = sorted(srg_actual)
+    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_partition))
+    assert len(actual_srgs) == len(database)
 
-    for a, e in zip(srg_actual, srg_expected):
-        assert a == e
+    actual_srgs.sort()
+
+    for actual_srg, expected_matrix in zip(actual_srgs, database):
+        actual_matrix = actual_srg.to_matrix()
+        assert np.array_equal(actual_matrix, expected_matrix)
 
 
-@pytest.mark.parametrize('v,k,l,u,expected', problems)
-def test_adj_matrix_property(v, k, l, u, expected):
+@pytest.mark.parametrize('v,k,l,u,database', problems_efficient)
+def test_compare_two_approaches(v: int, k: int, l: int, u: int, database):
     '''
-
-    in any given partial adj matrix, a property holds.
-
-    For example, the first 3 row of question (9, 4, 1, 2) is known,
-    and the 4th row is under construction.
-    Once ?????, the 1x5 vector, is found. It must follow some requirements from the first 3 rows.
-
-    011110000
-    101001100
-    110000011
-    1000????? <= ????? = solution
-
-    test below is given the complete SRG matrix. Therefore, the solution is known.
-    We use the solution to test against the property
-    :param expected: a list of matrix
-    :return: None
+    _advance_from_weak is an early approach
+    _advance_from_partition is the current approach
+    both should output the same, even in their intermediate state
     '''
-    for mat in expected:
-        for ri in range(1, v - 1):
-
-            partial_mat = mat[:ri, :]
-            s = srg.SRG.from_matrix(partial_mat, v, k, l, u)
-
-            m_right, inner_prod_remain = s.question()
-
-            # part 1: solution is known: mat[ri, ri + 1:]
-            solution = mat[ri, ri + 1:]
-            assert np.array_equal(m_right @ solution, inner_prod_remain)
-
-            # part 2: solution is not known: generate candidates from strong_generator
-            for s2 in strong_graph.advance(s):
-                candidate = s2 - s
-                assert np.array_equal(m_right @ candidate, inner_prod_remain)
-
-
-@pytest.mark.parametrize('v,k,l,u,expected', problems)
-def test_answers_cross_compare(v, k, l, u, expected):
     s = two_dist_set.util.generate_seed(v, k, l, u)
 
     q = deque()
@@ -154,4 +91,3 @@ def test_answers_cross_compare(v, k, l, u, expected):
 
         for ss in pt:
             q.append(ss)
-
