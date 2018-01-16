@@ -131,3 +131,27 @@ def test_adj_matrix_property(v, k, l, u, expected):
             for s2 in strong_graph.advance(s):
                 candidate = s2 - s
                 assert np.array_equal(m_right @ candidate, inner_prod_remain)
+
+
+@pytest.mark.parametrize('v,k,l,u,expected', problems)
+def test_answers_cross_compare(v, k, l, u, expected):
+    s = two_dist_set.util.generate_seed(v, k, l, u)
+
+    q = deque()
+    q.append(s)
+
+    while q:
+
+        s = q.pop()
+
+        wk = list(two_dist_set.strong_graph._advance_from_weak(s))
+        pt = list(two_dist_set.strong_graph._advance_from_partition(s))
+        wk.sort()
+        pt.sort()
+
+        for w, p in zip(wk, pt):
+            assert w == p
+
+        for ss in pt:
+            q.append(ss)
+
