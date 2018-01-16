@@ -1,9 +1,11 @@
+from functools import total_ordering
+
 __author__ = 'chaoweichen'
 import numpy as np
 from collections import deque
 from . import strong_graph
 
-
+@total_ordering
 class SRG:
     def __init__(self, v, k, l, u):
         self.v, self.k, self.l, self.u = v, k, l, u
@@ -12,6 +14,7 @@ class SRG:
 
     def __add__(self, row):
         l = self.v - 1 - self._ri
+
         assert len(row) == l, f"expect len(row)=={l} but got len({row})={len(row)}"
 
         cp = self.copy()
@@ -47,6 +50,16 @@ class SRG:
 
         return ri and enc and v and k and l and u
 
+    def __lt__(self, other):
+        these = np.nditer(self._encoded)
+        those = np.nditer(other._encoded)
+        for this, that in zip(these, those):
+            if this == that:
+                continue
+            else:
+                return this < that
+        assert False, "impossible...."
+
     @property
     def state(self):
         return self._ri
@@ -66,10 +79,10 @@ class SRG:
         while dec > 0:
             used += dec % 2
             dec >>= 1
-        return used  # = sum(self.known_partial_vector_of_current_row)
+        return used  # = sum(self.pivot_vector)
 
     @property
-    def known_partial_vector_of_current_row(self):
+    def pivot_vector(self):
         vec = np.zeros(self._ri, dtype=np.int)
         ri = self._ri - 1
         dec = self._encoded[ri]
@@ -97,7 +110,7 @@ class SRG:
         strr = strr[:-1]  # remove the trailing \n
         strr = strr.replace(' ', '')
 
-        current_known_partial_vec_str = str(self.known_partial_vector_of_current_row)[1:-1].replace(' ', '')
+        current_known_partial_vec_str = str(self.pivot_vector)[1:-1].replace(' ', '')
 
         question = '?' * self.unknown_len_of_current_row
 
@@ -184,7 +197,7 @@ class SRG:
             return m_right, inner_prod_remain
 
 
-def solve(s: SRG):
+def solve(s: SRG)->SRG:
     q = deque()
     q.append(s)
 
@@ -192,7 +205,7 @@ def solve(s: SRG):
         s = q.pop()
 
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
-            yield s.to_matrix()
+            yield s
         else:
             for strong in strong_graph.advance(s):
                 q.append(strong)

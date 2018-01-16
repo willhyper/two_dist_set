@@ -21,17 +21,23 @@ if __name__ == '__main__':
 
     seed = util.generate_seed(v, k, l, u)
 
-    ans = []
+    srg_solved = []
     start = time.time()
     start_dummy = start
     for s in srg.solve(seed):
         now = time.time()
         elapsed_s, start = now - start, now
-        pprint(s)
+        mat = s.to_matrix()
+        pprint(mat)
         print(f'elapsed {elapsed_s} s')
-        ans.append(s)
+        srg_solved.append(s)
 
     elapsed_total = time.time() - start_dummy
-    pprint(ans)
+
+    print('sorted matrix')
+    srg_solved.sort()
+
+    matricies = [s.to_matrix() for s in srg_solved]
+    pprint(matricies)
 
     print(f'totally elapsed {elapsed_total} s')

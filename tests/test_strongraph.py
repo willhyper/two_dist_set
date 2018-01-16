@@ -1,13 +1,13 @@
-from two_dist_set.util import determinant
-
 __author__ = 'chaoweichen'
+
+import two_dist_set
 
 from two_dist_set import strong_graph, conference, util
 from two_dist_set.problem_database import *
 from two_dist_set import srg
 
 import numpy as np
-from collections import Counter
+from collections import Counter, deque
 
 import pytest
 
@@ -27,6 +27,8 @@ problems.append(problem_16_6_2_2)
 problems.append(problem_16_9_4_6)
 problems.append(problem_16_10_6_6)
 problems.append(problem_17_8_3_4)
+
+
 # problems.append()
 # problems.append()
 # problems.append(problem_21_10_5_4)
@@ -43,7 +45,8 @@ def test_strong(v, k, l, u, expected):
 
     seed = util.generate_seed(v, k, l, u)
 
-    for mat in srg.solve(seed):
+    for srg_done in srg.solve(seed):
+        mat = srg_done.to_matrix()
         eigval, eigvec = np.linalg.eig(mat)
 
         eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
@@ -58,7 +61,6 @@ def test_strong(v, k, l, u, expected):
         print('actual   (eigenvalue, multiplicity)', em_actual)
 
 
-
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_matrix_identity(v: int, k: int, l: int, u: int, expected):
     I = np.identity(v, dtype=np.int)
@@ -67,15 +69,30 @@ def test_matrix_identity(v: int, k: int, l: int, u: int, expected):
     for mat in expected:
         assert np.array_equal(mat @ mat - (l - u) * mat, const)
 
+
 @pytest.mark.parametrize('v,k,l,u,expected', problems)
 def test_database(v, k, l, u, expected):
     seed = util.generate_seed(v, k, l, u)
 
-    actual = list(srg.solve(seed))
-    assert len(actual) == len(expected)
+    actual_srgs = list(srg.solve(seed))
+    assert len(actual_srgs) == len(expected)
 
-    for g, e in zip(actual, expected):
-        assert np.array_equal(g, e)
+    actual_srgs.sort()
+
+    for actual_srg, expected_matrix in zip(actual_srgs, expected):
+        actual_matrix = actual_srg.to_matrix()
+        assert np.array_equal(actual_matrix, expected_matrix)
+
+
+@pytest.mark.parametrize('v,k,l,u, expected', problems)
+def test_database_matrix_is_sorted(v, k, l, u, expected):
+    actual = expected
+    srg_actual = [two_dist_set.srg.SRG.from_matrix(mat, v, k, l, u) for mat in actual]
+
+    srg_expected = sorted(srg_actual)
+
+    for a, e in zip(srg_actual, srg_expected):
+        assert a == e
 
 
 @pytest.mark.parametrize('v,k,l,u,expected', problems)
@@ -99,7 +116,7 @@ def test_adj_matrix_property(v, k, l, u, expected):
     :return: None
     '''
     for mat in expected:
-        for ri in range(1, v-1):
+        for ri in range(1, v - 1):
 
             partial_mat = mat[:ri, :]
             s = srg.SRG.from_matrix(partial_mat, v, k, l, u)
@@ -114,4 +131,3 @@ def test_adj_matrix_property(v, k, l, u, expected):
             for s2 in strong_graph.advance(s):
                 candidate = s2 - s
                 assert np.array_equal(m_right @ candidate, inner_prod_remain)
-
