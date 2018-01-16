@@ -1,33 +1,5 @@
 import numpy as np
-from scipy import linalg
-from collections import defaultdict, deque
-
-from pprint import pprint
-import collections
-
-np.set_printoptions(precision=3, suppress=True)
-
-
-class symbolic_scalar:
-    def __init__(self, a):
-        assert not isinstance(a, collections.Iterable)
-        self.set_value(a)
-
-    @property
-    def value(self):
-        return self.get_value()
-
-    def get_value(self):
-        return self._a[0]
-
-    def set_value(self, a):
-        self._a = [a]
-
-    def __repr__(self):
-        return f'{self.value}'
-
-
-ss = symbolic_scalar
+from collections import defaultdict
 
 
 class Question:
@@ -35,26 +7,18 @@ class Question:
     given A, b, find x st A @ x = b
     '''
 
-    unknown = 0 # np.nan
-
-    def __init__(self, A, b, x=None):
+    def __init__(self, A, b):
         R, C = A.shape
         assert R == b.shape[0]
 
         self.A, self.b = A, b
-
-        if x is None:
-            self.x = [ss(Question.unknown) for _ in range(C)]
-        else:
-            assert len(x) == C
-            self.x = x
 
     def __repr__(self):
         A = f'{self.A}'
         b = f'{self.b}'
 
         R, C = self.A.shape
-        x = f'{self.x}'
+        x = '?' * C
 
         szA = f'_({R}x{C})'
         szb = f'_({R}x{1})'
@@ -65,25 +29,23 @@ class Question:
         zero_rows = self.b == 0
 
         if not np.any(zero_rows):
-            return self
+            R, C = self.A.shape
+            unknown_columns = np.ones(C, dtype=np.bool)
+            return self, unknown_columns
 
         A0 = self.A[zero_rows, :]
 
         nonzero_rows = np.invert(zero_rows)
         An, bn = self.A[nonzero_rows, :], self.b[nonzero_rows]
 
-        nonzero_columns = np.logical_or.reduce(A0) #  nonzero_columns in A0 results in 0 element in x st A0 @ x = 0
-        zero_columns = np.invert(nonzero_columns)
-        An = An[:, zero_columns]
+        known_columns = np.logical_or.reduce(A0)
+        # known_columns are columns in A0 where elements are 1
+        # because A0 @ x = 0, the corresponding element in x must be 0. Thus say known
 
-        x_remain = []
-        for i in range(A0.shape[1]):
-            if i in nonzero_columns.nonzero()[0]:  # [0] is to unpack a tuple:
-                self.x[i].set_value(0)
-            else:
-                x_remain.append(self.x[i])
+        unknown_columns = np.invert(known_columns)
+        An = An[:, unknown_columns]
 
-        return Question(An, bn, x_remain)
+        return Question(An, bn), unknown_columns
 
     def reduce_duplicate_columns(self):
 
@@ -93,51 +55,44 @@ class Question:
         vec = np.array([1 << r for r in range(R)], dtype=np.int)
         enc = vec @ A
 
-        enc_stock = defaultdict(deque)
+        enc_stock = defaultdict(int)
+        first_unique_locations = []
         for i, e in enumerate(enc):
-            enc_stock[e].append(i)
+            if enc_stock[e] == 0:
+                first_unique_locations.append(i)
+            enc_stock[e] += 1
+        enc_bound = enc_stock.values()
+        A_reduced = A[:, first_unique_locations]
 
-        li0 = [li[0] for li in enc_stock.values()]  # list of indices of first unique encode
-        A_reduced = A[:, li0]
-        enc_reduced = enc[li0]  # = d.keys()
+        q = Question(A_reduced, self.b)
 
-        # x_remain = [self.x[i] for i in li0]
-        q = Question(A_reduced, self.b)#, x_remain)
+        return q, enc_bound
 
-        return q, enc_reduced, enc_stock
+def binarize(l, unknown_columns, bound, count):
+    '''
+    for example,
+    bound = (3, 4, 4, 2)
+    count = (0, 3, 3, 1)
 
-    def solvable(self):
-        Ab = np.hstack((self.A, self.b.reshape(-1, 1)))
-        rank_Ab = np.linalg.matrix_rank(Ab)
-        rang_A = np.linalg.matrix_rank(self.A)
+    this means the first bucket (0, 3) has 0 1's, and 3-0=3 0's
+    the 2nd bucket (3,4) has 3 1's, and 4-3=1 0's
+    the 3rd bucket is sames as the 2nd
+    the 4th bucket (1,2) has 1 1's, and 2-1=1 0's.
 
-        return rank_Ab == rang_A
+    so returns [0 0 0 1 1 1 0 1 1 1 0 1 0] = solution_q2
+                ^     ^       ^       ^
+                1st   2nd     3rd     4th
 
-    def qr_decomposition(self):
-        Q, R = linalg.qr(self.A, mode='economic')
-        return Question(R, Q.T @ self.b, self.x)
+    solution_q2 is the unknown subset of solution_q1
+    the known subset is easy. They are all zeros.
+    '''
 
-    def solve(self):
-        x, residues, effective_ranks, sv = linalg.lstsq(self.A, self.b)
+    solution_q1 = np.zeros(l, dtype=np.int)
+    solution_q2 = np.zeros(sum(bound), dtype=np.int)
+    ptr = 0
+    for c, b in zip(count, bound):
+        solution_q2[ptr: ptr + c] = 1
+        ptr += b
 
-        x = np.round(x) # special to SRG
-        x = x.astype(np.int)# special to SRG
-
-        if not np.allclose(self.A @ x, self.b):
-            print(self)
-            pprint(self.A)
-            pprint(x)
-            pprint(self.b)
-
-            print('residue', residues)
-            print('effective ranks', effective_ranks)
-            print('sv', sv)
-
-            assert False, "Oops.................."
-
-        for sol, v in zip(self.x, x):
-            sol.set_value(v)
-
-    def get_solution_copy(self):
-        return [e.get_value() for e in self.x]
-
+    solution_q1[unknown_columns] = solution_q2
+    return solution_q1
