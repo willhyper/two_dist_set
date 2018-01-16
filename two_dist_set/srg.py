@@ -2,8 +2,6 @@ from functools import total_ordering
 
 __author__ = 'chaoweichen'
 import numpy as np
-from collections import deque
-from . import strong_graph
 
 @total_ordering
 class SRG:
