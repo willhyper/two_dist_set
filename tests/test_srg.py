@@ -39,13 +39,16 @@ def test_data_structure(v, k, l, u, expected):
 def test_add_sub_eq(v, k, l, u, expected):
     s = two_dist_set.util.generate_seed(v, k, l, u)
     g = two_dist_set.strong_graph.advance(s)
-    ss = next(g)
 
-    last_state = s.copy()
-    expected_state = ss.copy()
-    d = expected_state - last_state
-    actual = last_state + d
+    try:
+        ss = next(g)
+    except StopIteration:
+        pass
+    else:
+        last_state = s.copy()
+        expected_state = ss.copy()
+        d = expected_state - last_state
+        actual = last_state + d
 
-    assert actual == expected_state
-    assert actual != last_state
-
+        assert actual == expected_state
+        assert actual != last_state
