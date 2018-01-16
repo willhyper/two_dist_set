@@ -196,16 +196,3 @@ class SRG:
         else:
             return m_right, inner_prod_remain
 
-
-def solve(s: SRG)->SRG:
-    q = deque()
-    q.append(s)
-
-    while q:
-        s = q.pop()
-
-        if s.state == s.v - 1:  # data structure property. when met, graph is complete
-            yield s
-        else:
-            for strong in strong_graph.advance(s):
-                q.append(strong)

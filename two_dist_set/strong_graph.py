@@ -1,3 +1,5 @@
+from collections import deque
+
 from two_dist_set import simplifier, util
 
 __author__ = 'chaoweichen'
@@ -39,13 +41,7 @@ def _advance_from_weak(s: SRG):
             yield s + weak
 
 
-def advance(s: SRG):
-    # yield from _advance_from_weak(s)
-    yield from _advance_from_partition(s)
-
-
-def _advance_from_partition(s: SRG)-> SRG:
-
+def _advance_from_partition(s: SRG) -> SRG:
     A, b = s.question()
     R, C = A.shape
 
@@ -56,7 +52,6 @@ def _advance_from_partition(s: SRG)-> SRG:
     q1 = simplifier.Question(A, b)
 
     q2, unknown_columns = q1.reduce_zeros_from_b()
-
 
     q2R, q2C = q2.A.shape
 
@@ -84,3 +79,21 @@ def _advance_from_partition(s: SRG)-> SRG:
         if np.array_equal(q3.A @ candidate, q3.b):
             binarized = simplifier.binarize(C, unknown_columns, enc_bound, candidate)
             yield s + binarized
+
+
+def advance(s: SRG, approach=_advance_from_partition):
+    yield from approach(s)
+
+
+def solve(s: SRG, approach=_advance_from_partition) -> SRG:
+    q = deque()
+    q.append(s)
+
+    while q:
+        s = q.pop()
+
+        if s.state == s.v - 1:  # data structure property. when met, graph is complete
+            yield s
+        else:
+            for strong in advance(s, approach):
+                q.append(strong)

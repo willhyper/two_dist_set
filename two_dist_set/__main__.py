@@ -6,7 +6,7 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 65 32 15 16
 
 '''
-from . import srg, util
+from . import util, strong_graph
 from pprint import pprint
 import time
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     srg_solved = []
     start = time.time()
     start_dummy = start
-    for s in srg.solve(seed):
+    for s in strong_graph.solve(seed):
         now = time.time()
         elapsed_s, start = now - start, now
         mat = s.to_matrix()
