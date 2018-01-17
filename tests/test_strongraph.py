@@ -34,7 +34,7 @@ problems_all = problems_efficient.copy()
 problems_all.append(problem_25_8_3_2)  # 1.77s weak. 0.44s partition.
 # problems_all.append(problem_25_12_5_6)  # Total 15! solutions. too many. only list the first
 # problems_all.append(problem_26_10_3_4)  # Total 10! solutions. too many. only list the first
-# problems_all.append(problem_27_10_1_5)  # 256.58s weak. 93.93s partition
+# problems_all.append(problem_27_10_1_5)  # 256.58s weak. 78.93s partition. after cythonized, 262.96s weak, ??s partition.
 
 
 @pytest.mark.parametrize('v,k,l,u,database', problems_all)
