@@ -17,24 +17,24 @@ problems_efficient.append(problem_5_2_0_1)
 problems_efficient.append(problem_6_3_0_3)
 problems_efficient.append(problem_6_4_2_4)
 problems_efficient.append(problem_9_4_1_2)
-# problems_efficient.append(problem_10_3_0_1)
-# problems_efficient.append(problem_10_6_3_4)
-# problems_efficient.append(problem_12_6_0_6)
-# problems_efficient.append(problem_13_6_2_3)
-# problems_efficient.append(problem_15_8_4_4)
-# problems_efficient.append(problem_16_5_0_2)
+problems_efficient.append(problem_10_3_0_1)
+problems_efficient.append(problem_10_6_3_4)
+problems_efficient.append(problem_12_6_0_6)
+problems_efficient.append(problem_13_6_2_3)
+problems_efficient.append(problem_15_8_4_4) # 0.12s partition
+problems_efficient.append(problem_16_5_0_2)
 problems_efficient.append(problem_16_6_2_2)
-problems_efficient.append(problem_16_9_4_6)
-problems_efficient.append(problem_16_10_6_6)
-problems_efficient.append(problem_17_8_3_4)
+problems_efficient.append(problem_16_9_4_6) # 0.17s partition
+problems_efficient.append(problem_16_10_6_6) # 0.66s partition
+problems_efficient.append(problem_17_8_3_4) # 0.41s partition
 
 problems_all = problems_efficient.copy()
-# problems_all.append(problem_21_10_4_5)  # no solution. 164s weak. 295.94s partition.
-# problems_all.append(problem_21_10_5_4)  # 33.8s weak. 56.3s partition.
-problems_all.append(problem_25_8_3_2)  # 1.77s weak. 0.44s partition.
+# problems_all.append(problem_21_10_4_5)  # no solution. 164s weak. 276.53s partition.
+# problems_all.append(problem_21_10_5_4)  # 42.94s weak. 46s partition.
+problems_all.append(problem_25_8_3_2)  # 2.43s weak. 0.25s partition.
 # problems_all.append(problem_25_12_5_6)  # Total 15! solutions. too many. only list the first
 # problems_all.append(problem_26_10_3_4)  # Total 10! solutions. too many. only list the first
-# problems_all.append(problem_27_10_1_5)  # 256.58s weak. 78.93s partition. after cythonized, 262.96s weak, ??s partition.
+# problems_all.append(problem_27_10_1_5)  # 256.58s weak. 82.78s partition. after cythonized, 262.96s weak, ??s partition.
 
 
 @pytest.mark.parametrize('v,k,l,u,database', problems_all)
