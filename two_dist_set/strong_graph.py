@@ -62,13 +62,12 @@ def _advance_from_partition(s: SRG) -> SRG:
 
     q3, enc_bound = q2.reduce_duplicate_columns()
 
-    enc_smaller_bound = [e for e in enc_bound]
-    for i, be in enumerate(q3.b):
-        row_i = q3.A[i, :]
-        for c, value in enumerate(row_i):
-            if value == 1:
-                enc_smaller_bound[c] = min(be, enc_smaller_bound[c])
-
+    enc_smaller_bound = []
+    for column, bound in enumerate(enc_bound):
+        q3a = q3.A[:, column]
+        b_of_interest = q3.b[q3a==1]
+        smaller_bound = min(bound, b_of_interest.min()) if b_of_interest.size > 0 else bound
+        enc_smaller_bound.append(smaller_bound)
     enc_smaller_bound = tuple(enc_smaller_bound)
 
     remain = s.k - s.used_k_of_current_row
