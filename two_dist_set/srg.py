@@ -172,7 +172,7 @@ class SRG:
 
         return s
 
-    def question(self, include_k=True):
+    def question(self, include_k=False):
 
         mat = self.to_matrix_essential()
         ri = self._ri
