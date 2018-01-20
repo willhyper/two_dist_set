@@ -27,7 +27,7 @@ def advance(s):
 
 
 if __name__ == '__main__':
-    from two_dist_set.problem_database import *
+    from two_dist_set.database import *
 
     v, k, l, u, matrices = problem_25_8_3_2
 

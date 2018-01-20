@@ -1,6 +1,10 @@
 __author__ = 'chaoweichen'
 from numpy import array
 
+def get_problem(v,k,l,u):
+    name = f'problem_{v}_{k}_{l}_{u}'
+    return globals()[name]
+
 problem_4_2_0_2 = (4, 2, 0, 2,
                    [array([[0, 1, 1, 0],
                            [1, 0, 0, 1],
@@ -5339,7 +5343,3 @@ problem_63_30_13_15 = (63, 30, 13, 15, [])
 problem_64_14_6_2 = (64, 14, 6, 2, [])
 
 problem_65_32_15_16 = (65, 32, 15, 16, [])
-
-# 44s call    tests/test_problems.py::test_srg[21-10-5-4-expected2]
-# 0.24s call     tests/test_problems.py::test_srg[17-8-3-4-expected1]
-# 0.067s call     tests/test_problems.py::test_srg[15-8-4-4-expected0]

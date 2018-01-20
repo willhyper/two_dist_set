@@ -3,7 +3,7 @@ __author__ = 'chaoweichen'
 import two_dist_set
 
 from two_dist_set import strong_graph, conference, util
-from two_dist_set.problem_database import *
+from two_dist_set.database import *
 from two_dist_set import srg
 
 import numpy as np

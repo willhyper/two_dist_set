@@ -3,7 +3,7 @@ from two_dist_set.srg import SRG
 __author__ = 'chaoweichen'
 
 import numpy as np
-from two_dist_set.problem_database import *
+from two_dist_set.database import *
 from two_dist_set import weak_graph
 
 import pytest

@@ -1,6 +1,6 @@
 
 from two_dist_set.srg import SRG
-from two_dist_set.problem_database import *
+from two_dist_set.database import *
 import two_dist_set
 import numpy as np
 import pytest
