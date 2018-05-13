@@ -1,3 +1,7 @@
+import time
+from functools import wraps
+import pickle
+import os
 from two_dist_set.conference import conference
 import numpy as np
 
@@ -130,3 +134,51 @@ def draw(v, k, l, u, matrices):
 
         plt.axis('equal')
         fig.savefig(f'srg_{v}_{k}_{l}_{u}_{i}.png')
+
+
+def timeit(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+        print(f'{func.__name__} elapsed sec {elapsed}')
+
+        return result
+
+    return wrapper
+
+class CacheHandler:
+
+    def __init__(self, file):
+        self.file = file
+
+    def save(self, cache):
+        obj = pickle.dumps(cache)
+        with open(self.file, 'wb') as f:
+            f.write(obj)
+
+        # for logging
+        if len(cache) > 0:
+            s : SRG = cache[0]
+            print(f'saving {len(cache)} states in {s.len_pivot_vec}')
+        else:
+            print(f'saving process...empty')
+
+    def load(self):
+        with open(self.file, 'rb') as f:
+            cache = pickle.load(f)
+
+        # for logging
+        if len(cache) > 0:
+            s : SRG = cache[0]
+            print(f'loading {len(cache)} states in {s.len_pivot_vec}')
+        else:
+            print(f'loading process...empty')
+
+        return cache
+
+    def exists(self):
+        return os.path.exists(self.file)
+
