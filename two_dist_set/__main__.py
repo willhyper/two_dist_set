@@ -6,11 +6,33 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 65 32 15 16
 
 '''
+
 from . import util, strong_graph, database
 from pprint import pprint
-import time
-
+import multiprocessing
+from functools import reduce
 import argparse
+
+
+@util.timeit
+def solve(cache_handler):
+    p = multiprocessing.Pool(multiprocessing.cpu_count())
+
+    @util.timeit
+    def map_reduce(s_list_in) -> list:
+        s_list_of_list = p.map(strong_graph.advance, s_list_in)
+        return reduce(list.__iadd__, s_list_of_list)
+
+    s_list = cache_handler.load()
+    assert len(s_list) > 0
+    iterations = s_list[0].len_pivot_vec
+
+    for i in range(iterations):
+        s_list = map_reduce(s_list)
+        cache_handler.save(s_list)
+
+    return s_list
+
 
 if __name__ == '__main__':
 
@@ -20,7 +42,6 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--draw', action='store_true', help='output png of the SRG if defined in database.')
     parser.add_argument('-l', '--list', action='store_true', help='list SRG in database')
     args = parser.parse_args()
-
 
     if args.list:
         plist = [s for s in dir(database) if s.startswith('problem')]
@@ -34,25 +55,17 @@ if __name__ == '__main__':
 
         v, k, l, u = args.p
         util.assert_arg(v, k, l, u)
-        seed = util.generate_seed(v, k, l, u)
 
-        srg_solved = []
-        start = time.time()
-        start_dummy = start
-        for s in strong_graph.solve(seed):
-            now = time.time()
-            elapsed_s, start = now - start, now
-            mat = s.to_matrix()
-            pprint(mat)
-            print(f'elapsed {elapsed_s} s')
-            srg_solved.append(s)
+        temp_file = f'pickle_{v}_{k}_{l}_{u}'
+        cache_handler = util.CacheHandler(temp_file)
+        if not cache_handler.exists():
+            seed = util.generate_seed(v, k, l, u)
+            s_iter = [seed]
+            cache_handler.save(s_iter)
 
-        elapsed_total = time.time() - start_dummy
+        srg_solved = solve(cache_handler)
 
-        print('sorted matrix')
         srg_solved.sort()
-
         matricies = [s.to_matrix() for s in srg_solved]
-        pprint(matricies)
 
-        print(f'totally elapsed {elapsed_total} s')
+        pprint(matricies)

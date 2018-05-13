@@ -26,20 +26,22 @@ def advance(s):
     return list(two_dist_set.strong_graph._advance_from_partition(s))
 
 
+def map_reduce(s_list: list):
+    s_list_list = map(advance, s_list)
+    return reduce(list.__iadd__, s_list_list)
+
+
 if __name__ == '__main__':
+    from functools import reduce
     from two_dist_set.database import *
 
-    v, k, l, u, matrices = problem_25_8_3_2
+    v, k, l, u, matrices = problem_9_4_1_2
 
     s = two_dist_set.util.generate_seed(v, k, l, u)
 
-    q = deque()
-    q.append(s)
+    s_list = [s]
 
-    while q:
-
-        s = q.pop()
-        pt = advance(s)
-
-        for ss in pt:
-            q.append(ss)
+    iterations = v - s.state - 1
+    for i in range(iterations):
+        s_list = map_reduce(s_list)
+        print(s_list)
