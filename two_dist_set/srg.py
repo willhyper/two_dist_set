@@ -67,7 +67,7 @@ class SRG:
         return self._encoded
 
     @property
-    def unknown_len_of_current_row(self):
+    def len_pivot_vec(self):
         return self.v - 1 - self._ri  # 9 - 1 - 3 = 5 # 1 is the '0' is the diagonal
 
     @property
@@ -110,7 +110,7 @@ class SRG:
 
         current_known_partial_vec_str = str(self.pivot_vector)[1:-1].replace(' ', '')
 
-        question = '?' * self.unknown_len_of_current_row
+        question = '?' * self.len_pivot_vec
 
         out = f'(v, k, l, u) = {self.v, self.k, self.l, self.u}\n'
 

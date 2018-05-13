@@ -1,5 +1,7 @@
 from collections import deque
 
+from functools import reduce
+
 from two_dist_set import simplifier, util
 
 __author__ = 'chaoweichen'
@@ -12,7 +14,7 @@ import numpy as np
 
 @coroutine
 def filter_coroutine(s: SRG):
-    if s.unknown_len_of_current_row == 0:
+    if s.len_pivot_vec == 0:
         return
 
     M_right, inner_prod_remain = s.question()
@@ -80,18 +82,6 @@ def _advance_from_partition(s: SRG) -> SRG:
 
 
 def advance(s: SRG, approach=_advance_from_partition):
-    yield from approach(s)
+    # yield from approach(s)
+    return list(approach(s)) # to be serializable for use multipleprocess
 
-
-def solve(s: SRG, approach=_advance_from_partition) -> SRG:
-    q = deque()
-    q.append(s)
-
-    while q:
-        s = q.pop()
-
-        if s.state == s.v - 1:  # data structure property. when met, graph is complete
-            yield s
-        else:
-            for strong in advance(s, approach):
-                q.append(strong)

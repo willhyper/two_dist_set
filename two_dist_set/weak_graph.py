@@ -14,7 +14,7 @@ def filter_coroutine(s: SRG):
     #      used = 2
     #                ^  ^  ^  ^  ^
     #      enc    = 10  6  4  4  0         <=len(enc) = 5 = 6 - 1 = col - 1
-    enc = s.encoded_representation[-s.unknown_len_of_current_row:]
+    enc = s.encoded_representation[-s.len_pivot_vec:]
 
     pass_fail = None
     while True:
@@ -34,13 +34,13 @@ def generator(s: SRG):
 
     remain = s.k - s.used_k_of_current_row
 
-    for indices in itertools.combinations(range(s.unknown_len_of_current_row), remain):
+    for indices in itertools.combinations(range(s.len_pivot_vec), remain):
         yield indices
 
 
 def advance(s: SRG):
 
-    unknown_len = s.unknown_len_of_current_row
+    unknown_len = s.len_pivot_vec
 
     fltr = filter_coroutine(s)
     fltr.send(None)
