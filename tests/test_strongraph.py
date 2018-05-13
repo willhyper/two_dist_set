@@ -37,34 +37,6 @@ problems_all.append(problem_25_8_3_2)  # 2.43s weak. 0.25s partition.
 # problems_all.append(problem_27_10_1_5)  # 256.58s weak. 82.78s partition. after cythonized, 262.96s weak, ??s partition.
 
 
-@pytest.mark.parametrize('v,k,l,u,database', problems_all)
-def test_weak_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
-    seed = util.generate_seed(v, k, l, u)
-
-    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_weak))
-    assert len(actual_srgs) == len(database)
-
-    actual_srgs.sort()
-
-    for actual_srg, expected_matrix in zip(actual_srgs, database):
-        actual_matrix = actual_srg.to_matrix()
-        assert np.array_equal(actual_matrix, expected_matrix)
-
-
-@pytest.mark.parametrize('v,k,l,u,database', problems_all)
-def test_partition_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
-    seed = util.generate_seed(v, k, l, u)
-
-    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_partition))
-    assert len(actual_srgs) == len(database)
-
-    actual_srgs.sort()
-
-    for actual_srg, expected_matrix in zip(actual_srgs, database):
-        actual_matrix = actual_srg.to_matrix()
-        assert np.array_equal(actual_matrix, expected_matrix)
-
-
 @pytest.mark.parametrize('v,k,l,u,database', problems_efficient)
 def test_compare_two_approaches(v: int, k: int, l: int, u: int, database):
     '''
