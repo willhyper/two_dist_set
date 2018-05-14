@@ -50,7 +50,9 @@ if __name__ == '__main__':
         v, k, l, u = args.p
         util.assert_arg(v, k, l, u)
         problem = database.get_problem(v, k, l, u)
-        util.draw(*problem)
+
+        from . import util_plot
+        util_plot.draw(*problem)
     else:
 
         v, k, l, u = args.p
