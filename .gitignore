@@ -10,3 +10,4 @@ two_dist_set/*.so
 two_dist_set/*.pyx
 
 .pytest_cache
+.venv
