@@ -2,7 +2,7 @@
 complete enumeration to construct strongly regular graph
 
 # intro
-a [strongly regular graph] (https://en.wikipedia.org/wiki/Strongly_regular_graph) is specified by 4 integer parameters (v,k,l,u), such as (4,2,0,2), (13,6,2,3),...
+a [strongly regular graph](https://en.wikipedia.org/wiki/Strongly_regular_graph) is specified by 4 integer parameters (v,k,l,u), such as (4,2,0,2), (13,6,2,3),...
 # setup
 ```
 git clone https://github.com/willhyper/two_dist_set.git
