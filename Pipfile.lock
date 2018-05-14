@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "88a114a374b10e00adc00a7ce319137c8e531fe3c4c5febfe88342087dae9df2"
+            "sha256": "56661d878d10bcc6750f2a11165c7621e5c8c2bcd94b22d377b103b40c16e7ad"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -44,6 +44,10 @@
             ],
             "index": "pypi",
             "version": "==1.14.3"
+        },
+        "partition": {
+            "editable": true,
+            "git": "https://github.com/willhyper/partition.git"
         },
         "pipfile": {
             "hashes": [

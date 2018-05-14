@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 numpy = "*"
 Pipfile = "*"
+partition = {git = "https://github.com/willhyper/partition.git", editable = true}
 
 [dev-packages]
 pytest = "*"

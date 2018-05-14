@@ -1,8 +1,5 @@
-from collections import deque
-
-from functools import reduce
-
-from two_dist_set import simplifier, util
+import partition
+from two_dist_set import simplifier
 
 __author__ = 'chaoweichen'
 
@@ -73,7 +70,7 @@ def _advance_from_partition(s: SRG) -> SRG:
     enc_smaller_bound = tuple(enc_smaller_bound)
 
     remain = s.k - s.used_k_of_current_row
-    candidates = util.partition(remain, enc_smaller_bound)
+    candidates = partition.partition(remain, enc_smaller_bound)
 
     for candidate in candidates:
         if np.array_equal(q3.A @ candidate, q3.b):
