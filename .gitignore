@@ -11,3 +11,4 @@ two_dist_set/*.pyx
 
 .pytest_cache
 .venv
+pickle_*
