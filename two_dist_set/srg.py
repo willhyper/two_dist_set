@@ -8,7 +8,7 @@ class SRG:
     def __init__(self, v, k, l, u):
         self.v, self.k, self.l, self.u = v, k, l, u
         self._ri = 0
-        self._encoded = np.zeros(v - 1, dtype=np.int)
+        self._encoded = np.zeros(v - 1, dtype=np.uint8)
 
     def __add__(self, row):
         l = self.v - 1 - self._ri
@@ -81,7 +81,7 @@ class SRG:
 
     @property
     def pivot_vector(self):
-        vec = np.zeros(self._ri, dtype=np.int)
+        vec = np.zeros(self._ri, dtype=np.uint8)
         ri = self._ri - 1
         dec = self._encoded[ri]
         while dec > 0:
@@ -124,7 +124,7 @@ class SRG:
     def to_matrix(self):
         enc = self._encoded.copy()
         i = self._ri
-        mat = np.zeros((self.v, self.v), dtype=np.int)
+        mat = np.zeros((self.v, self.v), dtype=np.uint8)
         while i > 0:
             # decoding
             enc[i:] >>= 1
@@ -148,7 +148,7 @@ class SRG:
     @classmethod
     def _decode(cls, enc, R, C, i):
 
-        mat = np.zeros((R, C), dtype=np.int)
+        mat = np.zeros((R, C), dtype=np.uint8)
         while i > 0:
             # decoding
             enc[i:] >>= 1
@@ -178,14 +178,14 @@ class SRG:
         ri = self._ri
         m_left, m_ri, m_right = mat[:, :ri], mat[:, ri], mat[:, ri + 1:]
 
-        inner_prod_required = np.array([self.l if m_ri[r] == 1 else self.u for r in range(ri)], dtype=np.int)
+        inner_prod_required = np.array([self.l if m_ri[r] == 1 else self.u for r in range(ri)], dtype=np.uint8)
 
         inner_prod_known = m_left @ m_ri
         inner_prod_remain = inner_prod_required - inner_prod_known
 
         if include_k:
             R, C = m_right.shape
-            constrain_k_vec = np.ones(C, dtype=np.int)
+            constrain_k_vec = np.ones(C, dtype=np.uint8)
             constrain_k_remain = self.k - sum(m_ri)
             m_right_w_k = np.vstack((m_right, constrain_k_vec))
             inner_prod_remain_w_k = np.concatenate((inner_prod_remain, (constrain_k_remain,)))

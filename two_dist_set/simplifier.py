@@ -52,7 +52,7 @@ class Question:
         # encoding
         A = self.A
         R, C = A.shape
-        vec = np.array([1 << r for r in range(R)], dtype=np.int)
+        vec = np.array([1 << r for r in range(R)], dtype=np.uint8)
         enc = vec @ A
 
         enc_stock = defaultdict(int)
@@ -87,8 +87,8 @@ def binarize(l, unknown_columns, bound, count):
     the known subset is easy. They are all zeros.
     '''
 
-    solution_q1 = np.zeros(l, dtype=np.int)
-    solution_q2 = np.zeros(sum(bound), dtype=np.int)
+    solution_q1 = np.zeros(l, dtype=np.uint8)
+    solution_q2 = np.zeros(sum(bound), dtype=np.uint8)
     ptr = 0
     for c, b in zip(count, bound):
         solution_q2[ptr: ptr + c] = 1

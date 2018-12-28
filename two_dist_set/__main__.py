@@ -1,4 +1,3 @@
-#!/Users/chaoweichen/anaconda/bin/python
 '''
 strongly regular graph generator
 http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
@@ -7,7 +6,7 @@ http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
 
 '''
 
-from . import util, strong_graph, database
+from . import util, strong_graph, database, cache
 from pprint import pprint
 import multiprocessing
 from functools import reduce
@@ -39,27 +38,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Compute and draw strongly regular graphes (SRG).')
     parser.add_argument('-p', metavar=('v', 'k', 'l', 'u'), type=int, nargs=4,
                         help='4 integers representing v, k, l, u, defining a SRG')
-    parser.add_argument('-d', '--draw', action='store_true', help='output png of the SRG if defined in database.')
     parser.add_argument('-l', '--list', action='store_true', help='list SRG in database')
     args = parser.parse_args()
 
     if args.list:
         plist = [s for s in dir(database) if s.startswith('problem')]
         pprint(plist)
-    elif args.draw:
-        v, k, l, u = args.p
-        util.assert_arg(v, k, l, u)
-        problem = database.get_problem(v, k, l, u)
-
-        from . import util_plot
-        util_plot.draw(*problem)
     else:
 
         v, k, l, u = args.p
         util.assert_arg(v, k, l, u)
 
         temp_file = f'pickle_{v}_{k}_{l}_{u}'
-        cache_handler = util.CacheHandler(temp_file)
+        cache_handler = cache.CacheHandler(temp_file)
         if not cache_handler.exists():
             seed = util.generate_seed(v, k, l, u)
             s_iter = [seed]

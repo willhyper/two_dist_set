@@ -1,6 +1,6 @@
 from types import coroutine
 
-from two_dist_set.srg import SRG
+from .srg import SRG
 import numpy as np
 import itertools
 
@@ -48,6 +48,6 @@ def advance(s: SRG):
     for indices in generator(s):
         pass_fail = fltr.send(indices)
         if pass_fail:
-            binn = np.zeros(unknown_len, dtype=np.int)
+            binn = np.zeros(unknown_len, dtype=np.uint8)
             for i in indices: binn[i] = 1  # indices could be[()]. therefore for loop being skipped
             yield binn

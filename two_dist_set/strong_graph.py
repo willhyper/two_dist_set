@@ -1,5 +1,5 @@
-import partition
-from two_dist_set import simplifier
+
+from . import simplifier, partition
 
 __author__ = 'chaoweichen'
 
@@ -55,7 +55,7 @@ def _advance_from_partition(s: SRG) -> SRG:
     q2R, q2C = q2.A.shape
 
     if q2C == 0:
-        pivot_vector = np.zeros(C, dtype=np.int)
+        pivot_vector = np.zeros(C, dtype=np.uint8)
         yield s + pivot_vector
         return
 
@@ -70,7 +70,7 @@ def _advance_from_partition(s: SRG) -> SRG:
     enc_smaller_bound = tuple(enc_smaller_bound)
 
     remain = s.k - s.used_k_of_current_row
-    candidates = partition.partition(remain, enc_smaller_bound)
+    candidates = partition.enumerate(remain, enc_smaller_bound)
 
     for candidate in candidates:
         if np.array_equal(q3.A @ candidate, q3.b):

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def draw(v, k, l, u, matrices):
+
     for i, matrix in enumerate(matrices):
 
         fig = plt.figure()
@@ -21,3 +22,14 @@ def draw(v, k, l, u, matrices):
 
         plt.axis('equal')
         fig.savefig(f'srg_{v}_{k}_{l}_{u}_{i}.png')
+
+
+if __name__ == '__main__':
+
+    import sys
+    v, k, l, u = map(int, sys.argv[1:])
+
+    from . import database
+    problem = database.get_problem(v, k, l, u)
+
+    draw(*problem)
