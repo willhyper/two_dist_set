@@ -248,10 +248,13 @@ class SRG:
         return self._matrix
 
     def append_and_return_new(self, ans_essential: np.array):
+        _np_array = self._append_and_return_new(ans_essential)
+        return SRG(_np_array)
+
+    def _append_and_return_new(self, ans_essential: np.array):
         R, C = self._matrix.shape
         ans_row = np.r_[self._matrix[:, R], 0, ans_essential]
-        assert len(ans_row) == C
-        return SRG(np.vstack([self._matrix, ans_row]))
+        return np.vstack([self._matrix, ans_row])
 
     def solved(self):
         R, C = self._matrix.shape

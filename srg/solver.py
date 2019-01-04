@@ -48,7 +48,7 @@ def raiseExceptionIfNotSolvableAfterwards(func):
 
 
 
-@debug
+#@debug
 @raiseExceptionIfNotSolvableAfterwards
 def reduce_col(Q: Question) -> None:
     R, C = Q.A.shape
@@ -72,7 +72,7 @@ def reduce_col(Q: Question) -> None:
     Q.answer = Answer(value=answer_new_v, location=answer_new_loc, len=len(Q.answer))
 
 
-@debug
+#@debug
 @raiseExceptionIfNotSolvableAfterwards
 def eliminate(Q: Question) -> None:
     R, C = Q.A.shape
@@ -81,7 +81,7 @@ def eliminate(Q: Question) -> None:
     Q.A, Q.b = Ae, be
 
 
-@debug
+#@debug
 @raiseExceptionIfNotSolvableAfterwards
 def zero_in_b(Q: Question) -> None:
     '''
@@ -104,7 +104,7 @@ def zero_in_b(Q: Question) -> None:
 
 
 
-@debug
+#@debug
 @raiseExceptionIfNotSolvableAfterwards
 def only_1_element_in_row(Q: Question):
     '''
@@ -150,7 +150,7 @@ def only_1_element_in_row(Q: Question):
     Q.bounds = np.delete(Q.bounds, cs)
 
 
-@debug
+#@debug
 @raiseExceptionIfNotSolvableAfterwards
 def fork_enum(Q: Question):
     '''
