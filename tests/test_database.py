@@ -109,8 +109,8 @@ def test_determinant(v: int, k: int, l: int, u: int, database):
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
 def test_srg_matrix_identity(v: int, k: int, l: int, u: int, database):
-    I = np.identity(v, dtype=np.int)
-    J = np.ones((v, v), dtype=np.int)
+    I = np.identity(v, dtype=int)
+    J = np.ones((v, v), dtype=int)
     const = (k - u) * I + u * J
     for mat in database:
         assert np.array_equal(mat @ mat - (l - u) * mat, const)

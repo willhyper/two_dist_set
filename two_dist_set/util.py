@@ -37,13 +37,13 @@ def determinant(v: int, k: int, l: int, u: int):
 
 
 def generate_seed(v: int, k: int, l: int, u: int):
-    first_row = np.zeros(v - 1, dtype=np.int)
+    first_row = np.zeros(v - 1, dtype=int)
     first_row[:k] = 1
 
     s = SRG(v, k, l, u)
     s += first_row
 
-    second_row = np.zeros(v - 2, dtype=np.int)
+    second_row = np.zeros(v - 2, dtype=int)
 
     remain_ones_number = k - l - 1
     second_row[:l] = 1
@@ -53,7 +53,7 @@ def generate_seed(v: int, k: int, l: int, u: int):
     return s
 
 
-def partition(s: int, bounds: tuple) -> tuple:
+def partition(s: int, bounds) -> tuple:
     assert s >= 0, "sum to be placed is required >= 0"
 
     l = len(bounds)
