@@ -1,7 +1,7 @@
-#!/Users/chaoweichen/anaconda/bin/python
 '''
 strongly regular graph generator
 http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html
+http://www.maths.gla.ac.uk/~es/srgraphs.php
 
 65 32 15 16
 
