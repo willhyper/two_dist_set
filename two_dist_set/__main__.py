@@ -1,3 +1,5 @@
+#!python
+#cython: language_level=3
 '''
 strongly regular graph generator
 http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html

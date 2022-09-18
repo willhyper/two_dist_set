@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 from collections import deque
 
 from two_dist_set import simplifier, util

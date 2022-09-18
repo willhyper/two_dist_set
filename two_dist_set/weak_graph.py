@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 from types import coroutine
 
 from two_dist_set.srg import SRG

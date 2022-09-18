@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 from functools import total_ordering
 
 __author__ = 'chaoweichen'

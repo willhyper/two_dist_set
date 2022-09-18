@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 from two_dist_set.conference import conference
 import numpy as np
 
