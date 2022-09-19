@@ -8,7 +8,8 @@ http://www.maths.gla.ac.uk/~es/srgraphs.php
 65 32 15 16
 
 '''
-from . import util, strong_graph, database
+from two_dist_set import util, strong_graph
+from two_dist_set import database as db
 from pprint import pprint
 import time
 
@@ -25,13 +26,15 @@ if __name__ == '__main__':
 
 
     if args.list:
-        plist = [s for s in dir(database) if s.startswith('problem')]
-        pprint(plist)
+        import pkgutil
+        problem_solutions = [m.name for m in pkgutil.iter_modules(db.__path__) if m.name.startswith('problem')]
+        pprint(problem_solutions)
     elif args.draw:
+        print('draw', args.p)
         v, k, l, u = args.p
         util.assert_arg(v, k, l, u)
-        problem = database.get_problem(v, k, l, u)
-        util.draw(*problem)
+        matricies = db.get_solutions(v, k, l, u)
+        util.draw(v,k,l,u, matricies)
     else:
 
         v, k, l, u = args.p

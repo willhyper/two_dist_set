@@ -1,5 +1,6 @@
 tests/__pycache__/
 two_dist_set/__pycache__/
+two_dist_set/database/__pycache__/
 two_dist_set.egg-info/
 .idea
 .cache/

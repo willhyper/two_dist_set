@@ -132,4 +132,6 @@ def draw(v, k, l, u, matrices):
         nx.draw_circular(graph)
 
         plt.axis('equal')
-        fig.savefig(f'srg_{v}_{k}_{l}_{u}_{i}.png')
+        pngname = f'srg_{v}_{k}_{l}_{u}_{i}.png'
+        fig.savefig(pngname)
+        print(f'srg_{v}_{k}_{l}_{u}_{i}.png')

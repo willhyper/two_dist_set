@@ -25,8 +25,9 @@ problem_64_14_6_2 = (64, 14, 6, 2, [])
 problem_65_32_15_16 = (65, 32, 15, 16, [])
 
 '''
-from two_dist_set.database import *
+import importlib
 
-def get_problem(v,k,l,u):
-    name = f'problem_{v}_{k}_{l}_{u}'
-    return globals()[name]
+def get_solutions(v,k,l,u) -> list:
+    name = __package__ + f'.problem_{v}_{k}_{l}_{u}'
+    m = importlib.import_module(name)
+    return m.solutions
