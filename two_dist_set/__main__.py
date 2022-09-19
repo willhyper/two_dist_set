@@ -26,9 +26,7 @@ if __name__ == '__main__':
 
 
     if args.list:
-        import pkgutil
-        problem_solutions = [m.name for m in pkgutil.iter_modules(db.__path__) if m.name.startswith('problem')]
-        pprint(problem_solutions)
+        pprint(db.list_problems())
     elif args.draw:
         print('draw', args.p)
         v, k, l, u = args.p

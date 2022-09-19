@@ -25,9 +25,14 @@ problem_64_14_6_2 = (64, 14, 6, 2, [])
 problem_65_32_15_16 = (65, 32, 15, 16, [])
 
 '''
-import importlib
+
+def list_problems():
+    import pkgutil
+    problem_solutions = [m.name for m in pkgutil.iter_modules(__path__) if m.name.startswith('problem')]
+    return problem_solutions
 
 def get_solutions(v,k,l,u) -> list:
+    import importlib
     name = __package__ + f'.problem_{v}_{k}_{l}_{u}'
     m = importlib.import_module(name)
     return m.solutions
