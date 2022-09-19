@@ -85,3 +85,14 @@ def advance(s: SRG, approach=_advance_from_partition):
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
+def solve(s: SRG, approach=_advance_from_partition) -> SRG:
+    q = deque()
+    q.append(s)
+    while q:
+        s = q.pop()
+
+        if s.state == s.v - 1:  # data structure property. when met, graph is complete
+            yield s
+        else:
+            for strong in advance(s, approach):
+                q.append(strong)
