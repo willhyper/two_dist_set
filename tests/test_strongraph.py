@@ -22,24 +22,10 @@ problems = collect_problems()
 
 
 @pytest.mark.parametrize('v,k,l,u,database', problems)
-def test_weak_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
-    seed = util.generate_seed(v, k, l, u)
-
-    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_weak))
-    assert len(actual_srgs) == len(database)
-
-    actual_srgs.sort()
-
-    for actual_srg, expected_matrix in zip(actual_srgs, database):
-        actual_matrix = actual_srg.to_matrix()
-        assert np.array_equal(actual_matrix, expected_matrix)
-
-
-@pytest.mark.parametrize('v,k,l,u,database', problems)
 def test_partition_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
     seed = util.generate_seed(v, k, l, u)
 
-    actual_srgs = list(strong_graph.solve(seed, approach=strong_graph._advance_from_partition))
+    actual_srgs = list(strong_graph.solve(seed))
     assert len(actual_srgs) == len(database)
 
     actual_srgs.sort()

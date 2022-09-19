@@ -1,48 +1,12 @@
 #!python
 #cython: language_level=3
 
-from collections import deque
-
-from two_dist_set import simplifier, util
-
 __author__ = 'chaoweichen'
-
-from . import weak_graph
+from two_dist_set import simplifier
+from two_dist_set import util
 from two_dist_set.srg import SRG
-from types import coroutine
 import numpy as np
-
-
-@coroutine
-def filter_coroutine(s: SRG):
-    if s.len_pivot_vec == 0:
-        return
-
-    M_right, inner_prod_remain = s.question()
-
-    pass_fail = None
-    while True:
-        vec = yield pass_fail
-        pass_fail = False
-
-        inner_prod_actual = M_right @ vec
-
-        for actual, remain in zip(inner_prod_actual, inner_prod_remain):
-            if actual != remain:
-                break
-        else:
-            pass_fail = True
-
-
-def _advance_from_weak(s: SRG):
-    fltr = filter_coroutine(s)
-    fltr.send(None)  # prime
-
-    for weak in weak_graph.advance(s):
-        pass_fail = fltr.send(weak)
-        if pass_fail:
-            yield s + weak
-
+from collections import deque
 
 def _advance_from_partition(s: SRG) -> SRG:
     A, b = s.question()
@@ -86,7 +50,7 @@ def advance(s: SRG, approach=_advance_from_partition) -> list:
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
-def solve(s: SRG, approach=_advance_from_partition) -> SRG:
+def solve(s: SRG) -> SRG:
     q = deque()
     q.append(s)
     while q:
@@ -95,4 +59,4 @@ def solve(s: SRG, approach=_advance_from_partition) -> SRG:
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s
         else:
-            q += advance(s, approach)
+            q += advance(s)
