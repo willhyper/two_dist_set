@@ -1,5 +1,7 @@
 '''
-11s. cythonized. Apple M1. python3.10
+Apple M1. python3.10
+13.41s
+11.97s. cythonized. 
 '''
 from numpy import array
 
