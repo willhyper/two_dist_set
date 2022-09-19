@@ -31,6 +31,10 @@ def list_problems():
     problem_solutions = [m.name for m in pkgutil.iter_modules(__path__) if m.name.startswith('problem')]
     return problem_solutions
 
+def extract_vklu(problem : str):
+    _, *vklu = problem.split('_')
+    return list(map(int, vklu))
+
 def get_solutions(v,k,l,u) -> list:
     import importlib
     name = __package__ + f'.problem_{v}_{k}_{l}_{u}'

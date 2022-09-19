@@ -1,15 +1,18 @@
-from two_dist_set.srg import SRG
-
 __author__ = 'chaoweichen'
 
-import numpy as np
-from two_dist_set.database import *
+from two_dist_set.srg import SRG
 from two_dist_set import weak_graph
+from two_dist_set import database as db
 
+import numpy as np
 import pytest
 
-problems = [problem_15_8_4_4, problem_21_10_5_4]
 
+def collect_problems():
+    p1 = (15,8,4,4,db.get_solutions(15,8,4,4))
+    p2 = (21,10,5,4,db.get_solutions(21,10,5,4))
+    return [p1,p2]
+problems = collect_problems()
 
 @pytest.mark.parametrize('v,k,l,u,expected', problems)
 def test_candidates(v, k, l, u, expected):

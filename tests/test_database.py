@@ -1,37 +1,21 @@
 __author__ = 'chaoweichen'
 
-import two_dist_set
-
-from two_dist_set import strong_graph, conference, util
-from two_dist_set.database import *
-from two_dist_set import srg
+from two_dist_set import conference
+from two_dist_set import util
+from two_dist_set import database as db
+from two_dist_set.srg import SRG
 
 import numpy as np
 
 import pytest
 
 problems_all = []
-problems_all.append(problem_4_2_0_2)
-problems_all.append(problem_5_2_0_1)
-problems_all.append(problem_6_3_0_3)
-problems_all.append(problem_6_4_2_4)
-problems_all.append(problem_9_4_1_2)
-problems_all.append(problem_10_3_0_1)
-problems_all.append(problem_10_6_3_4)
-problems_all.append(problem_12_6_0_6)
-problems_all.append(problem_13_6_2_3)
-problems_all.append(problem_15_8_4_4)
-problems_all.append(problem_16_5_0_2)
-problems_all.append(problem_16_6_2_2)
-problems_all.append(problem_16_9_4_6)
-problems_all.append(problem_16_10_6_6)
-problems_all.append(problem_17_8_3_4)
-problems_all.append(problem_21_10_4_5)  # no solution.
-problems_all.append(problem_21_10_5_4)
-problems_all.append(problem_25_8_3_2)
-problems_all.append(problem_25_12_5_6)  # Total 15! solutions. too many. only list the first
-problems_all.append(problem_26_10_3_4)  # Total 10! solutions. too many. only list the first
-problems_all.append(problem_27_10_1_5)
+
+problems = db.list_problems()
+for p in problems:
+    v,k,l,u = db.extract_vklu(p)
+    solutions = db.get_solutions(v,k,l,u)
+    problems_all.append((v,k,l,u, solutions))
 
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
@@ -57,7 +41,7 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
         for ri in range(1, v - 1):
 
             partial_mat = mat[:ri, :]
-            s = srg.SRG.from_matrix(partial_mat, v, k, l, u)
+            s = SRG.from_matrix(partial_mat, v, k, l, u)
 
             m_right, inner_prod_remain = s.question()
 
@@ -66,9 +50,10 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
             assert np.array_equal(m_right @ solution, inner_prod_remain)
 
             # part 2: solution is not known: generate candidates from strong_generator
-            for s2 in strong_graph.advance(s):
-                candidate = s2 - s
-                assert np.array_equal(m_right @ candidate, inner_prod_remain)
+            # from two_dist_set import strong_graph
+            # for s2 in strong_graph.advance(s):
+            #     candidate = s2 - s
+            #     assert np.array_equal(m_right @ candidate, inner_prod_remain)
 
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
@@ -78,7 +63,7 @@ def test_matrix_is_sorted(v: int, k: int, l: int, u: int, database):
     see how SRG can be decorated with @total_ordering
     '''
     actual = database
-    srg_actual = [two_dist_set.srg.SRG.from_matrix(mat, v, k, l, u) for mat in actual]
+    srg_actual = [SRG.from_matrix(mat, v, k, l, u) for mat in actual]
 
     srg_expected = sorted(srg_actual)
 
@@ -100,10 +85,10 @@ def test_determinant(v: int, k: int, l: int, u: int, database):
     for mat in database:
         eigval, eigvec = np.linalg.eig(mat)
 
-        eigval = tuple(int(round(x)) for x in eigval) if not_conference_graph else eigval
+        eigval = tuple(int(np.round(x)) for x in eigval) if not_conference_graph else eigval
 
         det_from_matrix = np.prod(eigval)
-        det_from_matrix = int(round(det_from_matrix))
+        det_from_matrix = int(np.round(det_from_matrix))
         assert det_from_matrix == det_expected, "determinant disagree"
 
 
