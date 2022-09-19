@@ -1,11 +1,11 @@
+#!python
+#cython: language_level=3
+
 from two_dist_set.conference import conference
 import numpy as np
 
 from two_dist_set.srg import SRG
 from collections import defaultdict
-
-import networkx as nx
-import matplotlib.pyplot as plt
 
 
 def assert_arg(v: int, k: int, l: int, u: int):
@@ -34,13 +34,13 @@ def determinant(v: int, k: int, l: int, u: int):
 
 
 def generate_seed(v: int, k: int, l: int, u: int):
-    first_row = np.zeros(v - 1, dtype=np.int)
+    first_row = np.zeros(v - 1, dtype=int)
     first_row[:k] = 1
 
     s = SRG(v, k, l, u)
     s += first_row
 
-    second_row = np.zeros(v - 2, dtype=np.int)
+    second_row = np.zeros(v - 2, dtype=int)
 
     remain_ones_number = k - l - 1
     second_row[:l] = 1
@@ -50,7 +50,7 @@ def generate_seed(v: int, k: int, l: int, u: int):
     return s
 
 
-def partition(s: int, bounds: tuple) -> tuple:
+def partition(s: int, bounds) -> tuple:
     assert s >= 0, "sum to be placed is required >= 0"
 
     l = len(bounds)
@@ -110,23 +110,3 @@ def gauss_eliminate(A, b):
 
     return Ab[:, :-1], Ab[:, -1]
 
-
-def draw(v, k, l, u, matrices):
-    for i, matrix in enumerate(matrices):
-
-        fig = plt.figure()
-
-        nodes = {n: str(n) for n in range(v)}
-        graph = nx.Graph()
-        graph.add_nodes_from(nodes.keys())
-
-        pos = nx.circular_layout(graph)
-        nx.draw_networkx_labels(graph, pos, nodes)
-
-        for r, c in zip(*matrix.nonzero()):
-            graph.add_edge(r, c)
-
-        nx.draw_circular(graph)
-
-        plt.axis('equal')
-        fig.savefig(f'srg_{v}_{k}_{l}_{u}_{i}.png')

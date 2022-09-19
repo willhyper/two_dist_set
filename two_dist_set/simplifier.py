@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 import numpy as np
 from collections import defaultdict
 
@@ -30,7 +33,7 @@ class Question:
 
         if not np.any(zero_rows):
             R, C = self.A.shape
-            unknown_columns = np.ones(C, dtype=np.bool)
+            unknown_columns = np.ones(C, dtype=bool)
             return self, unknown_columns
 
         A0 = self.A[zero_rows, :]
@@ -52,7 +55,7 @@ class Question:
         # encoding
         A = self.A
         R, C = A.shape
-        vec = np.array([1 << r for r in range(R)], dtype=np.int)
+        vec = np.array([1 << r for r in range(R)], dtype=int)
         enc = vec @ A
 
         enc_stock = defaultdict(int)
@@ -87,8 +90,8 @@ def binarize(l, unknown_columns, bound, count):
     the known subset is easy. They are all zeros.
     '''
 
-    solution_q1 = np.zeros(l, dtype=np.int)
-    solution_q2 = np.zeros(sum(bound), dtype=np.int)
+    solution_q1 = np.zeros(l, dtype=int)
+    solution_q2 = np.zeros(sum(bound), dtype=int)
     ptr = 0
     for c, b in zip(count, bound):
         solution_q2[ptr: ptr + c] = 1

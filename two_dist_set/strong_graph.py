@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 from collections import deque
 
 from functools import reduce
@@ -58,7 +61,7 @@ def _advance_from_partition(s: SRG) -> SRG:
     q2R, q2C = q2.A.shape
 
     if q2C == 0:
-        pivot_vector = np.zeros(C, dtype=np.int)
+        pivot_vector = np.zeros(C, dtype=int)
         yield s + pivot_vector
         return
 

@@ -1,3 +1,6 @@
+#!python
+#cython: language_level=3
+
 __author__ = 'chaoweichen'
 from . import strong_graph
 from . import weak_graph

@@ -6,5 +6,5 @@ cp two_dist_set/srg.py two_dist_set/srg.pyx
 cp two_dist_set/simplifier.py two_dist_set/simplifier.pyx
 cp two_dist_set/util.py two_dist_set/util.pyx
 
-python setup.py build_ext --inplace
+python3 setup.py build_ext --inplace
 

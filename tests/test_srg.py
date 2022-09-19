@@ -1,26 +1,22 @@
 
 from two_dist_set.srg import SRG
-from two_dist_set.database import *
-import two_dist_set
+from two_dist_set import database as db
+from two_dist_set import util
+from two_dist_set import strong_graph
 import numpy as np
 import pytest
 
-problems = []
-problems.append(problem_4_2_0_2)
-problems.append(problem_5_2_0_1)
-problems.append(problem_6_3_0_3)
-problems.append(problem_6_4_2_4)
-problems.append(problem_9_4_1_2)
-problems.append(problem_10_3_0_1)
-problems.append(problem_10_6_3_4)
-problems.append(problem_12_6_0_6)
-problems.append(problem_13_6_2_3)
-problems.append(problem_15_8_4_4)
-problems.append(problem_16_5_0_2)
-problems.append(problem_16_6_2_2)
-problems.append(problem_16_9_4_6)
-problems.append(problem_16_10_6_6)
-problems.append(problem_17_8_3_4)
+
+def collect_problems():
+    problems_all = []
+    problems = db.list_problems()
+    for p in problems:
+        v,k,l,u = db.extract_vklu(p)
+        solutions = db.get_solutions(v,k,l,u)
+        problems_all.append((v,k,l,u, solutions))
+    return problems_all
+problems = collect_problems()
+
 
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_data_structure(v, k, l, u, expected):
@@ -37,8 +33,8 @@ def test_data_structure(v, k, l, u, expected):
 
 @pytest.mark.parametrize('v,k,l,u, expected', problems)
 def test_add_sub_eq(v, k, l, u, expected):
-    s = two_dist_set.util.generate_seed(v, k, l, u)
-    g = two_dist_set.strong_graph.advance(s)
+    s = util.generate_seed(v, k, l, u)
+    g = strong_graph.advance(s)
 
     try:
         ss = next(g)
