@@ -3,8 +3,6 @@
 
 from collections import deque
 
-from functools import reduce
-
 from two_dist_set import simplifier, util
 
 __author__ = 'chaoweichen'
@@ -84,7 +82,7 @@ def _advance_from_partition(s: SRG) -> SRG:
             yield s + binarized
 
 
-def advance(s: SRG, approach=_advance_from_partition):
+def advance(s: SRG, approach=_advance_from_partition) -> list:
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
@@ -97,5 +95,4 @@ def solve(s: SRG, approach=_advance_from_partition) -> SRG:
         if s.state == s.v - 1:  # data structure property. when met, graph is complete
             yield s
         else:
-            for strong in advance(s, approach):
-                q.append(strong)
+            q += advance(s, approach)
