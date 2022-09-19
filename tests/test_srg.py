@@ -37,7 +37,7 @@ def test_add_sub_eq(v, k, l, u, expected):
     g = strong_graph.advance(s)
 
     try:
-        ss = next(g)
+        ss = g.__iter__().__next__()
     except StopIteration:
         pass
     else:
