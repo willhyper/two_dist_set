@@ -36,3 +36,29 @@ def get_solutions(v,k,l,u) -> list:
     name = __package__ + f'.problem_{v}_{k}_{l}_{u}'
     m = importlib.import_module(name)
     return m.solutions
+
+
+def draw(v, k, l, u):
+    import networkx as nx
+    import matplotlib.pyplot as plt
+    matrices = get_solutions(v,k,l,u)
+    for i, matrix in enumerate(matrices):
+
+        fig = plt.figure()
+
+        nodes = {n: str(n) for n in range(v)}
+        graph = nx.Graph()
+        graph.add_nodes_from(nodes.keys())
+
+        pos = nx.circular_layout(graph)
+        nx.draw_networkx_labels(graph, pos, nodes)
+
+        for r, c in zip(*matrix.nonzero()):
+            graph.add_edge(r, c)
+
+        nx.draw_circular(graph)
+
+        plt.axis('equal')
+        pngname = f'srg_{v}_{k}_{l}_{u}_{i}.png'
+        fig.savefig(pngname)
+        print(f'srg_{v}_{k}_{l}_{u}_{i}.png')
