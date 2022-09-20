@@ -6,7 +6,10 @@ from two_dist_set import simplifier
 from two_dist_set import util
 from two_dist_set.srg import SRG
 import numpy as np
-from collections import deque
+import multiprocessing
+from functools import reduce
+
+p = multiprocessing.Pool(multiprocessing.cpu_count())
 
 def _advance_from_partition(s: SRG) -> SRG:
     A, b = s.question()
@@ -50,13 +53,34 @@ def advance(s: SRG, approach=_advance_from_partition) -> list:
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
-def solve(s: SRG) -> SRG:
-    q = deque()
-    q.append(s)
-    while q:
-        s = q.pop()
-
-        if s.state == s.v - 1:  # data structure property. when met, graph is complete
-            yield s
+def partition_by_done(lst : list):
+    lst_undone, lst_done = [], []
+    for q in lst:
+        if q.state == q.v - 1:  # data structure property. when met, graph is complete
+            lst_done.append(q)
         else:
-            q += advance(s)
+            lst_undone.append(q)
+    return lst_undone, lst_done
+    
+def solve(s: SRG) -> SRG:
+    lst : list = advance(s)
+    
+    # single threaded
+    for i in range(5):
+        lst_undone, lst_done = partition_by_done(lst)
+        yield from lst_done
+        lst = reduce(lambda x,y:x+y, map(advance, lst_undone), [])
+
+        print(f'after iteration {i}, {len(lst)} questions derived')
+        if not lst: break
+
+    # multi threaded
+    while lst:
+        i += 1
+        #
+        lst_undone, lst_done = partition_by_done(lst)
+        yield from lst_done
+        lst = reduce(lambda x,y:x+y, map(advance, lst_undone), [])
+
+        print(f'after iteration {i}, {len(lst)} questions derived')
+    
