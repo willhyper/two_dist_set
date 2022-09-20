@@ -2,6 +2,7 @@
 Apple M1. python3.10
 13.41s
 11.97s. cythonized. 
+4.773s. multi-processed
 '''
 from numpy import array
 
