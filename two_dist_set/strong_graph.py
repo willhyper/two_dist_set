@@ -53,7 +53,7 @@ def advance(s: SRG, approach=_advance_from_partition) -> list:
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
-def advance_until_end(s: SRG, approach=_advance_from_partition) -> list:
+def advance_until_end(s: SRG) -> list:
     '''
     invoked by multiprocessing. Thus, within here. logic shall be single-threaded
     '''
@@ -78,7 +78,7 @@ def solve(s: SRG) -> SRG:
     lst : list = advance(s)
     
     # single threaded
-    for i in range(5):
+    for i in range(2):
         lst_undone, lst_done = partition_by_done(lst)
         yield from lst_done
         lst = reduce(lambda x,y:x+y, map(advance, lst_undone), [])

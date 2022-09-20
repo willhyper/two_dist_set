@@ -1,5 +1,9 @@
 '''
-no solution. 71.05s. Apple M1. python3.10, cythonized
+no solution.
+Apple M1. python3.10
+71.05s. cythonized
+23s. multi-threaded
+20.77. multi-threaded, cythonized
 '''
 from numpy import array
 
