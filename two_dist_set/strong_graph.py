@@ -6,10 +6,10 @@ from two_dist_set import simplifier
 from two_dist_set import util
 from two_dist_set.srg import SRG
 import numpy as np
-import multiprocessing
+from multiprocessing import Pool, cpu_count
 from functools import reduce
 
-p = multiprocessing.Pool(multiprocessing.cpu_count())
+cpu_num = cpu_count()
 
 def _advance_from_partition(s: SRG) -> SRG:
     A, b = s.question()
@@ -53,6 +53,18 @@ def advance(s: SRG, approach=_advance_from_partition) -> list:
     # yield from approach(s)
     return list(approach(s)) # to be serializable for use multipleprocess
 
+def advance_until_end(s: SRG, approach=_advance_from_partition) -> list:
+    '''
+    invoked by multiprocessing. Thus, within here. logic shall be single-threaded
+    '''
+    lst_done_final = []
+    lst = advance(s)
+    while lst:
+        lst_undone, lst_done = partition_by_done(lst)
+        lst_done_final += lst_done
+        lst = reduce(lambda x,y:x+y, map(advance, lst_undone), [])
+    return lst_done_final
+
 def partition_by_done(lst : list):
     lst_undone, lst_done = [], []
     for q in lst:
@@ -80,7 +92,7 @@ def solve(s: SRG) -> SRG:
         #
         lst_undone, lst_done = partition_by_done(lst)
         yield from lst_done
-        lst = reduce(lambda x,y:x+y, map(advance, lst_undone), [])
+        with Pool(cpu_num) as p:
+            lst = reduce(lambda x,y:x+y, p.map(advance_until_end, lst_undone), [])
 
         print(f'after iteration {i}, {len(lst)} questions derived')
-    
