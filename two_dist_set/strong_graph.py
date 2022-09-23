@@ -8,6 +8,7 @@ from two_dist_set.srg import SRG
 import numpy as np
 from multiprocessing import Pool, cpu_count
 from functools import reduce
+from typing import Iterator, Tuple
 
 cpu_num = cpu_count()
 
@@ -41,10 +42,12 @@ def _advance_from_partition(s: SRG) -> SRG:
     enc_smaller_bound = tuple(enc_smaller_bound)
 
     remain = s.k - s.used_k_of_current_row
-    candidates = util.partition(remain, enc_smaller_bound)
+    candidates : Iterator[Tuple] = util.partition(remain, enc_smaller_bound)
 
-    good_candidates = [c for c in candidates if np.array_equal(q3.A @ c, q3.b)]
-    binarized = [s + simplifier.binarize(C, unknown_columns, enc_bound, c) for c in good_candidates]
+    good_candidates = filter(lambda c : np.array_equal(q3.A.dot(c), q3.b), candidates)
+
+    binarized = map(lambda c : s + simplifier.binarize(C, unknown_columns, enc_bound, c), good_candidates)
+
     yield from binarized
 
 
