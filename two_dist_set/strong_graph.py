@@ -69,12 +69,7 @@ def advance_until_end(s: SRG) -> list:
 
 def partition_by_done(lst : list):
     lst_undone, lst_done = [], []
-    q : SRG
-    for q in lst:
-        if q.open:
-            lst_undone.append(q)
-        else:
-            lst_done.append(q)
+    [lst_undone.append(q) if q.open else lst_done.append(q) for q in lst]
     return lst_undone, lst_done
     
 def solve(s: SRG) -> SRG:
