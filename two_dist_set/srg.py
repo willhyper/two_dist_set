@@ -40,16 +40,12 @@ class SRG:
         return this - that
 
     def __eq__(self, other):
-        v = self.v == other.v
-        k = self.k == other.k
-        l = self.l == other.l
-        u = self.u == other.u
-
-        ri = self._ri == other._ri
-
-        enc = np.array_equal(self._encoded, other._encoded)
-
-        return ri and enc and v and k and l and u
+        return self._ri == other._ri \
+            and np.array_equal(self._encoded, other._encoded) \
+            and self.v == other.v \
+            and self.k == other.k \
+            and self.l == other.l \
+            and self.u == other.u
 
     def __lt__(self, other):
         these = np.nditer(self._encoded)
