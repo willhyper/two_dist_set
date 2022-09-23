@@ -43,10 +43,9 @@ def _advance_from_partition(s: SRG) -> SRG:
     remain = s.k - s.used_k_of_current_row
     candidates = util.partition(remain, enc_smaller_bound)
 
-    for candidate in candidates:
-        if np.array_equal(q3.A @ candidate, q3.b):
-            binarized = simplifier.binarize(C, unknown_columns, enc_bound, candidate)
-            yield s + binarized
+    good_candidates = [c for c in candidates if np.array_equal(q3.A @ c, q3.b)]
+    binarized = [s + simplifier.binarize(C, unknown_columns, enc_bound, c) for c in good_candidates]
+    yield from binarized
 
 
 def advance(s: SRG, approach=_advance_from_partition) -> list:

@@ -8,5 +8,5 @@ lst : list = [seed]
 while lst:
     # q = lst.pop(0) # pop first, lst[0].
     q = lst.pop() # pop last, lst[-1].
-    sublst : list = list(strong_graph._advance_from_partition(q))
+    sublst : list = strong_graph.advance(q)
     lst += sublst
