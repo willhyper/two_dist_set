@@ -10,7 +10,7 @@ import numpy as np
 class SRG:
     def __init__(self, v, k, l, u):
         self.v, self.k, self.l, self.u = v, k, l, u
-        self._ri = 0
+        self._ri : int = 0
         self._encoded = np.zeros(v - 1, dtype=int)
 
     def __add__(self, row):
@@ -64,6 +64,10 @@ class SRG:
     @property
     def state(self):
         return self._ri
+
+    @property
+    def open(self) -> bool:
+        return self._ri < self.v - 1
 
     @property
     def encoded_representation(self):

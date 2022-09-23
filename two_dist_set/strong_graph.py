@@ -69,11 +69,12 @@ def advance_until_end(s: SRG) -> list:
 
 def partition_by_done(lst : list):
     lst_undone, lst_done = [], []
+    q : SRG
     for q in lst:
-        if q.state == q.v - 1:  # data structure property. when met, graph is complete
-            lst_done.append(q)
-        else:
+        if q.open:
             lst_undone.append(q)
+        else:
+            lst_done.append(q)
     return lst_undone, lst_done
     
 def solve(s: SRG) -> SRG:
