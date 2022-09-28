@@ -60,7 +60,7 @@ class Answer:
     def __len__(self):
         return self._len
 
-    def binarize(self):
+    def binarize(self)-> array:
         '''
         for example,
         _quota = (3, 4, 4, 2)

@@ -2,11 +2,12 @@
 #cython: language_level=3
 
 from itertools import chain
-
+from typing import Iterator
+from .srg import array
+from .srg import SRG
 import numpy as np
 from collections import defaultdict
 from . import gauss_elim, unique, bounds, fork, srg
-from . import pprint
 from .srg import Question, Answer, NoSolution
 from .utils import debug
 from functools import wraps
@@ -184,7 +185,7 @@ def fork_enum(Q: Question):
 
 
 
-def solve(Q: Question):
+def solve(Q: Question)->Iterator[array]:
     stack = list()
     stack.append(Q)
 
@@ -203,15 +204,20 @@ def solve(Q: Question):
 
             if Q.answer.unknown:
                 for Qnext in fork_enum(Q):
-                    # pprint.red(Qnext)
                     stack.append(Qnext)
             else:
                 ans = Q.answer.binarize()
                 yield ans
 
-        except NoSolution as e:
-            # pprint.red(e)
-            # pprint.red(Q)
+        except NoSolution:
             continue
 
 
+def advance(s : SRG, v, k, l, u) -> Iterator[SRG]:
+    assert not s.solved()
+    try:
+        q = Question.from_matrix(s.current_matrix, v, k, l, u)
+    except NoSolution:
+        return []
+    ansgen_arr : Iterator[array] = solve(q)
+    return list(map(s.append_and_return_new, ansgen_arr))
