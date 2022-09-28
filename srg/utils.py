@@ -26,6 +26,9 @@ def determinant(v: int, k: int, l: int, u: int):
 
     return int(round(prod))
 
+def assert_srg(v: int, k: int, l: int, u: int):
+    assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
+
 def debug(func):
 
     def wrapper(Q:Question):

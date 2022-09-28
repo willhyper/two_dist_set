@@ -3,6 +3,7 @@
 from .solver import _seed, solve
 from .srg import Question, SRG, NoSolution
 from . import pprint
+from . import utils
 import sys
 
 
@@ -32,17 +33,13 @@ def main(mat, v, k, l, u):
                     print(f'candidate: {ans}')
 
 
-def assert_srg(v: int, k: int, l: int, u: int):
-    assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
-
-
 if __name__ == '__main__':
     pprint.clear()
 
     v, k, l, u = map(int, sys.argv[1:])
     print(v, k, l, u)
 
-    assert_srg(v, k, l, u)
+    utils.assert_srg(v, k, l, u)
 
     mat = _seed(v, k, l, u)
     ansgen = main(mat, v, k, l, u)
