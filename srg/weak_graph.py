@@ -3,7 +3,7 @@
 
 from types import coroutine
 
-from two_dist_set.srg import SRG
+from srg.srg import SRG
 import numpy as np
 import itertools
 

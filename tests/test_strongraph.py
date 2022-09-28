@@ -1,9 +1,9 @@
 __author__ = 'chaoweichen'
 
 
-from two_dist_set import util
-from two_dist_set import strong_graph
-from two_dist_set import database as db
+from srg import util
+from srg import strong_graph
+from srg import database as db
 
 
 import numpy as np

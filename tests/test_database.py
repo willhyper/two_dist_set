@@ -1,9 +1,9 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set import conference
-from two_dist_set import util
-from two_dist_set import database as db
-from two_dist_set.srg import SRG
+from srg import conference
+from srg import util
+from srg import database as db
+from srg.srg import SRG
 
 import numpy as np
 
@@ -50,7 +50,7 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
             assert np.array_equal(m_right @ solution, inner_prod_remain)
 
             # part 2: solution is not known: generate candidates from strong_generator
-            # from two_dist_set import strong_graph
+            # from srg import strong_graph
             # for s2 in strong_graph.advance(s):
             #     candidate = s2 - s
             #     assert np.array_equal(m_right @ candidate, inner_prod_remain)

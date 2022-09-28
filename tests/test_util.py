@@ -1,4 +1,4 @@
-from two_dist_set import util
+from srg import util
 import numpy as np
 
 

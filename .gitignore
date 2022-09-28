@@ -1,12 +1,12 @@
 tests/__pycache__/
-two_dist_set/__pycache__/
-two_dist_set/database/__pycache__/
-two_dist_set.egg-info/
+srg/__pycache__/
+srg/database/__pycache__/
+srg.egg-info/
 .idea
 .cache/
 __pycache__/
 
 build/
-two_dist_set/*.c
-two_dist_set/*.so
-two_dist_set/*.pyx
+srg/*.c
+srg/*.so
+srg/*.pyx

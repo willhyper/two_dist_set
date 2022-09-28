@@ -1,8 +1,8 @@
 
-from two_dist_set.srg import SRG
-from two_dist_set import database as db
-from two_dist_set import util
-from two_dist_set import strong_graph
+from srg.srg import SRG
+from srg import database as db
+from srg import util
+from srg import strong_graph
 import numpy as np
 import pytest
 

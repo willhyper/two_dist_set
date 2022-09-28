@@ -1,4 +1,4 @@
-rm -rf two_dist_set/*.so
-rm -rf two_dist_set/*.pyx
-rm -rf two_dist_set/*.c
+rm -rf srg/*.so
+rm -rf srg/*.pyx
+rm -rf srg/*.c
 

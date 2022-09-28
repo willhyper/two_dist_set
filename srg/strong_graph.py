@@ -2,9 +2,9 @@
 #cython: language_level=3
 
 __author__ = 'chaoweichen'
-from two_dist_set import simplifier
-from two_dist_set import util
-from two_dist_set.srg import SRG
+from srg import simplifier
+from srg import util
+from srg.srg import SRG
 import numpy as np
 from multiprocessing import Pool, cpu_count
 from functools import reduce

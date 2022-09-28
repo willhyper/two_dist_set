@@ -1,8 +1,8 @@
 __author__ = 'chaoweichen'
 
-from two_dist_set.srg import SRG
-from two_dist_set import weak_graph
-from two_dist_set import database as db
+from srg.srg import SRG
+from srg import weak_graph
+from srg import database as db
 
 import numpy as np
 import pytest

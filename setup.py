@@ -10,14 +10,14 @@ except ImportError:
         return cythonize(*args, ** kwargs)
 
 
-setup(name='two_dist_set',
+setup(name='srg',
       version='1.0',
       description='Compute Adjacency Matrix for Two Distance Set, ie. Strongly regular graph',
       url='https://github.com/willhyper/two_dist_set',
       author='Chao-Wei Chen',
       author_email='willhyper@gmail.com',
       license='MIT',
-      packages=['two_dist_set'],
+      packages=['srg'],
       setup_requires=[
         'setuptools>=18.0',# so properly handles Cython extensions.
         'cython',
@@ -28,4 +28,4 @@ setup(name='two_dist_set',
           'networkx',
           'matplotlib',
       ],
-      ext_modules = cythonize("two_dist_set/*.pyx"))
+      ext_modules = cythonize("srg/*.pyx"))

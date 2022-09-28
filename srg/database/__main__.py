@@ -1,5 +1,5 @@
-from two_dist_set.database import list_problems, get_solutions, draw
-from two_dist_set import util
+from srg.database import list_problems, get_solutions, draw
+from srg import util
 import sys
 from pprint import pprint
 

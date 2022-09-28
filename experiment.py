@@ -1,5 +1,5 @@
-from two_dist_set import util
-from two_dist_set import strong_graph
+from srg import util
+from srg import strong_graph
 
 v, k, l, u = 21, 10, 5, 4
 

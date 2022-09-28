@@ -1,6 +1,6 @@
 __author__ = 'chaoweichen'
 import numpy as np
-from two_dist_set import sort
+from srg import sort
 
 
 def test_9_4_1_2():

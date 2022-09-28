@@ -1,6 +1,6 @@
 #!python
 #cython: language_level=3
-from two_dist_set import util, strong_graph
+from srg import util, strong_graph
 from pprint import pprint
 import time
 import sys
