@@ -1,7 +1,6 @@
 __author__ = 'chaoweichen'
 
-from srg import conference
-from srg import util
+from srg import utils
 from srg import database as db
 from srg.srg import SRG
 
@@ -49,12 +48,6 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
             solution = mat[ri, ri + 1:]
             assert np.array_equal(m_right @ solution, inner_prod_remain)
 
-            # part 2: solution is not known: generate candidates from strong_generator
-            # from srg import strong_graph
-            # for s2 in strong_graph.advance(s):
-            #     candidate = s2 - s
-            #     assert np.array_equal(m_right @ candidate, inner_prod_remain)
-
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
 def test_matrix_is_sorted(v: int, k: int, l: int, u: int, database):
@@ -79,9 +72,9 @@ def test_determinant(v: int, k: int, l: int, u: int, database):
     det_from_matrix, calculated from matrix, from database
     det_expected, derived from SRG requirements: eigenvalues and their multiplicity are already known
     '''
-    not_conference_graph = conference.conference(v, k, l, u) != 0
+    not_conference_graph = utils.conference(v, k, l, u) != 0
 
-    det_expected = util.determinant(v, k, l, u)
+    det_expected = utils.determinant(v, k, l, u)
     for mat in database:
         eigval, eigvec = np.linalg.eig(mat)
 

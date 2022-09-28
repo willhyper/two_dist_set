@@ -1,199 +1,279 @@
 #!python
 #cython: language_level=3
 
-from functools import total_ordering
-
-__author__ = 'chaoweichen'
 import numpy as np
+from functools import partial
 
-@total_ordering
-class SRG:
-    def __init__(self, v, k, l, u):
-        self.v, self.k, self.l, self.u = v, k, l, u
-        self._ri : int = 0
-        self._encoded = np.zeros(v - 1, dtype=int)
+array = partial(np.array, dtype=np.int8)
+ones = partial(np.ones, dtype=np.int8)
+zeros = partial(np.zeros, dtype=np.int8)
+eye = partial(np.eye, dtype=np.int8)
 
-    def __add__(self, row):
-        l = self.v - 1 - self._ri
+class NoSolution(Exception): pass
 
-        assert len(row) == l, f"expect len(row)=={l} but got len({row})={len(row)}"
+class Answer:
+    UNKNOWN = -1
 
-        cp = self.copy()
-        cp._encoded[cp._ri:] += row
-        cp._encoded[cp._ri + 1:] <<= 1
-        cp._ri += 1
+    def __init__(self, value: np.array, location: np.array, len: int):
+        #
+        assert np.array_equal(value.shape, location.shape)
+        if location.size > 0:
+            assert location[0] == 0
+            assert all(np.diff(location)), f'location is not sorted: {location}'
+            assert location[-1] < len
 
-        return cp
+        self._v = value
+        self._loc = location
+        self._len = len
 
-    def __sub__(self, other):
-
-        ri = self._ri
-        assert ri == other._ri + 1, "only allow subtraction between adjacent state"
-
-        this = self._encoded.copy()  # [ri + 1:] >> 1
-        that = other._encoded.copy()
-
-        this[ri:] >>= 1
-        this = this[ri - 1:]
-        that = that[ri - 1:]
-
-        return this - that
-
-    def __eq__(self, other):
-        return self._ri == other._ri \
-            and np.array_equal(self._encoded, other._encoded) \
-            and self.v == other.v \
-            and self.k == other.k \
-            and self.l == other.l \
-            and self.u == other.u
-
-    def __lt__(self, other):
-        these = np.nditer(self._encoded)
-        those = np.nditer(other._encoded)
-        for this, that in zip(these, those):
-            if this == that:
-                continue
-            else:
-                return this < that
-        assert False, "impossible...."
+    @classmethod
+    def default(cls, length: int):
+        return Answer(value=ones(length) * cls.UNKNOWN, location=np.arange(length), len=length)
 
     @property
-    def state(self):
-        return self._ri
+    def quota(self) -> np.array:
+        loc_end_inclusive = np.hstack((self._loc, self._len))  # [0,2,4,6,7]
+        _quota = np.diff(loc_end_inclusive)  # [2,2,2,1]
+        assert _quota.sum() == self._len, f'{self._len} != sum({_quota})'
+        return _quota
 
     @property
-    def open(self) -> bool:
-        return self._ri < self.v - 1
+    def unknown_loc(self) -> np.array:
+        return np.where(self._v == self.UNKNOWN)[0]
 
     @property
-    def encoded_representation(self):
-        return self._encoded
-
-    @property
-    def len_pivot_vec(self):
-        return self.v - 1 - self._ri  # 9 - 1 - 3 = 5 # 1 is the '0' is the diagonal
-
-    @property
-    def used_k_of_current_row(self):
-        dec = self._encoded[self._ri - 1]
-        used = 0
-        while dec > 0:
-            used += dec % 2
-            dec >>= 1
-        return used  # = sum(self.pivot_vector)
-
-    @property
-    def pivot_vector(self):
-        vec = np.zeros(self._ri, dtype=int)
-        ri = self._ri - 1
-        dec = self._encoded[ri]
-        while dec > 0:
-            vec[ri] = dec % 2
-            dec >>= 1
-            ri -= 1
-        return vec
+    def unknown(self) -> bool:
+        return any(self._v == self.UNKNOWN)
 
     def copy(self):
-        cp = SRG(self.v, self.k, self.l, self.u)
-        cp._encoded = np.copy(self._encoded)
-        cp._ri = self._ri
-        return cp
+        return Answer(self._v.copy(), self._loc.copy(), self._len)
+
+    def __eq__(self, other):
+        if not np.array_equal(self._v, other._v): return False
+        if not np.array_equal(self._loc, other._loc): return False
+        if self._len != other._len: return False
+        return True
 
     def __repr__(self):
+        return f'Answer(value={repr(self._v)}, \n    location={repr(self._loc)}, len={self._len})'
 
-        # construct a string representing the known part of the matrix
-        mat = self.to_matrix_essential()
-        strr = ''
-        R, C = mat.shape
-        for r in range(R):
-            row = mat[r, :]
-            strr += str(row)[1:-1] + '\n'
-        strr = strr[:-1]  # remove the trailing \n
-        strr = strr.replace(' ', '')
+    def __len__(self):
+        return self._len
 
-        current_known_partial_vec_str = str(self.pivot_vector)[1:-1].replace(' ', '')
+    def binarize(self):
+        '''
+        for example,
+        _quota = (3, 4, 4, 2)
+        _v = (0, 3, 3, 1)
 
-        question = '?' * self.len_pivot_vec
+        this means the first bucket (0, 3) has 0 1's, and 3-0=3 0's
+        the 2nd bucket (3,4) has 3 1's, and 4-3=1 0's
+        the 3rd bucket is sames as the 2nd
+        the 4th bucket (1,2) has 1 1's, and 2-1=1 0's.
 
-        out = f'(v, k, l, u) = {self.v, self.k, self.l, self.u}\n'
+        so returns [0 0 0 1 1 1 0 1 1 1 0 1 0] = _ans
+                    ^     ^       ^       ^
+                    1st   2nd     3rd     4th
+        '''
 
-        out += strr + '\n'
-        out += current_known_partial_vec_str + '0' + question
+        _v = self._v
+        assert np.all(_v != self.UNKNOWN), f'answer remains unknown: {_v}'
 
-        out += f'\nSRG({self._ri} : {self._encoded})'
+        _quota = self.quota
+        assert np.all(_v <= _quota), f'answer out of quota: {_v} > {_quota}'
 
-        return out
+        _ans = zeros(self._len)
 
-    def to_matrix(self):
-        enc = self._encoded.copy()
-        i = self._ri
-        mat = np.zeros((self.v, self.v), dtype=int)
-        while i > 0:
-            # decoding
-            enc[i:] >>= 1
-            i -= 1
-            v = enc[i:] % 2
-            enc[i:] -= v
+        ptr = 0
+        for c, b in zip(_v, _quota):
+            _ans[ptr: ptr + c] = 1
+            ptr += b
 
-            # assign to symmetric matrix
-            mat[i, i + 1:] = v
-            mat[i + 1:, i] = v
+        return _ans
 
-        return mat
 
-    def to_matrix_essential(self):
-        enc = self._encoded.copy()
-        R, C, i = self._ri, self.v, self._ri
-        mat = SRG._decode(enc, R, C, i)
+class Question:
+    '''
+    given A, b, find x st A @ x = b
+    '''
 
-        return mat
+    def __init__(self, A: np.array, b: np.array, quota: int, bounds: np.array, ans: Answer = None):
+        R, C = A.shape
+        assert R == b.shape[0], f'{R}!=len({b})'
+        assert C == bounds.shape[0], f'{C}!=len({bounds})'
+
+        self.A, self.b, self.quota, self.bounds = A, b, quota, bounds
+
+        self._ans = Answer.default(C) if ans is None else ans
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        '''
+        example:
+
+            b	A_(6x2)
+            4	[0 1]
+            4	[0 1]
+            0	[0 0]
+            4	[1 0]
+            4	[1 0]
+            0	[0 0]
+            x=	[? ?]_(2x1)
+            bnd	[4 4]	quota=sum(x)=8
+            Answer(value=array([ 0, -1,  0,  0, -1], dtype=int8),
+                location=array([ 0,  4,  8, 12, 16]), len=20)
+        '''
+
+
+        R, C = self.A.shape
+        x = ' '.join('?' * C)
+        szx = '(%dx1)' % C
+
+        out = f'b\tA_({R}x{C})\n'
+        for b, a in zip(self.b, self.A):
+            out += f'{b}\t{a}\n'
+
+        out += f'x=\t[{x}]_{szx}\tquota=sum(x)={self.quota}\n'
+        out += f'bnd\t{self._bounds}\n'
+
+        return f'{out}' \
+               f'{self._ans}'
 
     @classmethod
-    def _decode(cls, enc, R, C, i):
+    def from_matrix(cls, m: np.array, v: int, k: int, l: int, u: int):
+        R, C = m.shape
+        assert C == v
+        known = np.r_[m[:, R], 0]
 
-        mat = np.zeros((R, C), dtype=int)
-        while i > 0:
-            # decoding
-            enc[i:] >>= 1
-            i -= 1
-            v = enc[i:] % 2
-            enc[i:] -= v
+        # condition l, u
+        quota_used = m[:, :R + 1] @ known
+        quota = array([l if e else u for e in known[:-1]])
 
-            # assign to partial matrix
-            mat[i, i + 1:] = v
-            mat[i + 1:, i] = v[:R - i - 1]
+        b = quota - quota_used
+        A = m[:, R + 1:]
 
-        return mat
+        # condition k
+        # quota_used_k = known.sum()
+        # quota_k = k
+        unknown_len = v - R - 1
+        b_k = k - known.sum()
+        a_k = ones(unknown_len)
 
-    @classmethod
-    def from_matrix(cls, mat, v, k, l, u):
-        s = SRG(v, k, l, u)
-        row_num = mat.shape[0]
-        for i in range(row_num):
-            row = mat[i, i + 1:]
-            s += row
+        A = np.append(A, a_k.reshape(1, unknown_len), axis=0)
+        b = np.append(b, b_k)
 
-        return s
+        if np.any(b < 0):
+            raise NoSolution(f'some element in b is negative: b={b}')
 
-    def question(self, include_k=False):
+        return Question(A, b, quota=b_k, bounds=a_k)
 
-        mat = self.to_matrix_essential()
-        ri = self._ri
-        m_left, m_ri, m_right = mat[:, :ri], mat[:, ri], mat[:, ri + 1:]
+    @property
+    def answer(self):
+        return self._ans
 
-        inner_prod_required = np.array([self.l if m_ri[r] == 1 else self.u for r in range(ri)], dtype=int)
+    @answer.setter
+    def answer(self, update: Answer)->None:
+        # the number of -1 is same as C = self.A.shape[1]
+        num_unknown = len(update.unknown_loc)
+        assert num_unknown == self.A.shape[1]
 
-        inner_prod_known = m_left @ m_ri
-        inner_prod_remain = inner_prod_required - inner_prod_known
+        self._ans = update
 
-        if include_k:
-            R, C = m_right.shape
-            constrain_k_vec = np.ones(C, dtype=int)
-            constrain_k_remain = self.k - sum(m_ri)
-            m_right_w_k = np.vstack((m_right, constrain_k_vec))
-            inner_prod_remain_w_k = np.concatenate((inner_prod_remain, (constrain_k_remain,)))
+    @property
+    def bounds(self):
+        return self._bounds
 
-            return m_right_w_k, inner_prod_remain_w_k
-        else:
-            return m_right, inner_prod_remain
+    @bounds.setter
+    def bounds(self, new_bounds:array)->None:
+        assert all(new_bounds >= 0), f'some element in bounds are negative : {new_bounds}'
+        self._bounds = new_bounds
 
+    def copy(self):
+        return Question(self.A.copy(), self.b.copy(), self.quota, self.bounds.copy(), self.answer.copy())
+
+    def __eq__(self, other):
+        if not np.array_equal(self.A, other.A): return False
+        if not np.array_equal(self.b, other.b): return False
+        if self.quota != other.quota: return False
+        if not np.array_equal(self.bounds, other.bounds): return False
+        if self.answer != other.answer: return False
+
+        return True
+
+    @property
+    def b(self):
+        return self._b
+
+    @b.setter
+    def b(self, new_b):
+        assert np.all(new_b>=0), f'some element in b is negative: {new_b}'
+        self._b = new_b
+
+    @property
+    def quota(self):
+        return self._quota
+
+    @quota.setter
+    def quota(self, new_quota):
+        assert new_quota >= 0, f'new quota should not be negative: {new_quota}'
+        self._quota = new_quota
+
+    @property
+    def bounds(self):
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, new_bounds):
+        assert np.all(new_bounds>=0), f'some element in bounds is negative: {new_bounds}'
+        self._bounds = new_bounds
+
+
+    def _invariant_check(self):
+        assert np.all(self._b >= 0)
+        assert np.all(self._bounds >= 0)
+        R, C = self.A.shape
+        assert R == self._b.size
+        assert C == self._bounds.size
+        assert self.answer.unknown_loc.size == C
+        assert np.all(self.answer._v <= self.answer.quota)
+
+        if C == 0:
+            assert np.all(self._b == 0)
+
+class SRG:
+    def __init__(self, mat: array):
+        self._matrix = mat
+
+    @property
+    def current_matrix(self):
+        return self._matrix
+
+    def append_and_return_new(self, ans_essential: np.array):
+        R, C = self._matrix.shape
+        ans_row = np.r_[self._matrix[:, R], 0, ans_essential]
+        assert len(ans_row) == C
+        return SRG(np.vstack([self._matrix, ans_row]))
+
+    def solved(self):
+        R, C = self._matrix.shape
+        return R == C
+
+    def __repr__(self):
+        return repr(self._matrix)
+
+
+
+
+if __name__ == '__main__':
+    v, k, l, u = 10, 6, 3, 4
+    from .solver import _seed
+
+    s = _seed(v, k, l, u)
+    print('matrix form')
+    print(s)
+
+    q = Question.from_matrix(s, v, k, l, u)
+    print('transform into problem space')
+    print(q)

@@ -1,10 +1,7 @@
 __author__ = 'chaoweichen'
 
-
-from srg import util
-from srg import strong_graph
+from srg import solver
 from srg import database as db
-
 
 import numpy as np
 import pytest
@@ -23,9 +20,9 @@ problems = collect_problems()
 
 @pytest.mark.parametrize('v,k,l,u,database', problems)
 def test_partition_algo_output_agree_w_database(v: int, k: int, l: int, u: int, database):
-    seed = util.generate_seed(v, k, l, u)
+    seed = solver._seed(v, k, l, u)
 
-    actual_srgs = list(strong_graph.solve(seed))
+    actual_srgs = list(solver.solve(seed))
     assert len(actual_srgs) == len(database)
 
     actual_srgs.sort()
