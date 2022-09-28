@@ -9,7 +9,7 @@ def test1():
 
     s = solver._seed(v, k, l, u)
 
-    Q = Question.from_matrix(s, v, k, l, u)
+    Q = Question.from_matrix(s)
 
     def ans():
         yield srg.array([1,0,1,0,1,0,1])

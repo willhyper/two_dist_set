@@ -142,7 +142,8 @@ class Question:
                f'{self._ans}'
 
     @classmethod
-    def from_matrix(cls, m: np.array, v: int, k: int, l: int, u: int):
+    def from_matrix(cls, m: np.array):
+        v,k,l,u = vklu(m)
         R, C = m.shape
         assert C == v
         known = np.r_[m[:, R], 0]
@@ -263,7 +264,12 @@ class SRG:
     def __repr__(self):
         return repr(self._matrix)
 
-
+def vklu(mat : array):
+    R, C = mat.shape
+    v, k = C, mat[0].sum()
+    l = mat[0].dot(mat[1])
+    u = k * (k - l - 1) // (v - k - 1)
+    return v,k,l,u
 
 
 if __name__ == '__main__':
@@ -274,6 +280,6 @@ if __name__ == '__main__':
     print('matrix form')
     print(s)
 
-    q = Question.from_matrix(s, v, k, l, u)
+    q = Question.from_matrix(s)
     print('transform into problem space')
     print(q)

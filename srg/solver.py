@@ -211,13 +211,3 @@ def solve(Q: Question)->Iterator[array]:
 
         except NoSolution:
             continue
-
-
-def advance(s : SRG, v, k, l, u) -> Iterator[SRG]:
-    assert not s.solved()
-    try:
-        q = Question.from_matrix(s.current_matrix, v, k, l, u)
-    except NoSolution:
-        return []
-    ansgen_arr : Iterator[array] = solve(q)
-    return list(map(s.append_and_return_new, ansgen_arr))
