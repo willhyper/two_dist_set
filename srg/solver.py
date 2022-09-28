@@ -215,36 +215,3 @@ def solve(Q: Question):
             continue
 
 
-if __name__ == '__main__':
-
-    pprint.clear()
-
-
-    def test1():
-        from ..tests import tests
-
-        Q, ansgen = tests.test2()
-        for ans_actual, ans_expected in zip(solve(Q), ansgen):
-            pprint.green(ans_expected)
-            assert np.array_equal(ans_actual, ans_expected)
-
-
-    def test2():
-        A = srg.array([[0, 1],
-                       [0, 1],
-                       [0, 0],
-                       [1, 0],
-                       [1, 0],
-                       [0, 0]])
-        b = srg.array([4, 4, 0, 4, 4, 0])
-
-        bound = srg.array([4, 4])
-        ans = Answer(value=srg.array([0, -1, 0, 0, -1]), location=srg.array([0, 4, 8, 12, 16]), len=20)
-        Q = Question(A, b, 8, bound, ans)
-
-        only_1_element_in_row(Q)
-        Q._invariant_check()
-
-
-    test1()
-    test2()

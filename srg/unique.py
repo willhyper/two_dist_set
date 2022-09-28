@@ -13,7 +13,7 @@ def _encode(A: np.array) -> list:
     :return: array([7, 7, 5, 5, 3, 3, 1], dtype=int16)
     '''
     R, C = A.shape
-    _A = A.astype(np.int)
+    _A = A.astype(int)
     _sum = _A[-1, :]
     for r in reversed(range(R - 1)):
         _sum += _A[r, :] << (R - 1 - r)

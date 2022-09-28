@@ -87,9 +87,9 @@ def _encode(A: np.array, b: np.array) -> list:
     R, C = A.shape
     assert b.size == R, f'{b.size} != {R}'
 
-    _sum = A[:, -1].copy().astype(np.int)
+    _sum = A[:, -1].copy().astype(int)
     for c in reversed(range(C - 1)):
-        delta = A[:, c].astype(np.int) << (C - 1 - c)
+        delta = A[:, c].astype(int) << (C - 1 - c)
         _sum += delta
 
     return list(zip(_sum, range(R), b))
