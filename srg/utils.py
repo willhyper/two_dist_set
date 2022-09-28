@@ -3,6 +3,7 @@
 
 from .srg import Question
 from . import pprint
+import numpy as np
 
 def eig(v: int, k: int, l: int, u: int):
     conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer

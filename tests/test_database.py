@@ -2,7 +2,6 @@ __author__ = 'chaoweichen'
 
 from srg import utils
 from srg import database as db
-from srg.srg import SRG
 
 import numpy as np
 
@@ -38,30 +37,11 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
     '''
     for mat in database:
         for ri in range(1, v - 1):
-
-            partial_mat = mat[:ri, :]
-            s = SRG.from_matrix(partial_mat, v, k, l, u)
-
-            m_right, inner_prod_remain = s.question()
-
-            # part 1: solution is known: mat[ri, ri + 1:]
+            mr = mat[:ri, :]
+            m_left, pivot, m_right = mr[:, :ri], mr[:, ri], mr[:, ri+1:] 
+            lu = [l if e else u for e in pivot]
             solution = mat[ri, ri + 1:]
-            assert np.array_equal(m_right @ solution, inner_prod_remain)
-
-
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_matrix_is_sorted(v: int, k: int, l: int, u: int, database):
-    '''
-    because SRG class defines how to compare its data structure so we can 'sort' matrix
-    see how SRG can be decorated with @total_ordering
-    '''
-    actual = database
-    srg_actual = [SRG.from_matrix(mat, v, k, l, u) for mat in actual]
-
-    srg_expected = sorted(srg_actual)
-
-    for a, e in zip(srg_actual, srg_expected):
-        assert a == e
+            assert np.array_equal(m_left @ pivot + m_right @ solution, lu)
 
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
