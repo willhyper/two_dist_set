@@ -30,6 +30,9 @@ def determinant(v: int, k: int, l: int, u: int):
 def assert_srg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
+def complement(v: int, k: int, l: int, u: int):
+    return v, v - k -1, v -2-2*k +u ,v -2*k +l
+
 def debug(func):
 
     def wrapper(Q:Question):
