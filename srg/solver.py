@@ -11,6 +11,7 @@ from . import gauss_elim, unique, bounds, fork, srg
 from .srg import Question, Answer, NoSolution
 from .utils import debug
 from functools import wraps
+from functools import reduce
 
 def _seed(v: int, k: int, l: int, u: int) -> np.array:
     remain_ones_number = k - l - 1
@@ -185,7 +186,7 @@ def fork_enum(Q: Question):
 
 
 
-def solve(Q: Question)->Iterator[array]:
+def solve_question(Q: Question)->Iterator[array]:
     stack = list()
     stack.append(Q)
 
@@ -211,3 +212,28 @@ def solve(Q: Question)->Iterator[array]:
 
         except NoSolution:
             continue
+
+
+def partition_by_done(lst : Iterator[SRG]):
+    lst_done, lst_undone = [], []
+    [lst_done.append(s) if s.solved() else lst_undone.append(s) for s in lst]
+    return lst_done, lst_undone
+
+def advance(s : SRG) -> Iterator[SRG]:
+    assert not s.solved()
+    try:
+        q = Question.from_matrix(s.current_matrix)
+    except NoSolution:
+        return []
+    ansgen_arr : Iterator[array] = solve_question(q)
+    return list(map(s.append_and_return_new, ansgen_arr))
+
+def solve(srg : SRG):
+    lst = advance(srg)
+    lst_done, lst_undone = partition_by_done(lst)
+    yield from [s.current_matrix for s in lst_done]
+    lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
+    while lst:
+        lst_done, lst_undone = partition_by_done(lst)
+        yield from [s.current_matrix for s in lst_done]
+        lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])

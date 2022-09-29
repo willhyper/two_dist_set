@@ -15,7 +15,7 @@ def test1():
         yield srg.array([1,0,1,0,1,0,1])
         yield srg.array([0,0,1,1,1,1,0])
 
-    for ans_actual, ans_expected in zip(solver.solve(Q), ans()):
+    for ans_actual, ans_expected in zip(solver.solve_question(Q), ans()):
 
         assert np.array_equal(ans_actual, ans_expected)
 
