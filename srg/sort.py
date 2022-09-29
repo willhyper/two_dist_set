@@ -1,6 +1,8 @@
 #!python
 #cython: language_level=3
 
+from functools import cmp_to_key
+
 import numpy as np
 from collections import deque, namedtuple
 
@@ -81,3 +83,13 @@ def sort(A):
     AM = AdjMat(A)
     AM.sort()
     return AM.Mat
+
+
+def _cmp(arr, brr):
+    for a, b in zip(arr, brr):
+        if a == b: continue
+        else: return a - b
+    else: return 0
+
+def _sort(lst : list):
+    return sorted(lst, key=cmp_to_key(_cmp))

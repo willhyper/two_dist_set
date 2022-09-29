@@ -1,8 +1,8 @@
 from srg import srg
-from srg.srg import Question, Answer, SRG
+from srg.srg import Question, Answer, SRG, array
 from srg import solver
 from srg import database as db
-from srg.sort import sort as srg_sort
+from srg.sort import _sort, sort
 import numpy as np
 import pytest
 
@@ -20,30 +20,21 @@ for p in problems:
 def test_solve(v: int, k: int, l: int, u: int, database):
     srg = SRG(solver._seed(v,k,l,u))
     actuals = solver.solve(srg)
-    actuals_sorted = list(map(srg_sort, actuals))
+    actuals_sorted = list(map(sort, actuals))
 
     for actual, expected in zip(actuals_sorted, database):
         np.array_equal(actual, expected)
 
-def test1():
-    
-    v, k, l, u = 10, 6, 3, 4
 
+@pytest.mark.parametrize('v,k,l,u, database', problems_all)
+def test_solve_question(v: int, k: int, l: int, u: int, database):
     s = solver._seed(v, k, l, u)
-
-    Q = Question.from_matrix(s)
-
-    def ans():
-        yield srg.array([1,0,1,0,1,0,1])
-        yield srg.array([0,0,1,1,1,1,0])
-
-    for ans_actual, ans_expected in zip(solver.solve_question(Q), ans()):
-
+    q = Question.from_matrix(s)
+    actuals = list(solver.solve_question(q))
+    actuals_sorted = _sort(actuals)
+    for ans_actual, expected in zip(actuals_sorted, database):
+        ans_expected = expected[2, 3:]
         assert np.array_equal(ans_actual, ans_expected)
-
-
-
-
 
 def test2():
     A = srg.array([[0, 1],
