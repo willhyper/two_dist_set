@@ -1,7 +1,29 @@
 from srg import srg
-from srg.srg import Question, Answer
+from srg.srg import Question, Answer, SRG
 from srg import solver
+from srg import database as db
+from srg.sort import sort as srg_sort
 import numpy as np
+import pytest
+
+problems_all = []
+
+problems = db.list_problems()
+for p in problems:
+    v,k,l,u = db.extract_vklu(p)
+    if v < 20:
+        solutions = db.get_solutions(v,k,l,u)
+        problems_all.append((v,k,l,u, solutions))
+
+
+@pytest.mark.parametrize('v,k,l,u, database', problems_all)
+def test_solve(v: int, k: int, l: int, u: int, database):
+    srg = SRG(solver._seed(v,k,l,u))
+    actuals = solver.solve(srg)
+    actuals_sorted = list(map(srg_sort, actuals))
+
+    for actual, expected in zip(actuals_sorted, database):
+        np.array_equal(actual, expected)
 
 def test1():
     
