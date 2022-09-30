@@ -23,19 +23,23 @@ def test_solve(v: int, k: int, l: int, u: int, database):
     actuals_sorted = list(map(sort, actuals))
 
     for actual, expected in zip(actuals_sorted, database):
-        np.array_equal(actual, expected)
+        assert np.array_equal(actual, expected)
 
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
 def test_solve_question(v: int, k: int, l: int, u: int, database):
+    expected_rows = [exp[2, 3:] for exp in database]
+    
     s = solver._seed(v, k, l, u)
-    q = Question.from_matrix(s)
-    actuals = list(solver.solve_question(q))
-    actuals_sorted = _sort(actuals)
-    for ans_actual, expected in zip(actuals_sorted, database):
-        ans_expected = expected[2, 3:]
-        assert np.array_equal(ans_actual, ans_expected)
-
+    q = Question.from_matrix(s)    
+    actuals = list(solver.solve_question(q)) # actuals are only candidates of real solutions.
+    
+    for actual in actuals:
+        match = map(lambda exp : np.array_equal(exp, actual), expected_rows)
+        if any(match):return
+    
+    assert False, f'actuals {actuals} does not match any in expected {expected_rows}'
+    
 def test2():
     A = srg.array([[0, 1],
                     [0, 1],
