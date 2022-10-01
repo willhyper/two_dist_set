@@ -5,6 +5,7 @@ from .srg import SRG, array
 from . import pprint
 from . import utils
 from . import solver
+from . import sorter
 import sys
 
 
@@ -18,9 +19,7 @@ if __name__ == '__main__':
 
     s = SRG(solver._seed(v, k, l, u))
     ansgen = solver.solve(s)
-
-    anslist :list = [ans for ans in ansgen]
-
+    ans :list = sorter.sort(ansgen)
     pprint.green('*********** answers *************')
-    for ans in anslist:
+    for ans in ans:
         pprint.green(ans)
