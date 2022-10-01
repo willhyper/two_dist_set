@@ -1,6 +1,6 @@
 __author__ = 'chaoweichen'
 import numpy as np
-from srg.sort import sort
+from srg import sorter
 
 
 def test_9_4_1_2():
@@ -30,9 +30,9 @@ def test_9_4_1_2():
         [0, 0, 1, 0, 1, 0, 1, 1, 0]
     ])
 
-    Asorted = sort(A)
+    Amax = sorter.maximize(A)
 
-    assert np.array_equal(Asorted, B)
+    assert np.array_equal(Amax, B)
 
 
 def test_13_6_2_3():
@@ -65,6 +65,6 @@ def test_13_6_2_3():
                   [0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0],
                   [0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0]])
 
-    Asorted = sort(A)
+    Amax = sorter.maximize(A)
 
-    assert np.array_equal(Asorted, B)
+    assert np.array_equal(Amax, B)

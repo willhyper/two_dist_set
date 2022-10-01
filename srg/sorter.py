@@ -79,17 +79,28 @@ class AdjMat:
         return first_zero_index
 
 
-def sort(A):
+def maximize(A):
+    '''
+    swapping columns of A if encode(A) can be larger
+    '''
     AM = AdjMat(A)
     AM.sort()
     return AM.Mat
 
 
-def _cmp(arr, brr):
+def _cmp_1d_bin_array(arr, brr):
     for a, b in zip(arr, brr):
         if a == b: continue
         else: return a - b
     else: return 0
 
-def _sort(lst : list):
-    return sorted(lst, key=cmp_to_key(_cmp))
+def _encode(srg_matrix):
+    return np.hstack([arr[r+1:] for r, arr in enumerate(srg_matrix)])
+    
+def _cmp_srg_matrix(ma, mb):
+    a1d = _encode(ma)
+    b1d = _encode(mb)
+    return _cmp_1d_bin_array(a1d, b1d)
+
+def sort(lst : list):
+    return sorted(lst, key=cmp_to_key(_cmp_srg_matrix))

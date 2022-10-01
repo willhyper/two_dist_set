@@ -2,7 +2,7 @@ from srg import srg
 from srg.srg import Question, Answer, SRG, array
 from srg import solver
 from srg import database as db
-from srg.sort import _sort, sort
+from srg import sorter
 import numpy as np
 import pytest
 
@@ -20,7 +20,7 @@ for p in problems:
 def test_solve(v: int, k: int, l: int, u: int, database):
     srg = SRG(solver._seed(v,k,l,u))
     actuals = solver.solve(srg)
-    actuals_sorted = list(map(sort, actuals))
+    actuals_sorted = sorter.sort(actuals)
 
     for actual, expected in zip(actuals_sorted, database):
         assert np.array_equal(actual, expected)
