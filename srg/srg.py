@@ -7,7 +7,7 @@ from functools import partial
 array = partial(np.array, dtype=np.int8)
 ones = partial(np.ones, dtype=np.int8)
 zeros = partial(np.zeros, dtype=np.int8)
-eye = partial(np.eye, dtype=np.int8)
+identity = partial(np.identity, dtype=np.int8)
 
 class NoSolution(Exception): pass
 

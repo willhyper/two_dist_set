@@ -4,6 +4,7 @@
 from .srg import Question
 from . import pprint
 import numpy as np
+from . import srg
 
 def eig(v: int, k: int, l: int, u: int):
     conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer
@@ -30,8 +31,17 @@ def determinant(v: int, k: int, l: int, u: int):
 def assert_srg(v: int, k: int, l: int, u: int):
     assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
 
-def complement(v: int, k: int, l: int, u: int):
+def complement_vklu(v: int, k: int, l: int, u: int):
     return v, v - k -1, v -2-2*k +u ,v -2*k +l
+
+def _invert(mat):
+    return np.vectorize(lambda t: 0 if t else 1)(mat)
+
+def complement(mat : np.array):
+    R, C = mat.shape
+    I = srg.identity(R)
+    return _invert(mat) - I
+
 
 def debug(func):
 

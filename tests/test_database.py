@@ -2,7 +2,8 @@ __author__ = 'chaoweichen'
 
 from srg import utils
 from srg import database as db
-
+from srg import srg
+from srg import sorter
 import numpy as np
 
 import pytest
@@ -67,8 +68,15 @@ def test_determinant(v: int, k: int, l: int, u: int, database):
 
 @pytest.mark.parametrize('v,k,l,u, database', problems_all)
 def test_srg_matrix_identity(v: int, k: int, l: int, u: int, database):
-    I = np.identity(v, dtype=int)
-    J = np.ones((v, v), dtype=int)
+    I = srg.identity(v)
+    J = srg.ones((v, v))
     const = (k - u) * I + u * J
     for mat in database:
         assert np.array_equal(mat @ mat - (l - u) * mat, const)
+
+    cmat = map(utils.complement, database)
+    #cmat = map(sorter.maximize, cmat) # does not matter do maximize or not
+    cv, ck, cl, cu = utils.complement_vklu(v,k,l,u)
+    cconst = (ck - cu) * I + cu * J
+    for mat in cmat:
+        assert np.array_equal(mat @ mat - (cl - cu) * mat, cconst)
