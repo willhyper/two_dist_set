@@ -16,6 +16,12 @@ for p in problems:
     for A in As: # A is adjacency matrix
         problems_all.append((v,k,l,u, A))
 
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_shape_len_is_v(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    A is a square matrix of size v
+    '''
+    assert A.shape[0] == A.shape[1] == v
 
 @pytest.mark.parametrize('v,k,l,u, A', problems_all)
 def test_A_element_0_or_1(v: int, k: int, l: int, u: int, A : np.ndarray):
