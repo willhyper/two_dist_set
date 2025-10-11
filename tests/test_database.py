@@ -1,9 +1,8 @@
-__author__ = 'chaoweichen'
+__author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 
 from srg import utils
 from srg import database as db
 from srg import srg
-from srg import sorter
 import numpy as np
 
 import pytest
@@ -13,12 +12,35 @@ problems_all = []
 problems = db.list_problems()
 for p in problems:
     v,k,l,u = db.extract_vklu(p)
-    solutions = db.get_solutions(v,k,l,u)
-    problems_all.append((v,k,l,u, solutions))
+    As = db.get_solutions(v,k,l,u)
+    for A in As: # A is adjacency matrix
+        problems_all.append((v,k,l,u, A))
 
 
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_matrix_property(v: int, k: int, l: int, u: int, database):
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_element_0_or_1(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    each element is either 0 or 1
+    '''
+    assert np.all(np.isin(A, [0,1]))
+
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_symmetric(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    A is symmetric
+    '''
+    assert np.array_equal(A, A.T)
+    
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_matrix_property_k(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    each row has k 1's
+    '''
+    row_sum = A.sum(axis=1)        
+    assert np.all(row_sum == k)
+
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_property_lu(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
 
     in any given partial adj matrix, a property holds.
@@ -36,17 +58,17 @@ def test_matrix_property(v: int, k: int, l: int, u: int, database):
     We use the solution to test against the property
 
     '''
-    for mat in database:
-        for ri in range(1, v - 1):
-            mr = mat[:ri, :]
-            m_left, pivot, m_right = mr[:, :ri], mr[:, ri], mr[:, ri+1:] 
-            lu = [l if e else u for e in pivot]
-            solution = mat[ri, ri + 1:]
-            assert np.array_equal(m_left @ pivot + m_right @ solution, lu)
+    
+    for ri in range(1, v - 1):
+        mr = A[:ri, :]
+        m_left, pivot, m_right = mr[:, :ri], mr[:, ri], mr[:, ri+1:] 
+        lu = [l if e else u for e in pivot]
+        solution = A[ri, ri + 1:]
+        assert np.array_equal(m_left @ pivot + m_right @ solution, lu)
 
 
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_determinant(v: int, k: int, l: int, u: int, database):
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_determinant(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
     determinant can be obtained by two ways, so we want them agree with each other
 
@@ -56,27 +78,30 @@ def test_determinant(v: int, k: int, l: int, u: int, database):
     not_conference_graph = utils.conference(v, k, l, u) != 0
 
     det_expected = utils.determinant(v, k, l, u)
-    for mat in database:
-        eigval, eigvec = np.linalg.eig(mat)
+    
+    eigval, eigvec = np.linalg.eig(A)
 
-        eigval = tuple(int(np.round(x)) for x in eigval) if not_conference_graph else eigval
+    eigval = tuple(int(np.round(x)) for x in eigval) if not_conference_graph else eigval
 
-        det_from_matrix = np.prod(eigval)
-        det_from_matrix = int(np.round(det_from_matrix))
-        assert det_from_matrix == det_expected, "determinant disagree"
+    det_from_matrix = np.prod(eigval)
+    det_from_matrix = int(np.round(det_from_matrix))
+    assert det_from_matrix == det_expected, "determinant disagree"
 
 
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_srg_matrix_identity(v: int, k: int, l: int, u: int, database):
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_Acomplement_is_srg(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    the complement of A is also an SRG
+    '''
     I = srg.identity(v)
     J = srg.ones((v, v))
     const = (k - u) * I + u * J
-    for mat in database:
-        assert np.array_equal(mat @ mat - (l - u) * mat, const)
+    
+    assert np.array_equal(A @ A - (l - u) * A, const)
 
-    cmat = map(utils.complement, database)
-    #cmat = map(sorter.maximize, cmat) # does not matter do maximize or not
+    Ac = utils.complement(A)
+    #Ac = map(sorter.maximize, Ac) # does not matter do maximize or not
     cv, ck, cl, cu = utils.complement_vklu(v,k,l,u)
     cconst = (ck - cu) * I + cu * J
-    for mat in cmat:
-        assert np.array_equal(mat @ mat - (cl - cu) * mat, cconst)
+    
+    assert np.array_equal(Ac @ Ac - (cl - cu) * Ac, cconst)

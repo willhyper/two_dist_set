@@ -12,23 +12,23 @@ problems = db.list_problems()
 for p in problems:
     v,k,l,u = db.extract_vklu(p)
     if v < 20:
-        solutions = db.get_solutions(v,k,l,u)
-        problems_all.append((v,k,l,u, solutions))
+        As = db.get_solutions(v,k,l,u)
+        problems_all.append((v,k,l,u, As))
 
 
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_solve(v: int, k: int, l: int, u: int, database):
+@pytest.mark.parametrize('v,k,l,u, As', problems_all)
+def test_solve(v: int, k: int, l: int, u: int, As):
     srg = SRG(solver._seed(v,k,l,u))
     actuals = solver.solve(srg)
     actuals_sorted = sorter.sort(actuals)
 
-    for actual, expected in zip(actuals_sorted, database):
+    for actual, expected in zip(actuals_sorted, As):
         assert np.array_equal(actual, expected)
 
 
-@pytest.mark.parametrize('v,k,l,u, database', problems_all)
-def test_solve_question(v: int, k: int, l: int, u: int, database):
-    expected_rows = [exp[2, 3:] for exp in database]
+@pytest.mark.parametrize('v,k,l,u, As', problems_all)
+def test_solve_question(v: int, k: int, l: int, u: int, As):
+    expected_rows = [exp[2, 3:] for exp in As]
     
     s = solver._seed(v, k, l, u)
     q = Question.from_matrix(s)    
