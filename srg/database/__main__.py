@@ -1,5 +1,4 @@
 from srg.database import list_problems, get_solutions, draw
-from srg import util
 import sys
 from pprint import pprint
 
@@ -17,7 +16,6 @@ except ValueError:
 if v is None:
     pprint(list_problems())
 else:
-    util.assert_arg(v,k,l,u)
     if cmd == 'list':
         pprint(get_solutions(v,k,l,u))
     elif cmd == 'draw':

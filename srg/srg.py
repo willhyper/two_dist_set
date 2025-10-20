@@ -91,7 +91,6 @@ class Answer:
 
         return _ans
 
-
 class Question:
     '''
     given A, b, find x st A @ x = b
@@ -243,7 +242,7 @@ class Question:
         if C == 0:
             assert np.all(self._b == 0)
 
-class SRG:
+class PartialSRG:
     def __init__(self, mat: array):
         self._matrix = mat
 
@@ -255,7 +254,7 @@ class SRG:
         R, C = self._matrix.shape
         ans_row = np.r_[self._matrix[:, R], 0, ans_essential]
         assert len(ans_row) == C
-        return SRG(np.vstack([self._matrix, ans_row]))
+        return PartialSRG(np.vstack([self._matrix, ans_row]))
 
     def solved(self):
         R, C = self._matrix.shape

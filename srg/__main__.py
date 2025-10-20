@@ -1,7 +1,7 @@
 #!python
 #cython: language_level=3
 
-from .srg import SRG, array
+from .srg import PartialSRG, array
 from . import pprint
 from . import utils
 from . import solver
@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     utils.assert_srg(v, k, l, u)
 
-    s = SRG(solver._seed(v, k, l, u))
+    s = PartialSRG(solver._seed(v, k, l, u))
     ansgen = solver.solve(s)
     ans :list = sorter.sort(ansgen)
     pprint.green('*********** answers *************')

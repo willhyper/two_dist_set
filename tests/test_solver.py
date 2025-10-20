@@ -1,5 +1,5 @@
 from srg import srg
-from srg.srg import Question, Answer, SRG, array
+from srg.srg import Question, Answer, PartialSRG, array
 from srg import solver
 from srg import database as db
 from srg import sorter
@@ -18,7 +18,7 @@ for p in problems:
 
 @pytest.mark.parametrize('v,k,l,u, As', problems_all)
 def test_solve(v: int, k: int, l: int, u: int, As):
-    srg = SRG(solver._seed(v,k,l,u))
+    srg = PartialSRG(solver._seed(v,k,l,u))
     actuals = solver.solve(srg)
     actuals_sorted = sorter.sort(actuals)
 

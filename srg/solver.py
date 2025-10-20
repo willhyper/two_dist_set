@@ -4,7 +4,7 @@
 from itertools import chain
 from typing import Iterator
 from .srg import array
-from .srg import SRG
+from .srg import PartialSRG
 import numpy as np
 from collections import defaultdict
 from . import gauss_elim, unique, bounds, fork, srg
@@ -214,12 +214,12 @@ def solve_question(Q: Question)->Iterator[array]:
             continue
 
 
-def partition_by_done(lst : Iterator[SRG]):
+def partition_by_done(lst : Iterator[PartialSRG]):
     lst_done, lst_undone = [], []
     [lst_done.append(s) if s.solved() else lst_undone.append(s) for s in lst]
     return lst_done, lst_undone
 
-def advance(s : SRG) -> Iterator[SRG]:
+def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     assert not s.solved()
     try:
         q = Question.from_matrix(s.current_matrix)
@@ -228,7 +228,7 @@ def advance(s : SRG) -> Iterator[SRG]:
     ansgen_arr : Iterator[array] = solve_question(q)
     return list(map(s.append_and_return_new, ansgen_arr))
 
-def solve(srg : SRG):
+def solve(srg : PartialSRG):
     lst = advance(srg)
     lst_done, lst_undone = partition_by_done(lst)
     yield from [s.current_matrix for s in lst_done]
