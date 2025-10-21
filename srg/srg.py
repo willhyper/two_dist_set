@@ -269,7 +269,36 @@ class PartialSRG:
         return R == C
 
     def __repr__(self):
-        return repr(self._matrix)
+        M = self._matrix
+        R, C = M.shape
+        dec = [int(''.join(map(str, M[ri, ri+1:])), 2) for ri in range(R-1)] + [0]
+        
+        # M_repr = np.hstack([M, np.array(dec).reshape(R, 1)])
+
+        # Colored output for diagonal elements with ANSI escape codes
+        # GREEN = "\033[92m"
+        GRAY = "\033[90m"
+        DARKGREEN = "\033[32m"
+        END = "\033[0m"
+
+        _repr = ""
+        for r in range(R):
+            row_ansi = []
+            for c in range(C):
+                v = str(M[r, c])
+                
+                if c == r:
+                    colored_value = f"{DARKGREEN}{v}{END}"
+                    row_ansi.append(colored_value)
+                elif c < r:
+                    colored_value = f"{GRAY}{v}{END}"
+                    row_ansi.append(colored_value)
+                else:
+                    row_ansi.append(v)
+                    
+            _repr += ", ".join(row_ansi) + f"\t| {dec[r]}\n"
+        
+        return _repr
 
 class SRGProperties:
 
