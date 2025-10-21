@@ -142,7 +142,7 @@ class Question:
 
     @classmethod
     def from_matrix(cls, m: np.array):
-        v,k,l,u = vklu(m)
+        v,k,l,u = SRGProperties.from_matrix(m).vklu
         R, C = m.shape
         assert C == v
         known = np.r_[m[:, R], 0]
@@ -250,6 +250,14 @@ class PartialSRG:
     def current_matrix(self):
         return self._matrix
 
+    def complement_matrix(self):
+        mat = self._matrix
+        R, C = mat.shape
+        I = identity(R)
+
+        _flip = np.vectorize(lambda t: 0 if t else 1)(mat)
+        return _flip - I
+    
     def append_and_return_new(self, ans_essential: np.array):
         R, C = self._matrix.shape
         ans_row = np.r_[self._matrix[:, R], 0, ans_essential]
@@ -263,13 +271,82 @@ class PartialSRG:
     def __repr__(self):
         return repr(self._matrix)
 
-def vklu(mat : array):
-    R, C = mat.shape
-    v, k = C, mat[0].sum()
-    l = mat[0].dot(mat[1])
-    u = k * (k - l - 1) // (v - k - 1)
-    return v,k,l,u
+class SRGProperties:
 
+    def __init__(self, v: int, k: int, l: int, u: int):
+        self.v = v
+        self.k = k
+        self.l = l
+        self.u = u
+
+    def is_srg(self) -> bool:
+        return (v - k - 1) * u == k * (k - l - 1)
+
+    @classmethod
+    def from_matrix(cls, mat: array):
+        R, C = mat.shape
+        v, k = C, mat[0].sum()
+        l = mat[0].dot(mat[1])
+        u = k * (k - l - 1) // (v - k - 1)
+        return SRGProperties(v, k, l, u)
+    
+    @property
+    def vklu(self):
+        return self.v, self.k, self.l, self.u
+    
+    @property
+    def conference(self)-> int:
+        return 2 * self.k + (self.v - 1) * (self.l - self.u)
+
+    def complement(self):
+        v, k, l, u = self.v, self.k, self.l, self.u
+        return SRGProperties(v, v - k -1, v -2-2*k +u ,v -2*k +l)
+    
+    @property
+    def eigenvalues(self):
+        '''
+        return eigenvalues ev1, ev2, ev3
+        # https://en.wikipedia.org/wiki/Strongly_regular_graph
+        '''
+        l_minus_u : int = self.l - self.u
+        sD = np.sqrt(l_minus_u ** 2 + 4 * (self.k - self.u))
+
+        ev2 = (l_minus_u + sD) / 2
+        ev3 = (l_minus_u - sD) / 2
+        ev1 = self.k
+
+        return ev1, ev2, ev3
+
+    @property
+    def multiplicities(self):
+        '''
+        return multiplicities of eigenvalues ev1, ev2, ev3
+        # https://en.wikipedia.org/wiki/Strongly_regular_graph
+        '''
+        conf = self.conference
+
+        if conf == 0: # conference graph
+            f = g = (self.v - 1) // 2
+        else:
+            v_minus_1 : int = self.v - 1
+            l_minus_u : int = self.l - self.u
+            sD = np.sqrt(l_minus_u ** 2 + 4 * (self.k - self.u))
+            
+            ConfsD : int = conf // sD
+            
+            f : int = (v_minus_1 - ConfsD) // 2
+            g : int = (v_minus_1 + ConfsD) // 2
+
+        return 1, f, g
+    
+    @property
+    def determinant(self) -> int:
+        ev1, ev2, ev3 = self.eigenvalues
+        _, f, g = self.multiplicities
+
+        det = (ev1 ** 1) * (ev2 ** f) * (ev3 ** g)
+        return int(det)
+    
 
 if __name__ == '__main__':
     v, k, l, u = 10, 6, 3, 4

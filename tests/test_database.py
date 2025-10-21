@@ -1,8 +1,8 @@
 __author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 
-from srg import utils
 from srg import database as db
 from srg import srg
+from srg.srg import SRGProperties
 import numpy as np
 
 import pytest
@@ -81,9 +81,10 @@ def test_A_determinant(v: int, k: int, l: int, u: int, A : np.ndarray):
     det_from_matrix, calculated from matrix, from database
     det_expected, derived from SRG requirements: eigenvalues and their multiplicity are already known
     '''
-    not_conference_graph = utils.conference(v, k, l, u) != 0
+    g = SRGProperties(v,k,l,u)
+    not_conference_graph = g.conference != 0
 
-    det_expected = utils.determinant(v, k, l, u)
+    det_expected = g.determinant
     
     eigval, eigvec = np.linalg.eig(A)
 
@@ -105,9 +106,10 @@ def test_Acomplement_is_srg(v: int, k: int, l: int, u: int, A : np.ndarray):
     
     assert np.array_equal(A @ A - (l - u) * A, const)
 
-    Ac = utils.complement(A)
+    Ac = srg.PartialSRG(A).complement_matrix()
     #Ac = map(sorter.maximize, Ac) # does not matter do maximize or not
-    cv, ck, cl, cu = utils.complement_vklu(v,k,l,u)
+    g = SRGProperties(v,k,l,u)
+    cv, ck, cl, cu = g.complement().vklu
     cconst = (ck - cu) * I + cu * J
     
     assert np.array_equal(Ac @ Ac - (cl - cu) * Ac, cconst)

@@ -3,45 +3,6 @@
 
 from .srg import Question
 from . import pprint
-import numpy as np
-from . import srg
-
-def eig(v: int, k: int, l: int, u: int):
-    conf = conference(v, k, l, u)  # if conference graph, conf == 0, so D becomes non-integer
-
-    D = np.sqrt((l - u) ** 2 + 4 * (k - u))
-    D = int(D) if conf != 0 else D
-
-    eig = k, ((l - u) + D) / 2, ((l - u) - D) / 2
-    eig = tuple(int(x) if conf != 0 else x for x in eig)  # if not conference graph, eigvalues are integer
-    mul = 1, int(((v - 1) - conf / D) / 2), int(((v - 1) + conf / D) / 2)  # multiplicity is always integer
-
-    return tuple(zip(eig, mul))
-
-def conference(v: int, k: int, l: int, u: int):
-    return 2 * k + (v - 1) * (l - u)
-
-def determinant(v: int, k: int, l: int, u: int):
-    prod = 1
-    for e, m in eig(v, k, l, u):
-        prod *= e ** m
-
-    return int(round(prod))
-
-def assert_srg(v: int, k: int, l: int, u: int):
-    assert (v - k - 1) * u == k * (k - l - 1), f'{(v,k,l,u)} is not a strongly regular graph problem.'
-
-def complement_vklu(v: int, k: int, l: int, u: int):
-    return v, v - k -1, v -2-2*k +u ,v -2*k +l
-
-def _invert(mat):
-    return np.vectorize(lambda t: 0 if t else 1)(mat)
-
-def complement(mat : np.array):
-    R, C = mat.shape
-    I = srg.identity(R)
-    return _invert(mat) - I
-
 
 def debug(func):
 
