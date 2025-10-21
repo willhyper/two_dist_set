@@ -106,13 +106,11 @@ def sort(lst : list):
     return sorted(lst, key=cmp_to_key(_cmp_srg_matrix))
 
 
-def swap(M, i, j):
+def swap(M, i, j, verify=False):
     cols = np.arange(M.shape[0])
     cols[i], cols[j] = cols[j], cols[i]
-    return M[:, cols][cols, :]
-
-def swap_and_verify(M, i, j):
-    M = swap(M, i, j)
-    assert np.trace(M) == 0
-    assert np.array_equal(M, M.T)
-    return M
+    Ms = M[:, cols][cols, :]
+    if verify:
+        assert np.trace(Ms) == 0
+        assert np.array_equal(Ms, Ms.T)
+    return Ms
