@@ -304,10 +304,7 @@ class PartialSRG:
 class SRGProperties:
 
     def __init__(self, v: int, k: int, l: int, u: int):
-        self.v = v
-        self.k = k
-        self.l = l
-        self.u = u
+        self.vklu = (v, k, l, u)
 
     def is_srg(self) -> bool:
         return (v - k - 1) * u == k * (k - l - 1)
@@ -321,15 +318,12 @@ class SRGProperties:
         return SRGProperties(v, k, l, u)
     
     @property
-    def vklu(self):
-        return self.v, self.k, self.l, self.u
-    
-    @property
     def conference(self)-> int:
-        return 2 * self.k + (self.v - 1) * (self.l - self.u)
+        v, k, l, u = self.vklu
+        return 2 * k + (v - 1) * (l - u)
 
     def complement(self):
-        v, k, l, u = self.v, self.k, self.l, self.u
+        v, k, l, u = self.vklu
         return SRGProperties(v, v - k -1, v -2-2*k +u ,v -2*k +l)
     
     @property
@@ -338,12 +332,14 @@ class SRGProperties:
         return eigenvalues ev1, ev2, ev3
         # https://en.wikipedia.org/wiki/Strongly_regular_graph
         '''
-        l_minus_u : int = self.l - self.u
-        sD = np.sqrt(l_minus_u ** 2 + 4 * (self.k - self.u))
+        v, k, l, u = self.vklu
+        
+        l_minus_u : int = l - u
+        sD = np.sqrt(l_minus_u ** 2 + 4 * (k - u))
 
         ev2 = (l_minus_u + sD) / 2
         ev3 = (l_minus_u - sD) / 2
-        ev1 = self.k
+        ev1 = k
 
         return ev1, ev2, ev3
 
@@ -353,14 +349,16 @@ class SRGProperties:
         return multiplicities of eigenvalues ev1, ev2, ev3
         # https://en.wikipedia.org/wiki/Strongly_regular_graph
         '''
+        v, k, l, u = self.vklu
+        
         conf = self.conference
 
         if conf == 0: # conference graph
-            f = g = (self.v - 1) // 2
+            f = g = (v - 1) // 2
         else:
-            v_minus_1 : int = self.v - 1
-            l_minus_u : int = self.l - self.u
-            sD = np.sqrt(l_minus_u ** 2 + 4 * (self.k - self.u))
+            v_minus_1 : int = v - 1
+            l_minus_u : int = l - u
+            sD = np.sqrt(l_minus_u ** 2 + 4 * (k - u))
             
             ConfsD : int = conf // sD
             
