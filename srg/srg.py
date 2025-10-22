@@ -266,8 +266,19 @@ class PartialSRG:
         return PartialSRG(np.vstack([self._matrix, ans_row]))
 
     def solved(self):
-        R, C = self._matrix.shape
-        return R == C
+        M = self._matrix
+        v, k, l, u = SRGProperties.from_matrix(M).vklu
+        
+        R, C = M.shape
+        if R != v:
+            return False
+        
+        I = identity(v)
+        J = ones((v, v))
+        const = (k - u) * I + u * J
+        
+        return np.array_equal(M @ M - (l - u) * M, const)
+
 
     def __repr__(self):
         M = self._matrix
