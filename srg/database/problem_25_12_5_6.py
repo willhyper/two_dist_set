@@ -1,7 +1,7 @@
 '''
 118s cythonized. total 15! solutions. too many. only list the first
 '''
-from numpy import array
+from srg.srg import array
 
 v, k, l, u = 25, 12, 5, 6
 solutions: list =    [array([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

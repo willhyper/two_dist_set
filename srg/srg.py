@@ -4,10 +4,11 @@
 import numpy as np
 from functools import partial
 
-array = partial(np.array, dtype=np.int8)
-ones = partial(np.ones, dtype=np.int8)
-zeros = partial(np.zeros, dtype=np.int8)
-identity = partial(np.identity, dtype=np.int8)
+dtype = np.int8 # ideal bool
+array = partial(np.array, dtype=dtype)
+ones = partial(np.ones, dtype=dtype)
+zeros = partial(np.zeros, dtype=dtype)
+identity = partial(np.identity, dtype=dtype)
 
 class NoSolution(Exception): pass
 

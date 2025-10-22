@@ -1,4 +1,4 @@
-from numpy import array
+from srg.srg import array
 
 v, k, l, u = 16, 9, 4, 6
 solutions: list = [array([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],

@@ -5,7 +5,7 @@ Apple M1. python3.10
 23s. multi-threaded
 20.77. multi-threaded, cythonized
 '''
-from numpy import array
+from srg.srg import array
 
 v, k, l, u = 21, 10, 4, 5
 solutions: list = []

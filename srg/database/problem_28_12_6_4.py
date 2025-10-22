@@ -1,7 +1,7 @@
 '''
 totally elapsed 94904.01194787025 s
 '''
-from numpy import array
+from srg.srg import array
 
 v, k, l, u = 28, 12, 6, 4
 solutions: list =    [array([[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

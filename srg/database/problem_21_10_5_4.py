@@ -4,7 +4,7 @@ Apple M1. python3.10
 11.97s. cythonized. 
 4.773s. multi-processed
 '''
-from numpy import array
+from srg.srg import array
 
 v, k, l, u = 21, 10, 5, 4
 solutions: list = [

@@ -24,6 +24,13 @@ def test_A_shape_len_is_v(v: int, k: int, l: int, u: int, A : np.ndarray):
     assert A.shape[0] == A.shape[1] == v
 
 @pytest.mark.parametrize('v,k,l,u, A', problems_all)
+def test_A_dtype(v: int, k: int, l: int, u: int, A : np.ndarray):
+    '''
+    each element is of dtype
+    '''
+    assert A.dtype == srg.dtype
+
+@pytest.mark.parametrize('v,k,l,u, A', problems_all)
 def test_A_element_0_or_1(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
     each element is either 0 or 1
