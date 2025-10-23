@@ -142,7 +142,7 @@ class Question:
                f'{self._ans}'
 
     @classmethod
-    def from_matrix(cls, m: np.array):
+    def from_matrix(cls, m: array):
         v,k,l,u = SRGProperties.from_matrix(m).vklu
         R, C = m.shape
         assert C == v
@@ -254,10 +254,12 @@ class PartialSRG:
     def complement_matrix(self):
         mat = self._matrix
         R, C = mat.shape
-        I = identity(R)
-
+        
         _flip = np.vectorize(lambda t: 0 if t else 1)(mat)
-        return _flip - I
+        for r in range(R):
+            _flip[r, r] = 0  # diagonal elements are 0
+        
+        return _flip
     
     def append_and_return_new(self, ans_essential: np.array):
         R, C = self._matrix.shape
@@ -324,8 +326,12 @@ class SRGProperties:
     def from_matrix(cls, mat: array):
         R, C = mat.shape
         v, k = C, mat[0].sum()
-        l = mat[0].dot(mat[1])
-        u = k * (k - l - 1) // (v - k - 1)
+        if mat[0,1] == 1:
+            l = mat[0].dot(mat[1])
+            u = k * (k - l - 1) // (v - k - 1)    
+        else:
+            u = mat[0].dot(mat[1])
+            l = -u * (v - k - 1) // k  + k - 1
         return SRGProperties(v, k, l, u)
     
     @property

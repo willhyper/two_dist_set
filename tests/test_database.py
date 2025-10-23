@@ -107,16 +107,9 @@ def test_Acomplement_is_srg(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
     the complement of A is also an SRG
     '''
-    I = srg.identity(v)
-    J = srg.ones((v, v))
-    const = (k - u) * I + u * J
-    
-    assert np.array_equal(A @ A - (l - u) * A, const)
+    srgA = srg.PartialSRG(A)
+    assert srgA.solved()
 
-    Ac = srg.PartialSRG(A).complement_matrix()
-    #Ac = map(sorter.maximize, Ac) # does not matter do maximize or not
-    g = SRGProperties(v,k,l,u)
-    cv, ck, cl, cu = g.complement().vklu
-    cconst = (ck - cu) * I + cu * J
-    
-    assert np.array_equal(Ac @ Ac - (cl - cu) * Ac, cconst)
+    Ac = srgA.complement_matrix()
+    srgAc = srg.PartialSRG(Ac)
+    assert srgAc.solved()
