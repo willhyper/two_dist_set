@@ -3,6 +3,7 @@
 
 import numpy as np
 from functools import partial
+from . import sorter
 
 dtype = np.int8 # ideal bool
 array = partial(np.array, dtype=dtype)
@@ -247,11 +248,7 @@ class PartialSRG:
     def __init__(self, mat: array):
         self._matrix = mat
 
-    @property
-    def current_matrix(self):
-        return self._matrix
-
-    def complement_matrix(self):
+    def complement_matrix(self, maximize: bool = False):
         mat = self._matrix
         R, C = mat.shape
         
@@ -259,7 +256,9 @@ class PartialSRG:
         for r in range(R):
             _flip[r, r] = 0  # diagonal elements are 0
         
-        return _flip
+        if maximize:
+            _flip = sorter.maximize(_flip)
+        return PartialSRG(_flip)
     
     def append_and_return_new(self, ans_essential: np.array):
         R, C = self._matrix.shape

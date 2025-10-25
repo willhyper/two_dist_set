@@ -222,7 +222,7 @@ def partition_by_done(lst : Iterator[PartialSRG]):
 def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     assert not s.solved()
     try:
-        q = Question.from_matrix(s.current_matrix)
+        q = Question.from_matrix(s._matrix)
     except NoSolution:
         return []
     ansgen_arr : Iterator[array] = solve_question(q)
@@ -231,9 +231,9 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
 def solve(srg : PartialSRG):
     lst = advance(srg)
     lst_done, lst_undone = partition_by_done(lst)
-    yield from [s.current_matrix for s in lst_done]
+    yield from [s._matrix for s in lst_done]
     lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
     while lst:
         lst_done, lst_undone = partition_by_done(lst)
-        yield from [s.current_matrix for s in lst_done]
+        yield from [s._matrix for s in lst_done]
         lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
