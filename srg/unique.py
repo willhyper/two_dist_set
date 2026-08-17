@@ -10,15 +10,11 @@ def _encode(A: np.array) -> list:
                   [1, 1, 0, 0, 1, 1, 0],
                   [1, 1, 1, 1, 1, 1, 1]], dtype=np.int8)
     :param A:
-    :return: array([7, 7, 5, 5, 3, 3, 1], dtype=int16)
+    :return: [7, 7, 5, 5, 3, 3, 1] (plain Python ints, one per column)
     '''
     R, C = A.shape
-    _A = A.astype(int)
-    _sum = _A[-1, :]
-    for r in reversed(range(R - 1)):
-        _sum += _A[r, :] << (R - 1 - r)
-
-    return _sum
+    weights = 1 << np.arange(R - 1, -1, -1, dtype=np.int64)
+    return (A.astype(np.int64).T @ weights).tolist()
 
 
 def reduce(A: np.array):

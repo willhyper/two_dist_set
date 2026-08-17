@@ -28,16 +28,19 @@ class Answer:
         self._loc = location
         self._len = len
 
+        # quota depends only on _loc/_len, which never change after construction
+        # (only _v is mutated in place elsewhere), so compute it once here.
+        loc_end_inclusive = np.hstack((self._loc, self._len))  # [0,2,4,6,7]
+        self._quota = np.diff(loc_end_inclusive)  # [2,2,2,1]
+        assert self._quota.sum() == self._len, f'{self._len} != sum({self._quota})'
+
     @classmethod
     def default(cls, length: int):
         return Answer(value=ones(length) * cls.UNKNOWN, location=np.arange(length), len=length)
 
     @property
     def quota(self) -> np.array:
-        loc_end_inclusive = np.hstack((self._loc, self._len))  # [0,2,4,6,7]
-        _quota = np.diff(loc_end_inclusive)  # [2,2,2,1]
-        assert _quota.sum() == self._len, f'{self._len} != sum({_quota})'
-        return _quota
+        return self._quota
 
     @property
     def unknown_loc(self) -> np.array:

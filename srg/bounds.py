@@ -6,15 +6,16 @@ from . import srg
 
 
 def lower_upper_bound(A: np.array, b: np.array, bounds: np.array) -> None:
-    for row, lower_upper_bound in zip(A, b):
-        nonzeros = np.nonzero(row)[0]
-        # print(row, lower_upper_bound, nonzeros)
-        # [0 0 0 0 1] 1 [4]
-        # [0 0 1 1 0] 1 [2 3]
-        # [1 0 1 0 0] 0 [0 2]
-        # [1 1 0 0 0] 1 [0 1]
-        for loc in nonzeros:
-            bounds[loc] = min(bounds[loc], lower_upper_bound)
+    # A/b/bounds rows are tiny (a handful to ~20 entries), so numpy's
+    # per-call dispatch overhead (one nonzero() + N indexed writes per row)
+    # costs more than doing this pass in plain Python and writing bounds
+    # back once at the end.
+    bnd = bounds.tolist()
+    for row, lub in zip(A.tolist(), b.tolist()):
+        for loc, val in enumerate(row):
+            if val and lub < bnd[loc]:
+                bnd[loc] = lub
+    bounds[:] = bnd
 
 
 def zero_bound_loc(bounds: np.array) -> np.array:
@@ -35,8 +36,9 @@ def one_element_row_locs(A: np.array) -> set:
     return {(0,4)}
 
     '''
+    rows, cols = A.nonzero()
     nz = defaultdict(list)
-    for rnz, cnz in zip(*A.nonzero()):
+    for rnz, cnz in zip(rows.tolist(), cols.tolist()):
         nz[rnz].append(cnz)
 
     # reduce rcs so that columns are unique. Corresponding rows dont matter

@@ -87,23 +87,28 @@ def _encode(A: np.array, b: np.array) -> list:
     R, C = A.shape
     assert b.size == R, f'{b.size} != {R}'
 
-    _sum = A[:, -1].copy().astype(int)
-    for c in reversed(range(C - 1)):
-        delta = A[:, c].astype(int) << (C - 1 - c)
-        _sum += delta
+    # plain Python ints (via tolist()), not numpy scalars: these tuples get
+    # pushed through heapq millions of times, and native int comparisons are
+    # much cheaper than numpy scalar comparisons.
+    weights = 1 << np.arange(C - 1, -1, -1, dtype=np.int64)
+    _sum = (A.astype(np.int64) @ weights).tolist()
 
-    return list(zip(_sum, range(R), b))
+    return list(zip(_sum, range(R), b.tolist()))
     # including range(R) to keep the tuple comparable in heapq.
     # heapq compares _sum first. if equal items in _sum, heapq compares the next element in the tuple.
 
 
 def _dec2bin(a):
+    '''returns a plain Python list (msb first), not a numpy array: this runs
+    once per row per elimination call, so avoiding a numpy array
+    construction/reversal here matters. srg.zeros(...)[:] = <python list> in
+    _decode converts it to numpy in one shot, per row, instead of per bit.'''
     rr = []
     while a:
-        r = a % 2
-        a >>= 1  # a //= 2
-        rr.append(r)
-    return srg.array(rr)[::-1]
+        rr.append(a & 1)
+        a >>= 1
+    rr.reverse()
+    return rr
 
 
 def _decode(hd: list) -> tuple:
