@@ -110,6 +110,5 @@ def test_Acomplement_is_srg(v: int, k: int, l: int, u: int, A : np.ndarray):
     srgA = srg.PartialSRG(A)
     assert srgA.solved()
 
-    Ac = srgA.complement_matrix()
-    srgAc = srg.PartialSRG(Ac)
+    srgAc = srgA.complement_matrix()
     assert srgAc.solved()
