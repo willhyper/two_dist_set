@@ -1,6 +1,6 @@
 __author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 
-from srg.srg import PartialSRG
+from srg.model import PartialSRG
 from srg.database.problem_10_6_3_4 import v, k, l, u, solutions
 import numpy as np
 

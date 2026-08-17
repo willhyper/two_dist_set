@@ -1,4 +1,3 @@
-rm -rf srg/*.so
-rm -rf srg/*.pyx
-rm -rf srg/*.c
-
+rm -rf src/srg/*.so
+rm -rf src/srg/*.pyx
+rm -rf src/srg/*.c

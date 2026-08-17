@@ -4,7 +4,7 @@ srg/database/problem_21_10_4_5.py), so the search explores the full space withou
 an early exit on a found answer. Used as the performance benchmark by
 profile_performance.sh.
 '''
-from srg.srg import PartialSRG
+from srg.model import PartialSRG
 from srg import solver
 from srg.database import problem_21_10_4_5 as p
 

@@ -1,8 +1,8 @@
 __author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 
 from srg import database as db
-from srg import srg
-from srg.srg import SRGProperties
+from srg import model
+from srg.model import SRGProperties
 import numpy as np
 
 import pytest
@@ -28,7 +28,7 @@ def test_A_dtype(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
     each element is of dtype
     '''
-    assert A.dtype == srg.dtype
+    assert A.dtype == model.dtype
 
 @pytest.mark.parametrize('v,k,l,u, A', problems_all)
 def test_A_element_0_or_1(v: int, k: int, l: int, u: int, A : np.ndarray):
@@ -107,7 +107,7 @@ def test_Acomplement_is_srg(v: int, k: int, l: int, u: int, A : np.ndarray):
     '''
     the complement of A is also an SRG
     '''
-    srgA = srg.PartialSRG(A)
+    srgA = model.PartialSRG(A)
     assert srgA.solved()
 
     srgAc = srgA.complement_matrix()

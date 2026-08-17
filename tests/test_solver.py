@@ -1,5 +1,5 @@
-from srg import srg
-from srg.srg import Question, Answer, PartialSRG, array
+from srg import model
+from srg.model import Question, Answer, PartialSRG, array
 from srg import solver
 from srg import database as db
 from srg import sorter
@@ -41,16 +41,16 @@ def test_solve_question(v: int, k: int, l: int, u: int, As):
     assert False, f'actuals {actuals} does not match any in expected {expected_rows}'
     
 def test2():
-    A = srg.array([[0, 1],
+    A = model.array([[0, 1],
                     [0, 1],
                     [0, 0],
                     [1, 0],
                     [1, 0],
                     [0, 0]])
-    b = srg.array([4, 4, 0, 4, 4, 0])
+    b = model.array([4, 4, 0, 4, 4, 0])
 
-    bound = srg.array([4, 4])
-    ans = Answer(value=srg.array([0, -1, 0, 0, -1]), location=srg.array([0, 4, 8, 12, 16]), len=20)
+    bound = model.array([4, 4])
+    ans = Answer(value=model.array([0, -1, 0, 0, -1]), location=model.array([0, 4, 8, 12, 16]), len=20)
     Q = Question(A, b, 8, bound, ans)
 
     solver.only_1_element_in_row(Q)
