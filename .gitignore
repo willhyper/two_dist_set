@@ -10,3 +10,4 @@ build/
 srg/*.c
 srg/*.so
 srg/*.pyx
+.venv/

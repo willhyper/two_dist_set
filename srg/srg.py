@@ -319,6 +319,7 @@ class SRGProperties:
         self.vklu = (v, k, l, u)
 
     def is_srg(self) -> bool:
+        v, k, l, u = self.vklu
         return (v - k - 1) * u == k * (k - l - 1)
 
     @classmethod
