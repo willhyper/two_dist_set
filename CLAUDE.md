@@ -14,8 +14,13 @@ Complete enumeration solver that constructs the adjacency matrix(es) of a strong
 ## Commands
 
 ```bash
-# install (editable, brings in numpy/pytest/networkx/matplotlib/cython)
-pip install -e .
+# install deps. NOTE: `pip install -e .` does NOT work out of the box — setup.py
+# unconditionally calls cythonize("srg/*.pyx"), which raises ValueError until
+# cythonize.sh has generated those .pyx files at least once. Either run
+# cythonize.sh first (see below), or just install deps directly and run
+# scripts/tests from the repo root — srg/ is a plain-Python package, nothing
+# needs installing to import it:
+pip install numpy pytest networkx matplotlib click cython
 
 # solve for a specific SRG parameter set, prints all adjacency matrices found
 python -m srg 13 6 2 3
@@ -26,16 +31,16 @@ python -m srg.database list 13 6 2 3
 python -m srg.database draw 13 6 2 3   # renders PNGs via networkx/matplotlib
 
 # run tests
-./run_all_tests.sh                          # currently just tests/test_cospectral.py
-python3 -m pytest -vs --durations=0 tests/  # full suite
+./run_all_tests.sh                          # full suite (same as the line below)
+python3 -m pytest -vs --durations=0 tests/
 python3 -m pytest tests/test_solver.py::test_solve -vs   # single test
 
 # optional: compile the hot-path modules with Cython for speed
 ./cythonize.sh      # copies srg/*.py -> *.pyx and builds *.so in place
 ./uncythonize.sh     # removes the generated .so/.pyx/.c files, reverting to pure Python
 
-# profile
-./profile_performance.sh   # cProfile over experiment.py (not committed — write one to profile against)
+# profile / benchmark the solver
+./profile_performance.sh   # cProfile -O over exp.py, which solves SRG(21,10,4,5) end to end
 ```
 
 There is no lint config in the repo; don't invent one.
@@ -68,6 +73,13 @@ possible next rows.
   to 0 by tight bounds, `bounds.py`), `only_1_element_in_row` (rows that pin a single column) —
   until nothing changes, then either yields a solved row or branches via `fork_enum` (picks the
   column with the smallest bound and enumerates its feasible values, `fork.py`).
+  `fork.enum(quota, bounds, loc)` only enumerates candidate values for *one* column (pruned by
+  the sum of the other columns' bounds), leaving the rest to be pinned down by the next
+  propagate/branch cycle. `srg/partition.py`'s `enum(s, bounds)` solves the more general problem —
+  every full vector of the same length as `bounds` whose entries sum to `s` and are each
+  `<= bounds[i]` — but nothing in the live solver calls it; it's currently unused, effectively a
+  reference implementation of the bounded-partition enumeration `fork_enum` performs lazily one
+  column at a time instead. Don't assume it's dead code to delete without checking first.
   All deduction steps are decorated with `@raiseExceptionIfNotSolvableAfterwards`, which raises
   `NoSolution` (caught in `solve_question`'s search loop to prune that branch) whenever bounds/
   quota become infeasible after a step. Steps are also `@debug`-decoratable (`utils.py`) to print
@@ -86,6 +98,14 @@ lists of solution matrices into a canonical order (used to diff against the data
 `list_problems`, `extract_vklu`, `get_solutions`, and `draw` (renders via networkx/matplotlib).
 Tests in `tests/test_database.py` and `tests/test_solver.py` are parametrized over every problem
 in this directory, so adding a new verified `problem_*.py` module automatically extends coverage.
+
+**`exp.py`** — the repo's scratch/experiment file, at repo root (not under `srg/` or `tests/`).
+It's not a permanent module with a fixed contract — its content gets replaced whenever there's a
+new experiment to run — but *currently* it solves `SRG(21,10,4,5)` (a known-no-solution instance,
+`srg/database/problem_21_10_4_5.py`) end to end and asserts the result matches, making it double
+as `profile_performance.sh`'s benchmark target. If you repurpose `exp.py` for a different
+one-off investigation, `profile_performance.sh` will silently start profiling that instead —
+check what's currently in `exp.py` before trusting a profiling number.
 
 **Cython note:** every core module (`srg/*.py`, not `database/`) starts with `#!python` /
 `#cython: language_level=3` shebang-style pragmas so `cythonize.sh` can copy them to `.pyx` and
