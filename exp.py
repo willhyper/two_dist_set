@@ -1,22 +1,15 @@
 '''
-investigate how 10_6_3_4 degenerate to 10_3_0_1
+solve for SRG(21, 10, 4, 5), a known-no-solution instance (see
+srg/database/problem_21_10_4_5.py), so the search explores the full space without
+an early exit on a found answer. Used as the performance benchmark by
+profile_performance.sh.
 '''
-from srg import sorter
 from srg.srg import PartialSRG
-import numpy as np
-from srg.database import problem_10_6_3_4 as pp
-from srg.database import problem_10_3_0_1 as pn
+from srg import solver
+from srg.database import problem_21_10_4_5 as p
 
-s0, s1 = pp.solutions
-
-t0 = PartialSRG(s0).complement_matrix()._matrix
-t1 = PartialSRG(s1).complement_matrix()._matrix
-
-u0 = sorter.maximize(t0)
-u1 = sorter.maximize(t1)
-
-v = pn.solutions[0]
-
-np.array_equal(u0, v)
-np.array_equal(u1, v)
-
+v, k, l, u = p.v, p.k, p.l, p.u
+seed = PartialSRG(solver._seed(v, k, l, u))
+solutions = list(solver.solve(seed))
+assert solutions == p.solutions, f'expected {p.solutions}, found {solutions}'
+print(f'found {len(solutions)} solutions for SRG({v},{k},{l},{u})')
