@@ -14,13 +14,11 @@ Complete enumeration solver that constructs the adjacency matrix(es) of a strong
 ## Commands
 
 ```bash
-# install deps. NOTE: `pip install -e .` does NOT work out of the box — setup.py
-# unconditionally calls cythonize("srg/*.pyx"), which raises ValueError until
-# cythonize.sh has generated those .pyx files at least once. Either run
-# cythonize.sh first (see below), or just install deps directly and run
-# scripts/tests from the repo root — srg/ is a plain-Python package, nothing
-# needs installing to import it:
-pip install numpy pytest networkx matplotlib click cython
+# install (editable). Package lives under src/srg/ (src layout), so this is REQUIRED —
+# unlike a flat layout, `python -m srg` / pytest / exp.py will NOT find the package by
+# just running from the repo root without installing first:
+pip install -e ".[test,viz]"     # test = pytest; viz = networkx+matplotlib, only needed
+                                  # for srg.database.draw()
 
 # solve for a specific SRG parameter set, prints all adjacency matrices found
 python -m srg 13 6 2 3
@@ -32,18 +30,20 @@ python -m srg.database draw 13 6 2 3   # renders PNGs via networkx/matplotlib
 
 # run tests
 ./run_all_tests.sh                          # full suite (same as the line below)
-python3 -m pytest -vs --durations=0 tests/
+python3 -m pytest -vs --durations=0 tests/  # `pytest` alone also works (testpaths in pyproject.toml)
 python3 -m pytest tests/test_solver.py::test_solve -vs   # single test
 
-# optional: compile the hot-path modules with Cython for speed
-./cythonize.sh      # copies srg/*.py -> *.pyx and builds *.so in place
+# optional: compile the hot-path modules with Cython for speed. NOT part of the normal
+# install/build — entirely opt-in, driven by these two scripts plus the minimal
+# ext_modules-only setup.py (see the Cython note below).
+./cythonize.sh      # copies src/srg/*.py -> *.pyx and builds *.so in place
 ./uncythonize.sh     # removes the generated .so/.pyx/.c files, reverting to pure Python
 
 # profile / benchmark the solver
 ./profile_performance.sh   # cProfile -O over exp.py, which solves SRG(21,10,4,5) end to end
 ```
 
-There is no lint config in the repo; don't invent one.
+There is no lint config or CI in the repo; don't invent either without being asked.
 
 ## Architecture
 
@@ -51,7 +51,11 @@ The solver treats "extend a partial SRG adjacency matrix by one more row" as a c
 satisfaction problem, and backtracks (via an explicit stack, not recursion) over the tree of
 possible next rows.
 
-**`srg/srg.py`** — core data model:
+The package lives at `src/srg/` (src layout). Module paths below are given relative to that
+(e.g. "`srg/solver.py`" means `src/srg/solver.py`).
+
+**`srg/model.py`** — core data model (deliberately not named `srg/srg.py` — that stutter was
+renamed away; every import is `from .model import X` / `from srg.model import X`):
 - `SRGProperties(v,k,l,u)`: parameter validation (`is_srg`), derives eigenvalues/multiplicities/
   determinant/complement from `(v,k,l,u)`, and can be reconstructed `from_matrix`.
 - `PartialSRG`: wraps a partial (top `R` rows known, symmetric-so-far) adjacency matrix as a
@@ -107,15 +111,30 @@ as `profile_performance.sh`'s benchmark target. If you repurpose `exp.py` for a 
 one-off investigation, `profile_performance.sh` will silently start profiling that instead —
 check what's currently in `exp.py` before trusting a profiling number.
 
+**Testing note:** `bounds.py`, `fork.py`, `gauss_elim.py`, and `unique.py` used to carry their own
+`if __name__ == '__main__':` self-tests (only run via `python -m srg.<module>`, invisible to
+`pytest`). Those have been ported into `tests/test_bounds.py` / `test_fork.py` /
+`test_gauss_elim.py` / `test_unique.py` (plus a new `tests/test_partition.py` for the
+previously-untested `partition.py`) — the modules themselves no longer have `__main__` blocks.
+`srg/__main__.py` and `srg/database/__main__.py` are the only remaining `__main__` entry points,
+and those are genuine CLIs (`python -m srg`, `python -m srg.database`), not self-tests.
+
 **Cython note:** every core module (`srg/*.py`, not `database/`) starts with `#!python` /
 `#cython: language_level=3` shebang-style pragmas so `cythonize.sh` can copy them to `.pyx` and
 compile in place for a speed boost; the modules are otherwise plain, pure-Python-compatible code
-and run fine uninstalled/uncompiled.
+and run fine uninstalled/uncompiled. This is entirely opt-in and decoupled from normal packaging:
+`pyproject.toml` (the only thing `pip install` reads) declares a pure-Python build with no Cython
+involvement at all. The root `setup.py` that still exists is a separate, minimal helper used only
+by `cythonize.sh`'s `python setup.py build_ext --inplace` call — it carries no project metadata
+(that all lives in `pyproject.toml`) and only ever contributes `ext_modules`, guarded so it's a
+no-op (`ext_modules = []`) whenever no `.pyx` files exist yet. That guard is what fixes the bug
+this used to have: the old `setup.py` called `cythonize("srg/*.pyx")` unconditionally, which
+raised `ValueError: 'srg/*.pyx' doesn't match any files` and broke plain `pip install -e .`.
 
 ## Gotchas
 
 - `unique._encode(A)` (row-encodes columns, no `b`) and `gauss_elim._encode(A, b)` (also folds in
   `b`) are different functions with the same name in different modules — don't confuse them when
   navigating.
-- `srg.dtype = np.int8` is used everywhere as an "ideal bool"; matrices should stay `int8`, not be
-  upcast, since `unique`/`gauss_elim` bit-pack rows into integers keyed on column dtype width.
+- `model.dtype = np.int8` is used everywhere as an "ideal bool"; matrices should stay `int8`, not
+  be upcast, since `unique`/`gauss_elim` bit-pack rows into integers keyed on column dtype width.
