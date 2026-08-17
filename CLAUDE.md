@@ -5,11 +5,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 Complete enumeration solver that constructs the adjacency matrix(es) of a strongly regular graph
-(SRG) — equivalently, a two-distance set — given parameters `(v, k, l, u)`:
+(SRG) — equivalently, a two-distance set — given parameters `(v, k, l, u)` (a "quest"):
 - `v`: number of vertices
 - `k`: degree (each vertex has exactly `k` neighbors)
 - `l` (lambda): number of common neighbors for two *adjacent* vertices
 - `u` (mu): number of common neighbors for two *non-adjacent* vertices
+
+## Why this repo exists
+
+The question being asked of a given quest `(v,k,l,u)` is fundamentally **existence**: does at
+least one legitimate adjacency matrix satisfying these parameters exist? The solver answers this
+by exhaustive backtracking search — it may produce zero matrices (proves no SRG exists for that
+quest), a handful, or, for quests with a lot of symmetry, very many (some known solved quests have
+on the order of `n!` matrices, once you count every vertex-relabeling of the same underlying
+graph). **Once existence (or non-existence) is established, further enumeration has diminishing
+value** — the working convention seen in the database today is to abort/cap around ~100 matrices
+for a quest that's producing far more than that, rather than exhaust the full symmetry group.
+(See `srg/database/problem_25_12_5_6.py` / `problem_26_10_3_4.py`'s docstrings — `"15!"` /
+`"10!"` solutions, "too many, only list the first" — this is an established but currently
+*manual* practice: nothing in `solver.py` or `srg/__main__.py` actually caps the search
+automatically today. `srg/__main__.py`'s `sorter.sort(solver.solve(s))` fully drains the
+`solve()` generator before it can return anything, since Python's `sorted()` requires a
+materialized list — so a 100-cap can't currently be applied to the CLI's output even if you
+wanted to, only by driving `solver.solve()` directly as a generator, e.g. with
+`itertools.islice`. Worth fixing if this becomes a real bottleneck on a "many solutions" quest.)
+
+**The single metric this repo optimizes for is wall-clock time to answer a quest** — how fast
+can the solver reach "found N solutions" or "found none, search exhausted" for a given
+`(v,k,l,u)`. Every algorithmic change to `solver.py`/`gauss_elim.py`/`bounds.py`/etc. should be
+justified by making quests resolve faster, not by anything else.
+
+Three concrete workflows built around that goal:
+1. **Solve a quest, timed.** `python -m srg v k l u` (or driving `solver.solve()` directly, as
+   `exp.py` does) runs the search and reports what it found. Timing a quest — especially a
+   difficult one — is the whole point; `profile_performance.sh`/`exp.py` exist to make that
+   repeatable and profileable.
+2. **Bank solved quests as ground truth, permanently.** Once a quest is solved, its matrices get
+   committed to `srg/database/problem_V_K_L_U.py` (see Architecture below) and are trusted from
+   then on — **there is no reason to ever recompute a banked quest's solutions to re-verify
+   correctness**; `tests/test_database.py` / `tests/test_solver.py` already lock that in via
+   invariant checks (row sums, symmetry, eigenvalue/determinant identities, SRG-equation checks)
+   run against the committed matrices, not against a fresh solve. The *only* legitimate reason to
+   re-run a banked quest is to benchmark a new/faster algorithm against it — and when you do, the
+   convention (see almost every `problem_*.py` docstring) is to **append** a new timing entry
+   (hardware, Python version, optimization used, elapsed time) rather than replace the old ones,
+   so the docstring reads as a running log of the quest getting faster over successive algorithm
+   iterations. Real examples already in the database: `problem_21_10_4_5.py` (no solution: 71.05s
+   → 23s multi-threaded → 20.77s multi-threaded+cythonized), `problem_21_10_5_4.py` (13.41s →
+   11.97s cythonized → 4.773s multi-processed), `problem_28_12_6_4.py` (a single brutal
+   `94904.01194787025 s` ≈ 26.4 hours — the kind of quest this repo's speedups matter most for).
+   These logs are the closest thing this repo has to a benchmark suite: when evaluating whether an
+   algorithm change actually helps, re-time a slow banked quest (ideally one that's *unsolved*,
+   like `problem_21_10_4_5.py`'s SRG(21,10,4,5) — used as `exp.py`'s benchmark — since a
+   no-solution quest can't take an early exit on finding an answer, so it forces the search to
+   fully justify infeasibility) and compare against its logged history.
+3. **Visualize a banked solution.** `python -m srg.database draw v k l u` renders a saved quest's
+   matrices as graphs via networkx/matplotlib (`srg/database/__init__.py`'s `draw()`).
 
 ## Commands
 
