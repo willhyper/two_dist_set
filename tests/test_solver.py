@@ -40,6 +40,26 @@ def test_solve_question(v: int, k: int, l: int, u: int, As):
     
     assert False, f'actuals {actuals} does not match any in expected {expected_rows}'
     
+def test_solve_max_solutions_caps_output():
+    v, k, l, u = 10, 6, 3, 4
+    expected = db.get_solutions(v, k, l, u)
+    assert len(expected) == 2, 'test assumes a quest with more than 1 known solution'
+
+    srg = PartialSRG(solver._seed(v, k, l, u))
+    capped = list(solver.solve(srg, max_solutions=1))
+    assert len(capped) == 1
+
+    srg = PartialSRG(solver._seed(v, k, l, u))
+    uncapped = list(solver.solve(srg, max_solutions=None))
+    assert len(uncapped) == len(expected)
+
+
+def test_solve_default_max_solutions_is_100():
+    import inspect
+    assert inspect.signature(solver.solve).parameters['max_solutions'].default == 100
+    assert solver.DEFAULT_MAX_SOLUTIONS == 100
+
+
 def test2():
     A = model.array([[0, 1],
                     [0, 1],

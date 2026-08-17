@@ -19,16 +19,15 @@ by exhaustive backtracking search — it may produce zero matrices (proves no SR
 quest), a handful, or, for quests with a lot of symmetry, very many (some known solved quests have
 on the order of `n!` matrices, once you count every vertex-relabeling of the same underlying
 graph). **Once existence (or non-existence) is established, further enumeration has diminishing
-value** — the working convention seen in the database today is to abort/cap around ~100 matrices
-for a quest that's producing far more than that, rather than exhaust the full symmetry group.
-(See `srg/database/problem_25_12_5_6.py` / `problem_26_10_3_4.py`'s docstrings — `"15!"` /
-`"10!"` solutions, "too many, only list the first" — this is an established but currently
-*manual* practice: nothing in `solver.py` or `srg/__main__.py` actually caps the search
-automatically today. `srg/__main__.py`'s `sorter.sort(solver.solve(s))` fully drains the
-`solve()` generator before it can return anything, since Python's `sorted()` requires a
-materialized list — so a 100-cap can't currently be applied to the CLI's output even if you
-wanted to, only by driving `solver.solve()` directly as a generator, e.g. with
-`itertools.islice`. Worth fixing if this becomes a real bottleneck on a "many solutions" quest.)
+value** — the working convention seen in the database (`srg/database/problem_25_12_5_6.py` /
+`problem_26_10_3_4.py`'s docstrings: `"15!"` / `"10!"` solutions, "too many, only list the
+first") is to stop around ~100 matrices for a quest that's producing far more than that, rather
+than exhaust the full symmetry group. This is enforced in code, not just convention:
+`solver.solve(srg, max_solutions=100)` (`DEFAULT_MAX_SOLUTIONS = 100` in `solver.py`) stops
+*advancing the search* once it's yielded that many matrices — it doesn't just truncate output
+after a full exhaustive run, it actually skips the further search work. Pass
+`max_solutions=None` to disable the cap and enumerate exhaustively. `python -m srg v k l u
+[max_solutions]` exposes the same knob on the CLI (defaults to 100 if omitted).
 
 **The single metric this repo optimizes for is wall-clock time to answer a quest** — how fast
 can the solver reach "found N solutions" or "found none, search exhausted" for a given
@@ -139,10 +138,12 @@ renamed away; every import is `from .model import X` / `from srg.model import X`
   `NoSolution` (caught in `solve_question`'s search loop to prune that branch) whenever bounds/
   quota become infeasible after a step. Steps are also `@debug`-decoratable (`utils.py`) to print
   before/after state and re-check invariants — commented out by default.
-- `advance(partial)` / `solve(partial)`: drive the row-by-row construction: for each partial SRG,
-  build its `Question`, enumerate all valid next rows via `solve_question`, append each to get new
+- `advance(partial)` / `solve(partial, max_solutions=DEFAULT_MAX_SOLUTIONS)`: drive the row-by-row
+  construction level by level (breadth-first over partial matrices): for each partial SRG, build
+  its `Question`, enumerate all valid next rows via `solve_question`, append each to get new
   `PartialSRG`s, split into finished (`solved()`) vs. still-growing, and recurse until nothing is
-  left to grow. `solve()` is a generator yielding completed adjacency matrices (numpy arrays).
+  left to grow or `max_solutions` matrices have been yielded (see "Why this repo exists" above).
+  `solve()` is a generator yielding completed adjacency matrices (numpy arrays).
 
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts

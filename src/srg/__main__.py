@@ -11,13 +11,15 @@ import sys
 if __name__ == '__main__':
     pprint.clear()
 
-    v, k, l, u = map(int, sys.argv[1:])
-    print(v, k, l, u)
+    args = sys.argv[1:]
+    v, k, l, u = map(int, args[:4])
+    max_solutions = int(args[4]) if len(args) > 4 else solver.DEFAULT_MAX_SOLUTIONS
+    print(v, k, l, u, f'max_solutions={max_solutions}')
 
     assert SRGProperties(v, k, l, u).is_srg(), f'parameters {(v,k,l,u)=} do not form an SRG'
 
     s = PartialSRG(solver._seed(v, k, l, u))
-    ansgen = solver.solve(s)
+    ansgen = solver.solve(s, max_solutions=max_solutions)
     ans :list = sorter.sort(ansgen)
     pprint.green('*********** answers *************')
     for ans in ans:

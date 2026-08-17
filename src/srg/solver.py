@@ -2,7 +2,7 @@
 #cython: language_level=3
 
 from itertools import chain
-from typing import Iterator
+from typing import Iterator, Optional
 from .model import array
 from .model import PartialSRG
 import numpy as np
@@ -12,6 +12,14 @@ from .model import Question, Answer, NoSolution
 from .utils import debug
 from functools import wraps
 from functools import reduce
+
+# Once a quest's existence question is settled, further enumeration has
+# diminishing value - a quest with a lot of symmetry can have on the order of
+# n! solutions (see e.g. srg/database/problem_25_12_5_6.py's docstring).
+# solve() stops advancing the search once it has yielded this many matrices,
+# unless the caller passes max_solutions=None for an uncapped (exhaustive) run.
+DEFAULT_MAX_SOLUTIONS = 100
+
 
 def _seed(v: int, k: int, l: int, u: int) -> np.array:
     remain_ones_number = k - l - 1
@@ -228,12 +236,28 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     ansgen_arr : Iterator[array] = solve_question(q)
     return list(map(s.append_and_return_new, ansgen_arr))
 
-def solve(srg : PartialSRG):
+def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS):
+    '''
+    yields completed adjacency matrices, level by level (breadth-first over
+    partially-built rows), stopping once max_solutions have been yielded -
+    this only settles existence quickly instead of paying to enumerate every
+    symmetry of a solution-rich quest. Pass max_solutions=None to disable the
+    cap and enumerate exhaustively.
+    '''
+    yielded = 0
+
+    def _emit(matrices):
+        nonlocal yielded
+        for m in matrices:
+            if max_solutions is not None and yielded >= max_solutions:
+                return
+            yielded += 1
+            yield m
+
     lst = advance(srg)
     lst_done, lst_undone = partition_by_done(lst)
-    yield from [s._matrix for s in lst_done]
-    lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
-    while lst:
-        lst_done, lst_undone = partition_by_done(lst)
-        yield from [s._matrix for s in lst_done]
+    yield from _emit(s._matrix for s in lst_done)
+    while lst_undone and (max_solutions is None or yielded < max_solutions):
         lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
+        lst_done, lst_undone = partition_by_done(lst)
+        yield from _emit(s._matrix for s in lst_done)
