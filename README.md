@@ -1,5 +1,8 @@
 complete enumeration to construct strongly regular graph.
 
+install:
+pip install -e .[test,viz]
+
 example usage:
 python -m srg 13 6 2 3
 python -m srg.database

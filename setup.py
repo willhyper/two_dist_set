@@ -1,31 +1,16 @@
-from distutils.core import setup
+'''
+Standalone helper for the OPT-IN Cython build (see cythonize.sh / uncythonize.sh).
+NOT used by `pip install` -- all packaging metadata lives in pyproject.toml. This only
+runs ext_modules through Cython when .pyx files actually exist, so it's always safe to
+invoke (directly, or incidentally as part of a normal setuptools build).
+'''
+import glob
+from setuptools import setup
 
-# https://luminousmen.com/post/resolve-cython-and-numpy-dependencies
-try:
+pyx_files = glob.glob("src/srg/*.pyx")
+ext_modules = []
+if pyx_files:
     from Cython.Build import cythonize
-except ImportError:
-    # create closure for deferred import
-    def cythonize (*args, ** kwargs ):
-        from Cython.Build import cythonize
-        return cythonize(*args, ** kwargs)
+    ext_modules = cythonize(pyx_files)
 
-
-setup(name='srg',
-      version='1.0',
-      description='Compute Adjacency Matrix for Two Distance Set, ie. Strongly regular graph',
-      url='https://github.com/willhyper/two_dist_set',
-      author='Chao-Wei Chen',
-      author_email='willhyper@gmail.com',
-      license='MIT',
-      packages=['srg'],
-      setup_requires=[
-        'setuptools>=18.0',# so properly handles Cython extensions.
-        'cython',
-        ],
-      install_requires=[
-          'numpy',
-          'pytest',
-          'networkx',
-          'matplotlib',
-      ],
-      ext_modules = cythonize("srg/*.pyx"))
+setup(ext_modules=ext_modules)

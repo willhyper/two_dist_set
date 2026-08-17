@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "srg"
+version = "1.0.0"
+description = "Compute Adjacency Matrix for Two Distance Set, ie. Strongly regular graph"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Chao-Wei Chen", email = "willhyper@gmail.com" },
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "click",
+]
+
+[project.urls]
+Repository = "https://github.com/willhyper/two_dist_set"
+
+[project.optional-dependencies]
+test = ["pytest"]
+viz = ["networkx", "matplotlib"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

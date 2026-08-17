@@ -1,13 +1,14 @@
 tests/__pycache__/
-srg/__pycache__/
-srg/database/__pycache__/
-srg.egg-info/
+src/srg/__pycache__/
+src/srg/database/__pycache__/
+*.egg-info/
 .idea
 .cache/
 __pycache__/
 
 build/
-srg/*.c
-srg/*.so
-srg/*.pyx
+dist/
+src/srg/*.c
+src/srg/*.so
+src/srg/*.pyx
 .venv/
