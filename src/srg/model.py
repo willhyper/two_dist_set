@@ -394,16 +394,3 @@ class SRGProperties:
 
         det = (ev1 ** 1) * (ev2 ** f) * (ev3 ** g)
         return int(det)
-
-
-if __name__ == '__main__':
-    v, k, l, u = 10, 6, 3, 4
-    from .solver import _seed
-
-    s = _seed(v, k, l, u)
-    print('matrix form')
-    print(s)
-
-    q = Question.from_matrix(s)
-    print('transform into problem space')
-    print(q)
