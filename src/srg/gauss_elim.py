@@ -32,81 +32,59 @@ being left for a later step to notice:
 The result has the same number of columns as the input (columns are never removed or reordered here;
 dropping columns that were fixed to a value is the job of the callers in solver.py).
 '''
-import heapq
 import numpy as np
 from . import model
 
 
-def _remove_zerokeys(h: list) -> None:
-    '''drop rows that are all zero; such a row says 0 = v, so v > 0 is a contradiction'''
-    hnz = []
-    for k, i, v in h:
-        if k > 0:
-            hnz.append((k, i, v))
-        elif v != 0:
-            raise model.NoSolution(f'row {i} is empty but its right-hand side is {v} != 0')
-    h.clear()
-    h += hnz
-
-
-def _gauss_elim(hd: list) -> bool:
+def _elim(rows: list) -> None:
     '''
+    In-place elimination on rows = [(key, index, b), ...] (key: the 0/1 row as a bit mask), see the module
+    docstring.
 
-    :param hd: a sorted list.
-    :param b: non-negative array, putting constrain on hd
+    Take the row m with the smallest key (the best candidate to be contained in other rows, since a row can
+    only contain rows with a numerically smaller or equal key). Every other row that contains m is replaced
+    by r - m. If any row was reduced, the keys changed and everything starts over (the rows already set
+    aside may now be reducible too); otherwise m is final and is set aside.
 
-    :return: reducible bool. True if reducible. False otherwise.
+    Rows are tiny (a few dozen at most), so plain sorted lists are used. The previous implementation kept
+    the rows in heaps and merged them with heapq.merge, a pure-Python generator that was called over a
+    million times per minute of search and cost more than the work it organised. The reduction order here
+    is exactly the same as before, hence so is the result: this elimination is NOT confluent (different
+    orders can end in different, equally valid, systems), so the order is part of the behaviour.
     '''
-
-    # classifies hd into 3 classes: min, reducible, same
-    mk, mi, mv = heapq.heappop(hd)
-    assert mk > 0, "zero key found!!! design error"
-    reducible, same = [], []  # will maintain sorted order
-    while hd:
-        k, i, v = heapq.heappop(hd)
-        if mk & k == mk:  # row m is contained in row r
-            if v < mv:
-                raise model.NoSolution(f'row {i} contains row {mi} but has the smaller right-hand side '
-                                       f'{v} < {mv}: their difference would equal {v - mv} < 0')
-            reducible.append((k - mk, i, v - mv))
+    pending = [r for r in rows if _nonzero(r)]
+    pending.sort()
+    done = []  # rows set aside as final, ascending
+    while len(pending) > 1:
+        m = pending[0]
+        mk, mi, mv = m
+        reduced, same = [], []
+        for r in pending[1:]:
+            k, i, v = r
+            if mk & k == mk:  # m is contained in r
+                if v < mv:
+                    raise model.NoSolution(f'row {i} contains row {mi} but has the smaller right-hand side '
+                                           f'{v} < {mv}: their difference would equal {v - mv} < 0')
+                reduced.append((k - mk, i, v - mv))
+            else:
+                same.append(r)
+        if reduced:
+            # an emptied row is redundant if its b is now 0, a contradiction otherwise
+            pending = sorted([m] + [r for r in reduced if _nonzero(r)] + same + done)
+            done = []
         else:
-            same.append((k, i, v))
-    # (mk, mi, mv), reducible, same
-    # hd is redistributed into these 3 categories
+            done.append(m)
+            pending = same
+    rows[:] = done + pending  # pending holds at most the last row
 
-    if reducible:
-        _remove_zerokeys(reducible)
-        hd += list(heapq.merge([(mk, mi, mv)], reducible, same))
+
+def _nonzero(row) -> bool:
+    k, i, v = row
+    if k:
         return True
-    else:
-        hd += list(heapq.merge([(mk, mi, mv)], same))
-        return False
-
-
-def _elim(hd: list) -> None:
-    #
-    _remove_zerokeys(hd)
-
-    #
-    if len(hd) <= 1: return
-
-    #
-    hd.sort()
-
-    #
-    hs = []
-    while hd:
-        simplified = _gauss_elim(hd)
-        if simplified:  # start over
-            temp = list(heapq.merge(hs, hd))
-            hs.clear()
-            hd.clear()
-            hd += temp
-        else:
-            _mk_mi_mv = heapq.heappop(hd)
-            hs.append(_mk_mi_mv)
-
-    hd += hs
+    if v != 0:
+        raise model.NoSolution(f'row {i} is empty but its right-hand side is {v} != 0')
+    return False
 
 
 def _encode(A: np.array, b: np.array) -> list:
