@@ -89,7 +89,7 @@ def test_registry_finds_each_family_by_parameters_and_its_complement(vklu, fragm
 
 
 def test_registry_does_not_invent_graphs():
-    for vklu in [(36, 15, 6, 6), (36, 14, 4, 6), (63, 30, 13, 15), (96, 20, 4, 4), (77, 16, 0, 4)]:
+    for vklu in [(36, 15, 6, 6), (36, 14, 4, 6), (63, 30, 13, 15), (96, 20, 4, 4), (100, 36, 14, 12)]:
         names = [n for n, _ in utils.constructions(*vklu)]
         if vklu == (36, 15, 6, 6):  # the one with a Latin square graph
             assert names and 'Latin square' in names[0]
@@ -110,3 +110,28 @@ def test_every_constructible_problem_file_holds_a_constructed_graph():
             assert canon.canonical_key(A, 10 ** 7) in have, f'{q}: {name} is not in its problem file'
         n += 1
     assert n >= 80
+
+
+def test_steiner_system_s3622_is_a_3_design():
+    blocks = utils.steiner_s3622()
+    assert len(blocks) == 77 and all(len(b) == 6 for b in blocks)
+    seen = {}
+    for b in blocks:
+        for tri in __import__('itertools').combinations(sorted(b), 3):
+            seen[tri] = seen.get(tri, 0) + 1
+    assert len(seen) == 1540 and set(seen.values()) == {1}  # every 3 of the 22 points in exactly one block
+
+
+@pytest.mark.parametrize('make,vklu', [
+    (utils.gewirtz, (56, 10, 0, 2)), (utils.m22_graph, (77, 16, 0, 4)), (utils.higman_sims, (100, 22, 0, 6)),
+])
+def test_graphs_from_s3622_are_triangle_free_srgs(make, vklu):
+    A = make()
+    _check(A, vklu)
+    assert np.trace(np.linalg.matrix_power(A.astype(int), 3)) == 0  # lambda = 0: no triangles
+
+
+def test_nonisotropic_affine_polar():
+    _check(utils.affine_polar(3, 2, True, nonisotropic=True), (81, 30, 9, 12))
+    found = [n for n, _ in utils.constructions(81, 30, 9, 12)]
+    assert found == ['affine polar graph VNO-(4,3)']

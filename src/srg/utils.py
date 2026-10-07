@@ -275,11 +275,12 @@ def _anisotropic_binary_form(q: int, add, mul):
     raise AssertionError('no anisotropic binary form found')
 
 
-def affine_polar(q: int, m: int, elliptic: bool) -> np.ndarray:
+def affine_polar(q: int, m: int, elliptic: bool, nonisotropic: bool = False) -> np.ndarray:
     '''
     the affine polar graph VO(2m, q): vectors of GF(q)^(2m), x ~ y iff Q(x - y) = 0 (x != y) for a hyperbolic
     (elliptic) quadratic form Q = x0 x1 + ... [+ an anisotropic binary form in the last two coordinates].
     VO+(6,2) = SRG(64,35,18,20), VO-(6,2) = SRG(64,27,10,12), VO-(4,3) = SRG(81,20,1,6).
+    With nonisotropic=True (odd q) x ~ y iff Q(x - y) is a non-zero square instead: VNO-(4,3) = SRG(81,30,9,12).
     '''
     add, mul, neg, inv = _field(q)
     n = 2 * m
@@ -299,7 +300,11 @@ def affine_polar(q: int, m: int, elliptic: bool) -> np.ndarray:
 
     # Q on every difference vector, through the field's subtraction
     index = {tuple(v): i for i, v in enumerate(vecs)}
-    zero = {d for d in range(len(vecs)) if Q(vecs[d]) == 0 and d != index[tuple([0] * n)]}
+    if nonisotropic:
+        squares = {int(mul[x, x]) for x in range(1, q)}
+        zero = {d for d in range(len(vecs)) if int(Q(vecs[d])) in squares}
+    else:
+        zero = {d for d in range(len(vecs)) if Q(vecs[d]) == 0 and d != index[tuple([0] * n)]}
     sing = {tuple(vecs[d]) for d in zero}
     A = np.zeros((len(vecs), len(vecs)), dtype=dtype)
     for i, x in enumerate(vecs):
@@ -329,6 +334,102 @@ def hermitian_u42() -> np.ndarray:
         for j in range(i + 1, n):
             if h(iso[i], iso[j]) == 0:
                 A[i, j] = A[j, i] = 1
+    return A
+
+
+def _pg24():
+    '''(points, lines) of the projective plane PG(2,4): 21 points and 21 lines of 5 points each'''
+    add, mul, neg, inv = _field(4)
+    pts = _projective_points(4, 3, mul, inv)
+    index = {p: i for i, p in enumerate(pts)}
+    lines = []
+    for l in pts:  # the line orthogonal to l, as a set of point indices
+        lines.append(frozenset(i for i, p in enumerate(pts)
+                               if add[add[mul[l[0], p[0]], mul[l[1], p[1]]], mul[l[2], p[2]]] == 0))
+    return pts, lines
+
+
+def _hyperovals_pg24(lines) -> list:
+    '''all 168 hyperovals (6 points, no three collinear) of PG(2,4), as frozensets of point indices'''
+    through = {}
+    for l in lines:
+        for a in l:
+            for b in l:
+                if a < b:
+                    through[(a, b)] = l
+    out = []
+
+    def extend(chosen, banned):
+        if len(chosen) == 6:
+            out.append(frozenset(chosen))
+            return
+        for c in range(chosen[-1] + 1 if chosen else 0, 21):
+            if c in banned:
+                continue
+            nb = set(banned)
+            for a in chosen:
+                nb |= through[(a, c)]
+            extend(chosen + [c], nb)
+
+    extend([], set())
+    return out
+
+
+def steiner_s3622() -> list:
+    '''
+    the Steiner system S(3,6,22) (every 3 of 22 points lie in exactly one of the 77 blocks of size 6): the 21
+    lines of PG(2,4), each extended by a point at infinity (21), plus one of the three classes of 56 hyperovals
+    (two hyperovals are in the same class iff they meet in an even number of points).
+    '''
+    pts, lines = _pg24()
+    hyper = _hyperovals_pg24(lines)
+    assert len(hyper) == 168
+    cls = [h for h in hyper if len(h & hyper[0]) % 2 == 0]
+    assert len(cls) == 56
+    blocks = [frozenset(l | {21}) for l in lines] + cls
+    seen = {}
+    for b in blocks:
+        for tri in itertools.combinations(sorted(b), 3):
+            seen[tri] = seen.get(tri, 0) + 1
+    assert len(seen) == 1540 and set(seen.values()) == {1}, 'not a Steiner system S(3,6,22)'
+    return blocks
+
+
+def _disjointness_graph(sets: list) -> np.ndarray:
+    n = len(sets)
+    A = np.zeros((n, n), dtype=dtype)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if not (sets[i] & sets[j]):
+                A[i, j] = A[j, i] = 1
+    return A
+
+
+def gewirtz() -> np.ndarray:
+    '''the Gewirtz (Sims-Gewirtz) graph SRG(56,10,0,2): the 56 hyperovals of one class, adjacent iff disjoint'''
+    return _disjointness_graph(steiner_s3622()[21:])
+
+
+def m22_graph() -> np.ndarray:
+    '''the M22 graph SRG(77,16,0,4): the 77 blocks of S(3,6,22), adjacent iff disjoint'''
+    return _disjointness_graph(steiner_s3622())
+
+
+def higman_sims() -> np.ndarray:
+    '''the Higman-Sims graph SRG(100,22,0,6): a vertex joined to the 22 points of S(3,6,22), each point to the
+    blocks containing it, and blocks to the blocks they are disjoint from'''
+    blocks = steiner_s3622()
+    A = np.zeros((100, 100), dtype=dtype)
+    def edge(a, b):
+        A[a, b] = A[b, a] = 1
+    for pnt in range(22):
+        edge(0, 1 + pnt)
+    for bi, b in enumerate(blocks):
+        for pnt in b:
+            edge(1 + pnt, 23 + bi)
+        for bj in range(bi + 1, 77):
+            if not (b & blocks[bj]):
+                edge(23 + bi, 23 + bj)
     return A
 
 
@@ -414,6 +515,13 @@ def _params(A: np.ndarray) -> tuple:
     return tuple(int(x) for x in SRGProperties.from_matrix(A).vklu)
 
 
+def _is_srg_with(A: np.ndarray, want: tuple) -> bool:
+    '''A really is an SRG with these parameters (the parameters are read off the first rows, so check the identity too)'''
+    from .model import PartialSRG
+    with np.errstate(all='ignore'):
+        return _params(A) == want and PartialSRG(A).solved()
+
+
 def _geometry_matches(v: int, k: int, l: int, u: int):
     '''generalized quadrangles, Hoffman-Singleton, the U(4,2) polar graph and affine polar graphs'''
     want = (v, k, l, u)
@@ -427,16 +535,26 @@ def _geometry_matches(v: int, k: int, l: int, u: int):
         yield 'Hoffman-Singleton graph', hoffman_singleton()
     if want == (45, 12, 3, 3):
         yield 'U(4,2) polar graph (Hermitian variety in PG(3,4))', hermitian_u42()
+    if want == (56, 10, 0, 2):
+        yield 'Gewirtz graph (56 hyperovals of PG(2,4), adjacent iff disjoint)', gewirtz()
+    if want == (77, 16, 0, 4):
+        yield 'M22 graph (blocks of S(3,6,22), adjacent iff disjoint)', m22_graph()
+    if want == (100, 22, 0, 6):
+        yield 'Higman-Sims graph', higman_sims()
     for q in (2, 3, 4, 5):  # affine polar graphs VO+-(2m, q); parameters checked on the graph itself
         for m in (2, 3, 4):
             if q ** (2 * m) != v or v > 1100:
                 continue
             for elliptic in (True, False):
                 eps = -1 if elliptic else 1
-                if k == (q ** m - eps) * (q ** (m - 1) + eps):
+                if k == (q ** m - eps) * (q ** (m - 1) + eps):  # the VO degree; VNO has a different one
                     A = affine_polar(q, m, elliptic)
-                    if _params(A) == want:
+                    if _is_srg_with(A, want):
                         yield f'affine polar graph VO{"-" if elliptic else "+"}({2 * m},{q})', A
+                if q % 2 == 1 and v <= 800:  # the non-isotropic variant VNO+-: x ~ y iff Q(x - y) is a non-zero square
+                    A = affine_polar(q, m, elliptic, nonisotropic=True)
+                    if _is_srg_with(A, want):
+                        yield f'affine polar graph VNO{"-" if elliptic else "+"}({2 * m},{q})', A
 
 
 def _steiner_matches(v: int, k: int, l: int, u: int):
