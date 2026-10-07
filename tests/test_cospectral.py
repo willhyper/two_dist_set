@@ -1,10 +1,10 @@
 __author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 
 from srg.model import PartialSRG
-from srg.database.problem_10_6_3_4 import v, k, l, u, solutions
+from srg import database as db
 import numpy as np
 
-A, B = solutions
+solutions = db.get_solutions(10, 6, 3, 4)
 A = PartialSRG(solutions[0])
 B = PartialSRG(solutions[1])
 Ac = A.complement_matrix(maximize=True)

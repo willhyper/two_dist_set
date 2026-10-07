@@ -19,6 +19,7 @@ import time
 import numpy as np
 
 from .. import canon, solver
+from . import codec
 from ..model import PartialSRG, SRGProperties
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,12 +43,6 @@ def _hardware() -> str:
     return f'{cpu}, {platform.system()} {platform.mac_ver()[0] or platform.release()}, python{platform.python_version()}'
 
 
-def _format_matrix(m: np.ndarray) -> str:
-    text = np.array2string(m, separator=', ', threshold=sys.maxsize, max_line_width=10 ** 6)
-    pad = ' ' * len('solutions: list = [array(')
-    return 'array(' + text.replace('\n', '\n' + pad).replace('[[', '[[', 1) + ')'
-
-
 def standardize(matrices) -> list:
     '''one canonical-form matrix per isomorphism class, in a deterministic order'''
     by_key = {}
@@ -58,22 +53,45 @@ def standardize(matrices) -> list:
     return [by_key[k] for k in sorted(by_key)]
 
 
+def is_placeholder(path: str) -> bool:
+    '''a problem file that only records a status (todo / undecided), not a result'''
+    if not os.path.exists(path):
+        return False
+    with open(path) as f:
+        head = f.read(4000)
+    return "\nstatus = '" in head
+
+
+def mark_status(v, k, l, u, status: str, details: str = '') -> None:
+    '''rewrite the STATUS line (and add details) of a placeholder problem file'''
+    path = problem_path(v, k, l, u)
+    if not is_placeholder(path):
+        return
+    lines = open(path).read().split('\n')
+    for i, line in enumerate(lines):
+        if line.startswith('STATUS:'):
+            lines[i] = 'STATUS: ' + status + ('\n' + details.strip('\n') if details else '')
+            break
+    text = '\n'.join(lines)
+    text = text.replace("status = 'todo'", "status = 'undecided'") if status.startswith('tackled') else text
+    open(path, 'w').write(text)
+
+
 def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     path = problem_path(v, k, l, u)
-    if os.path.exists(path) and not force:
+    if os.path.exists(path) and not force and not is_placeholder(path):
         raise FileExistsError(f'{path} exists; pass force=True to overwrite')
     sols = standardize(matrices)
     for m in sols:
         assert SRGProperties.from_matrix(m).vklu == (v, k, l, u)
-    body = ',\n                         '.join(_format_matrix(m) for m in sols)
+    body = ''.join(f'"""{codec.encode(m)}""",\n' for m in sols)
     doc = notes.strip('\n')
     if not sols:
         doc = 'no solution.\n' + doc
     with open(path, 'w') as f:
         f.write(f"'''\n{doc}\n'''\n"
-                f"from srg.model import array\n\n"
                 f"v, k, l, u = {v}, {k}, {l}, {u}\n"
-                f"solutions: list = [{body}]\n")
+                f"solutions: list[str] = [\n{body}]\n")
     return path
 
 
@@ -114,6 +132,8 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
     if stopped and not found:
         # not a proof of anything: do not write a 'no solution' file
         print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
+        mark_status(v, k, l, u, f'tackled - UNDECIDED: no solution found within the {time_limit:g}s time limit',
+                    f'{_hardware()}\nsearch stopped after {elapsed:.0f}s without finishing; not a proof of non-existence')
         return None
     if resumable:
         with np.load(ckpt, allow_pickle=False) as z:

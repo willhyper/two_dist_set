@@ -54,8 +54,10 @@ def test_spectral_never_rejects_a_database_solution_prefix():
     rng = np.random.default_rng(2)
     for p in db.list_problems():
         v, k, l, u = db.extract_vklu(p)
+        sols = db.get_solutions(v, k, l, u)[:4]
+        if not sols: continue  # placeholder / no-solution problems have nothing to check
         spectrum = spectral.Spectrum(v, k, l, u)
-        for A in db.get_solutions(v, k, l, u)[:4]:
+        for A in sols:
             for perm in [np.arange(v), rng.permutation(v), rng.permutation(v)]:
                 B = A[perm][:, perm]
                 for R in range(2, v + 1):
