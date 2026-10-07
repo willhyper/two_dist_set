@@ -294,14 +294,13 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
     seen = defaultdict(set)  # rows built -> classes of partial matrices already reached
     seen_done = set()
     reached = defaultdict(int)  # rows built -> number of classes reached (for progress)
+    pending = defaultdict(int)  # rows built -> number of those still on the stack (kept incrementally)
     stack = [srg]
+    pending[srg._matrix.shape[0]] += 1
     yielded = 0
     explored = 0
 
     def status() -> str:
-        pending = defaultdict(int)
-        for p in stack:
-            pending[p._matrix.shape[0]] += 1
         rows = sorted(set(reached) | set(pending))
         per_row = ' '.join(f'{r}:{pending[r]}/{reached[r]}' for r in rows)
         return (f'explored {explored} partial matrices, {yielded} solutions, {time.time() - t_start:.0f}s elapsed; '
@@ -309,6 +308,7 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
 
     while stack and (max_solutions is None or yielded < max_solutions):
         partial = stack.pop()
+        pending[partial._matrix.shape[0]] -= 1
         explored += 1
 
         children = []
@@ -324,6 +324,8 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
                 reached[child._matrix.shape[0]] += 1
                 children.append(child)
         stack.extend(reversed(children))  # the first child is explored first
+        for child in children:
+            pending[child._matrix.shape[0]] += 1
 
         if progress and time.time() - last >= PROGRESS_INTERVAL:
             last = time.time()

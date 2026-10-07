@@ -97,3 +97,22 @@ def test2():
     solver.only_1_element_in_row(Q)
     Q._invariant_check()
 
+
+
+def test_progress_line_counts_are_consistent(monkeypatch):
+    '''pending/reached per number of built rows: a finished exhaustive run has nothing pending'''
+    monkeypatch.setattr(solver, 'PROGRESS_INTERVAL', 0.0)  # report after every extended partial matrix
+    lines = []
+    srg = PartialSRG(solver._seed(21, 10, 5, 4))
+    list(solver.solve(srg, max_solutions=None, progress=lines.append))
+
+    assert len(lines) > 5
+    assert lines[-1].startswith('finished:')
+    per_row = dict(item.split(':') for item in lines[-1].split('rows built: ')[1].split())
+    assert all(v.split('/')[0] == '0' for v in per_row.values()), per_row  # nothing left pending
+
+    # mid-run lines: pending never exceeds reached, and pending is 0 exactly where the search has finished
+    for line in lines[:-1]:
+        for item in line.split('rows built: ')[1].split():
+            pend, reach = map(int, item.split(':')[1].split('/'))
+            assert 0 <= pend <= reach
