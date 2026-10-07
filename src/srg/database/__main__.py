@@ -22,8 +22,10 @@ else:
         draw(v,k,l,u)
     elif cmd == 'build':
         from srg.database import build
-        extra = sys.argv[6:]
-        print(build.build(v, k, l, u, *(int(e) for e in extra)))
+        extra = [a for a in sys.argv[6:] if not a.startswith('--')]
+        limit = [a for a in sys.argv[6:] if a.startswith('--time-limit=')]
+        print(build.build(v, k, l, u, *(int(e) for e in extra),
+                          time_limit=float(limit[0].split('=')[1]) if limit else None))
     elif cmd == 'complement':
         from srg.database import build
         print(build.derive_complement(v, k, l, u))

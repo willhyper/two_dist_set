@@ -77,7 +77,10 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     return path
 
 
-def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False) -> str:
+class TimeLimit(Exception): pass
+
+
+def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, time_limit=None):
     '''
     solve and write the problem file. If solve() supports checkpoints the search
     is checkpointed, so an interrupted build resumes where it left off.
@@ -94,9 +97,24 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False) -
         print(f'[srg {v},{k},{l},{u}] {msg}', file=sys.stderr, flush=True)
 
     t0 = time.time()
-    found = list(solver.solve(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
-                              progress=progress, **kwargs))
+
+    def progress_limited(msg):
+        progress(msg)
+        if time_limit is not None and time.time() - t0 > time_limit:
+            raise TimeLimit
+
+    found, stopped = [], False
+    try:
+        for m in solver.solve(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
+                              progress=progress_limited, **kwargs):
+            found.append(m)
+    except TimeLimit:
+        stopped = True
     elapsed = time.time() - t0
+    if stopped and not found:
+        # not a proof of anything: do not write a 'no solution' file
+        print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
+        return None
     if resumable:
         with np.load(ckpt, allow_pickle=False) as z:
             elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
@@ -104,7 +122,10 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False) -
     notes = (f'{_hardware()}\n'
              f'{elapsed:.4g}s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
              f'{" (total compute time across resumed runs)" if resumed else ""}\n')
-    if n >= max_solutions:
+    if stopped:
+        notes += (f'search stopped by a {time_limit}s time limit with {n} isomorphism class(es) found: '
+                  f'existence is settled, but more classes may exist\n')
+    elif n >= max_solutions:
         notes += f'{n} isomorphism classes listed: search was capped at max_solutions={max_solutions}, more may exist\n'
     return write_problem(v, k, l, u, found, notes, force=force)
 
