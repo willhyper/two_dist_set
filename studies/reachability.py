@@ -7,7 +7,7 @@ row R, and check that G's own row R is among them (up to isomorphism: canonical 
 matrices). The spectral/Gram pruning must accept every prefix too. If any row-enumeration or pruning step ever lost
 a real solution, some known graph would fail here at some level.
 
-Run:  python studies/reachability.py [max_v]      (default 45)
+Run:  python studies/reachability.py [max_v [min_v]]      (default max_v 45, min_v 0)
 '''
 import sys
 import time
@@ -66,10 +66,11 @@ def reach(A, vklu, budget=BUDGET):
 
 def main():
     max_v = int(sys.argv[1]) if len(sys.argv) > 1 else 45
+    min_v = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     ok = bad = 0
     for p in sorted(db.list_problems(), key=lambda s: db.extract_vklu(s)):
         q = tuple(db.extract_vklu(p))
-        if q[0] > max_v:
+        if not min_v <= q[0] <= max_v:
             continue
         for i, A in enumerate(db.get_solutions(*q)):
             t = time.time()
