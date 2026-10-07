@@ -4,6 +4,9 @@ Apple M1. python3.10
 71.05s. cythonized
 23s. multi-threaded
 20.77. multi-threaded, cythonized
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+579.39s. pure python, single process, no cython
 '''
 from srg.model import array
 
