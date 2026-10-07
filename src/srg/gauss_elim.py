@@ -1,12 +1,50 @@
 #!python
 #cython: language_level=3
+'''
+Gaussian elimination that keeps the right-hand side non-negative.
+
+The unknown next row of an SRG is a vector x of non-negative integer counts, and every vertex built so
+far gives one linear equation about it: a row of the 0/1 matrix A with a right-hand side b >= 0
+(A x = b, see model.Question). Textbook Gaussian elimination would simplify A as much as it can, but it
+multiplies rows by arbitrary factors and subtracts them freely, which produces fractional entries and
+NEGATIVE right-hand sides - and both destroy what this solver needs: A stays a 0/1 matrix (its rows are
+stored as bit masks, columns most significant first) and b stays >= 0 (b is a budget: how many more ones
+a set of columns may still receive; b < 0 means a contradiction).
+
+So the only row operation used is
+
+    if row m is CONTAINED in row r (every column of m is also in r) and b_r >= b_m:
+        replace r by  r - m  (the columns of r that are not in m)  with right-hand side  b_r - b_m
+
+which is exactly the textbook step restricted to the case that is safe here: it only removes ones (A stays
+0/1) and b_r - b_m >= 0 (b stays non-negative). The new row is a consequence of the old two, and the pair
+(m, r) can be rebuilt from (m, r - m), so the system keeps exactly the same solutions x. The operation is
+repeated until it no longer applies: in the result no row contains another. That is the simplest form
+reachable by this operation (not a full reduced echelon form: rows like {a,b} and {b,c} stay as they are,
+because eliminating b would need a negative coefficient).
+
+x >= 0 also lets the same step expose contradictions, which are raised as model.NoSolution instead of
+being left for a later step to notice:
+  - m is contained in r but b_r < b_m: then (r - m) . x = b_r - b_m < 0, impossible for x >= 0;
+  - a row that is empty (all zero) after subtracting but has b > 0: 0 = b > 0.
+(A row that becomes empty with b = 0 is just redundant and is dropped.)
+
+The result has the same number of columns as the input (columns are never removed or reordered here;
+dropping columns that were fixed to a value is the job of the callers in solver.py).
+'''
 import heapq
 import numpy as np
 from . import model
 
 
 def _remove_zerokeys(h: list) -> None:
-    hnz = [(k, i, v) for k, i, v in h if k > 0]
+    '''drop rows that are all zero; such a row says 0 = v, so v > 0 is a contradiction'''
+    hnz = []
+    for k, i, v in h:
+        if k > 0:
+            hnz.append((k, i, v))
+        elif v != 0:
+            raise model.NoSolution(f'row {i} is empty but its right-hand side is {v} != 0')
     h.clear()
     h += hnz
 
@@ -26,7 +64,10 @@ def _gauss_elim(hd: list) -> bool:
     reducible, same = [], []  # will maintain sorted order
     while hd:
         k, i, v = heapq.heappop(hd)
-        if mk & k == mk and v >= mv:
+        if mk & k == mk:  # row m is contained in row r
+            if v < mv:
+                raise model.NoSolution(f'row {i} contains row {mi} but has the smaller right-hand side '
+                                       f'{v} < {mv}: their difference would equal {v - mv} < 0')
             reducible.append((k - mk, i, v - mv))
         else:
             same.append((k, i, v))
@@ -111,7 +152,11 @@ def _dec2bin(a):
     return rr
 
 
-def _decode(hd: list) -> tuple:
+def _decode(hd: list, C: int = None) -> tuple:
+    '''(A, b) from the encoded rows; C is the number of columns of the original A, which the
+    bit masks alone cannot tell (leading columns that are all zero leave no trace in them)'''
+    if not hd:
+        return model.zeros((0, C or 0)), model.array([])
     z = zip(*hd)
     enc_a, ind, b = next(z), next(z), next(z)
 
@@ -127,7 +172,8 @@ def _decode(hd: list) -> tuple:
     #       array([1, 1, 1, 1, 0], dtype=int8),
     #       array([1, 0, 1, 0, 1], dtype=int8)]
 
-    R, C = len(_A), max(map(len, _A))
+    R = len(_A)
+    C = max(map(len, _A)) if C is None else C
 
     A = model.zeros((R, C))
 
@@ -147,4 +193,4 @@ def sort(A: np.array, b: np.array) -> None:
 def elim(A: np.array, b: np.array) -> tuple:
     hd = _encode(A, b)
     _elim(hd)
-    return _decode(hd)
+    return _decode(hd, A.shape[1])
