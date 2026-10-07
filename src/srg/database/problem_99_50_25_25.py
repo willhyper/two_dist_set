@@ -1,6 +1,6 @@
 '''
 STATUS: complement of problem_99_48_22_24 - derive it (python -m srg.database complement) once that one is tackled
-Brouwer table srgtab51-100: exists - S(2,5,45); 2-graph\*
+Brouwer table srgtab51-100: exists - S(2,5,45); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 

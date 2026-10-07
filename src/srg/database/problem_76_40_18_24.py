@@ -1,6 +1,6 @@
 '''
 STATUS: complement of problem_76_35_18_14 - derive it (python -m srg.database complement) once that one is tackled
-Brouwer table srgtab51-100: does not exist - no 2-graph\*
+Brouwer table srgtab51-100: does not exist - no 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 

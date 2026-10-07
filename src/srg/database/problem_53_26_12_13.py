@@ -1,6 +1,6 @@
 '''
 STATUS: to tackle soon
-Brouwer table srgtab51-100: exists (many graphs) - Paley(53); 2-graph\*
+Brouwer table srgtab51-100: exists (many graphs) - Paley(53); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 
