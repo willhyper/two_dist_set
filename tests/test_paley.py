@@ -48,7 +48,7 @@ def test_prime_power_field_uses_a_real_field_not_integers_mod_q():
 def test_constructions_finds_the_right_family_for_a_quest_and_nothing_for_others():
     assert [n for n, _ in utils.constructions(29, 14, 6, 7)] == ['Paley(29)']
     assert [n for n, _ in utils.constructions(28, 12, 6, 4)] == ['Triangular graph T(8)']
-    assert utils.constructions(35, 16, 6, 8) == []  # no generator for this one (yet)
+    assert utils.constructions(36, 14, 4, 6) == []  # no generator for this one (yet)
 
 
 def test_recorded_paley_problems_hold_the_generated_graph():

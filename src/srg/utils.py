@@ -5,7 +5,7 @@ import itertools
 
 import numpy as np
 
-from .model import Question, dtype
+from .model import Question, SRGProperties, dtype
 from . import pprint
 
 def debug(func):
@@ -187,6 +187,201 @@ def _paley_matches(v: int, k: int, l: int, u: int):
         yield f'Paley({v})', paley(v)
 
 
+def _field(q: int):
+    '''(add, mul, neg, inv): the operation tables of GF(q) (elements 0..q-1, 0 and 1 the zero and one)'''
+    p, n = prime_power(q)
+    add, mul = _field_tables(p, n)
+    neg = np.array([int(np.flatnonzero(add[x] == 0)[0]) for x in range(q)])
+    inv = np.array([0] + [int(np.flatnonzero(mul[x] == 1)[0]) for x in range(1, q)])
+    return add, mul, neg, inv
+
+
+def _projective_points(q: int, dim: int, mul, inv) -> list:
+    '''the points of PG(dim-1, q): non-zero vectors scaled so that the first non-zero coordinate is 1'''
+    pts = []
+    for v in itertools.product(range(q), repeat=dim):
+        nz = next((c for c in v if c), 0)
+        if nz == 1:
+            pts.append(v)
+    return pts
+
+
+def symplectic_gq(q: int) -> np.ndarray:
+    '''
+    collinearity graph of the symplectic generalized quadrangle W(q): the points of PG(3,q), two adjacent
+    iff orthogonal for w(x,y) = x0 y1 - x1 y0 + x2 y3 - x3 y2. SRG((q+1)(q^2+1), q(q+1), q-1, q+1).
+    '''
+    add, mul, neg, inv = _field(q)
+    pts = _projective_points(q, 4, mul, inv)
+    P = np.array(pts)
+
+    def w(x, y):
+        s = add[mul[x[0], y[1]], neg[mul[x[1], y[0]]]]
+        return add[s, add[mul[x[2], y[3]], neg[mul[x[3], y[2]]]]]
+
+    n = len(pts)
+    A = np.zeros((n, n), dtype=dtype)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if w(pts[i], pts[j]) == 0:
+                A[i, j] = A[j, i] = 1
+    return A
+
+
+def hyperoval_gq(q: int) -> np.ndarray:
+    '''
+    the generalized quadrangle T2*(O) = GQ(q-1, q+1) for q = 2^h >= 4: vertices GF(q)^3 (adding vectors),
+    adjacent iff their difference is a non-zero multiple of a point of the hyperoval O = conic {(1,t,t^2)} +
+    {(0,0,1)} + nucleus {(0,1,0)}. SRG(q^3, (q-1)(q+2), q-2, q+2); q = 4 gives SRG(64,18,2,6).
+    '''
+    p, n = prime_power(q)
+    if p != 2 or n < 2:
+        raise ValueError('hyperoval_gq needs q = 2^h, h >= 2')
+    add, mul, neg, inv = _field(q)
+    O = [(1, t, int(mul[t, t])) for t in range(q)] + [(0, 0, 1), (0, 1, 0)]
+    conn = {tuple(int(mul[c, x]) for x in o) for o in O for c in range(1, q)}
+    vecs = list(itertools.product(range(q), repeat=3))
+    index = {v: i for i, v in enumerate(vecs)}
+    A = np.zeros((len(vecs), len(vecs)), dtype=dtype)
+    for v in vecs:
+        for s in conn:
+            A[index[v], index[tuple(int(add[a, b]) for a, b in zip(v, s))]] = 1
+    return A
+
+
+def hoffman_singleton() -> np.ndarray:
+    '''the Hoffman-Singleton graph, SRG(50,7,0,1): five pentagons P_h, five pentagrams Q_i, and vertex j of
+    P_h joined to vertex h*i + j (mod 5) of Q_i'''
+    P = lambda h, j: 5 * h + j % 5
+    Q = lambda i, j: 25 + 5 * i + j % 5
+    A = np.zeros((50, 50), dtype=dtype)
+    def edge(a, b):
+        A[a, b] = A[b, a] = 1
+    for h in range(5):
+        for j in range(5):
+            edge(P(h, j), P(h, j + 1))
+            edge(Q(h, j), Q(h, j + 2))
+            for i in range(5):
+                edge(P(h, j), Q(i, h * i + j))
+    return A
+
+
+def _anisotropic_binary_form(q: int, add, mul):
+    '''(a, b, c) with a x^2 + b x y + c y^2 != 0 for every (x, y) != (0, 0)'''
+    for a, b, c in itertools.product(range(1, q), range(q), range(1, q)):
+        if all(add[add[mul[a, mul[x, x]], mul[b, mul[x, y]]], mul[c, mul[y, y]]] != 0
+               for x in range(q) for y in range(q) if (x, y) != (0, 0)):
+            return a, b, c
+    raise AssertionError('no anisotropic binary form found')
+
+
+def affine_polar(q: int, m: int, elliptic: bool) -> np.ndarray:
+    '''
+    the affine polar graph VO(2m, q): vectors of GF(q)^(2m), x ~ y iff Q(x - y) = 0 (x != y) for a hyperbolic
+    (elliptic) quadratic form Q = x0 x1 + ... [+ an anisotropic binary form in the last two coordinates].
+    VO+(6,2) = SRG(64,35,18,20), VO-(6,2) = SRG(64,27,10,12), VO-(4,3) = SRG(81,20,1,6).
+    '''
+    add, mul, neg, inv = _field(q)
+    n = 2 * m
+    if elliptic:
+        a, b, c = _anisotropic_binary_form(q, add, mul)
+    vecs = np.array(list(itertools.product(range(q), repeat=n)))
+
+    def Q(v):
+        s = 0
+        pairs = m - 1 if elliptic else m
+        for i in range(pairs):
+            s = add[s, mul[v[2 * i], v[2 * i + 1]]]
+        if elliptic:
+            x, y = v[n - 2], v[n - 1]
+            s = add[s, add[add[mul[a, mul[x, x]], mul[b, mul[x, y]]], mul[c, mul[y, y]]]]
+        return s
+
+    # Q on every difference vector, through the field's subtraction
+    index = {tuple(v): i for i, v in enumerate(vecs)}
+    zero = {d for d in range(len(vecs)) if Q(vecs[d]) == 0 and d != index[tuple([0] * n)]}
+    sing = {tuple(vecs[d]) for d in zero}
+    A = np.zeros((len(vecs), len(vecs)), dtype=dtype)
+    for i, x in enumerate(vecs):
+        for s in sing:
+            y = tuple(int(add[xi, si]) for xi, si in zip(x, s))  # x + s: the set of singular vectors is symmetric
+            A[i, index[y]] = 1
+    return A
+
+
+def hermitian_u42() -> np.ndarray:
+    '''the U(4,2) polar graph SRG(45,12,3,3): the 45 isotropic points of the Hermitian form sum x_i conj(y_i) on
+    PG(3,4) (conj(x) = x^2), adjacent iff orthogonal'''
+    add, mul, neg, inv = _field(4)
+    pts = _projective_points(4, 4, mul, inv)
+    conj = lambda x: int(mul[x, x])
+
+    def h(x, y):
+        s = 0
+        for a, b in zip(x, y):
+            s = add[s, mul[a, conj(b)]]
+        return s
+
+    iso = [p for p in pts if h(p, p) == 0]
+    n = len(iso)
+    A = np.zeros((n, n), dtype=dtype)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if h(iso[i], iso[j]) == 0:
+                A[i, j] = A[j, i] = 1
+    return A
+
+
+def _difference_triples(n: int, avoid=()):
+    '''t base triples {0, a, a+b} of Z_n whose differences (up to sign) cover 1..(n-1)/2 except `avoid`, once each'''
+    need = [d for d in range(1, (n - 1) // 2 + 1) if d not in avoid]
+    def ds(a, b):
+        return {min(x % n, (-x) % n) for x in (a, b, a + b)}
+    def search(left, found):
+        if not left:
+            return found
+        first = left[0]
+        for a in range(1, n):
+            for b in range(1, n):
+                s = {min(x % n, (-x) % n) for x in (a, b, a + b)}
+                if len(s) == 3 and first in s and s <= set(left):
+                    r = search([d for d in left if d not in s], found + [(a, a + b)])
+                    if r is not None:
+                        return r
+        return None
+    return search(need, [])
+
+
+def steiner_triple_system(v: int) -> list:
+    '''a cyclic Steiner triple system STS(v) on Z_v (v = 1 or 3 mod 6, v >= 13): its blocks, as sorted triples'''
+    if v % 6 not in (1, 3) or v < 13:
+        raise ValueError(f'no cyclic STS({v}) here: need v = 1 or 3 mod 6, v >= 13')
+    blocks = set()
+    short = v % 6 == 3
+    triples = _difference_triples(v, avoid=(v // 3,) if short else ())
+    assert triples is not None
+    for a, b in triples:
+        for s in range(v):
+            blocks.add(tuple(sorted(((s) % v, (s + a) % v, (s + b) % v))))
+    if short:
+        for s in range(v // 3):
+            blocks.add(tuple(sorted((s, s + v // 3, s + 2 * v // 3))))
+    assert len(blocks) == v * (v - 1) // 6
+    return sorted(blocks)
+
+
+def block_graph(blocks: list) -> np.ndarray:
+    '''blocks adjacent iff they meet (for a Steiner triple system on v points: SRG(v(v-1)/6, 3(v-3)/2, (v+3)/2, 9))'''
+    sets = [set(b) for b in blocks]
+    n = len(sets)
+    A = np.zeros((n, n), dtype=dtype)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if sets[i] & sets[j]:
+                A[i, j] = A[j, i] = 1
+    return A
+
+
 def _isqrt_exact(x: int):
     r = int(round(x ** 0.5))
     return r if r * r == x else None
@@ -215,7 +410,45 @@ def _lattice_matches(v: int, k: int, l: int, u: int):
             yield f'net graph of {kk} parallel classes of AG(2,{n}) (OA({n},{kk}))', net_graph(n, kk)
 
 
-GENERATORS = [_paley_matches, _triangular_matches, _lattice_matches]  # each: (v, k, l, u) -> iterator of (name, adjacency matrix)
+def _params(A: np.ndarray) -> tuple:
+    return tuple(int(x) for x in SRGProperties.from_matrix(A).vklu)
+
+
+def _geometry_matches(v: int, k: int, l: int, u: int):
+    '''generalized quadrangles, Hoffman-Singleton, the U(4,2) polar graph and affine polar graphs'''
+    want = (v, k, l, u)
+    for q in (2, 3, 4, 5, 7, 8, 9):  # the symplectic GQ(q, q)
+        if want == ((q + 1) * (q * q + 1), q * (q + 1), q - 1, q + 1):
+            yield f'collinearity graph of the symplectic generalized quadrangle W({q}) = GQ({q},{q})', symplectic_gq(q)
+    for q in (4, 8):  # GQ(q-1, q+1) from a hyperoval
+        if want == (q ** 3, (q - 1) * (q + 2), q - 2, q + 2):
+            yield f'collinearity graph of GQ({q - 1},{q + 1}) = T2*(O) from a hyperoval of PG(2,{q})', hyperoval_gq(q)
+    if want == (50, 7, 0, 1):
+        yield 'Hoffman-Singleton graph', hoffman_singleton()
+    if want == (45, 12, 3, 3):
+        yield 'U(4,2) polar graph (Hermitian variety in PG(3,4))', hermitian_u42()
+    for q in (2, 3, 4, 5):  # affine polar graphs VO+-(2m, q); parameters checked on the graph itself
+        for m in (2, 3, 4):
+            if q ** (2 * m) != v or v > 1100:
+                continue
+            for elliptic in (True, False):
+                eps = -1 if elliptic else 1
+                if k == (q ** m - eps) * (q ** (m - 1) + eps):
+                    A = affine_polar(q, m, elliptic)
+                    if _params(A) == want:
+                        yield f'affine polar graph VO{"-" if elliptic else "+"}({2 * m},{q})', A
+
+
+def _steiner_matches(v: int, k: int, l: int, u: int):
+    '''block graph of a Steiner triple system STS(n): SRG(n(n-1)/6, 3(n-3)/2, (n+3)/2, 9)'''
+    n = (1 + (1 + 24 * v) ** 0.5) / 2
+    if n == int(n) and int(n) >= 13 and int(n) % 6 in (1, 3):
+        n = int(n)
+        if (k, l, u) == (3 * (n - 3) // 2, (n + 3) // 2, 9):
+            yield f'block graph of a cyclic Steiner triple system STS({n})', block_graph(steiner_triple_system(n))
+
+
+GENERATORS = [_paley_matches, _triangular_matches, _lattice_matches, _geometry_matches, _steiner_matches]  # each: (v, k, l, u) -> iterator of (name, adjacency matrix)
 
 
 def constructions(v: int, k: int, l: int, u: int) -> list:
