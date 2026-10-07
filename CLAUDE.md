@@ -139,16 +139,20 @@ renamed away; every import is `from .model import X` / `from srg.model import X`
   quota become infeasible after a step. Steps are also `@debug`-decoratable (`utils.py`) to print
   before/after state and re-check invariants — commented out by default.
 - `advance(partial)` / `solve(partial, max_solutions=DEFAULT_MAX_SOLUTIONS)`: drive the row-by-row
-  construction level by level (breadth-first over partial matrices): for each partial SRG, build
+  construction **depth-first** over partial matrices (an explicit stack): pop a partial SRG, build
   its `Question`, enumerate all valid next rows via `solve_question`, append each to get new
-  `PartialSRG`s, split into finished (`solved()`) vs. still-growing, and recurse until nothing is
-  left to grow or `max_solutions` matrices have been yielded (see "Why this repo exists" above).
+  `PartialSRG`s, yield the finished ones (`solved()`) the moment they appear, push the rest, and stop
+  when the stack is empty or `max_solutions` matrices have been yielded (see "Why this repo exists"
+  above). Depth-first means solutions of a solution-rich quest show up long before the search space
+  is exhausted, while an exhaustive (no-solution) run does exactly the same work as a level-by-level
+  search would, because every isomorphism class is still extended only once.
   `solve()` is a generator yielding completed adjacency matrices (numpy arrays).
 
 **`srg/spectral.py`** — eigenvalue-interlacing pruning: every principal submatrix of an SRG matrix
-has `lambda_min >= s` and `lambda_2 <= r` (`r > s` the non-principal eigenvalues). `feasible(M, r, s)`
-checks the known `R x R` block and that block extended by each distinct not-yet-built column. Necessary
-conditions only, so discarding a partial matrix that fails them never loses a solution.
+interlaces the full spectrum `(k, r^f, s^g)` (`lambda_i(A) >= lambda_i(B) >= lambda_{i+v-m}(A)`), and the
+same holds for the complement graph's spectrum. `feasible(M, Spectrum(v,k,l,u))` checks the known `R x R`
+block and that block extended by each distinct not-yet-built column. Necessary conditions only, so
+discarding a partial matrix that fails them never loses a solution.
 
 **`srg/canon.py`** — exact canonical form of a partial matrix (colour refinement + individualization with
 automorphism pruning; not-yet-built vertices with equal columns collapse to one weighted node).
@@ -158,13 +162,15 @@ symmetric to canonize within `LEAF_BUDGET`, in which case it simply isn't dedupl
 `sorter.maximize`, to compare/standardize solutions (`maximize` is not a canonical form: two isomorphic
 matrices can maximize to different matrices).
 
-**Isomorph rejection:** after every row, `solve()` prunes with `spectral.feasible` and keeps one partial
-matrix per isomorphism class (`canon.canonical_key`). Isomorphic partial matrices have the same
-completions, so this is exact for existence, and `solve()` therefore yields one representative per
-isomorphism class of solution, not every vertex labeling. `solve(..., isomorph_free=False)` restores the
-exhaustive labeled search (slow; used by tests). `solve(..., progress=callable)` reports a status line per
-level and every `PROGRESS_INTERVAL` seconds; `python -m srg` prints these to stderr, so a long run can be
-monitored (and Ctrl+C'd) without waiting for it to finish.
+**Isomorph rejection:** `solve()` extends only the first partial matrix of each isomorphism class
+(`canon.canonical_key`, one `seen` set per number of rows built; `spectral.feasible` is applied first).
+Isomorphic partial matrices have the same completions, so this is exact for existence, and `solve()`
+therefore yields one representative per isomorphism class of solution, not every vertex labeling.
+`solve(..., isomorph_free=False)` restores the exhaustive labeled search (slow; used by tests).
+`solve(..., progress=callable)` reports every `PROGRESS_INTERVAL` seconds how many classes were reached and
+how many are still pending on the stack, per number of rows built (an exhaustive run ends when the pending
+counts are all 0); `python -m srg` prints these to stderr, so a long run can be monitored (and Ctrl+C'd)
+without waiting for it to finish.
 
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts

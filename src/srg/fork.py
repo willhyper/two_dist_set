@@ -2,15 +2,24 @@
 #cython: language_level=3
 import numpy as np
 
+def delete(a: np.array, index, axis: int = 0) -> np.array:
+    '''np.delete(a, index, axis) for 1-D/2-D arrays, via a boolean mask: np.delete
+    spends most of its time on generic-ndim dispatch, and this is called
+    hundreds of thousands of times on tiny arrays.'''
+    keep = np.ones(a.shape[axis], dtype=bool)
+    keep[index] = False
+    return a[:, keep] if axis == 1 else a[keep]
+
+
 def _pop_col(A: np.array, index: int):
     col = A[:, index]
-    A_rest = np.delete(A, index, axis=1)
+    A_rest = delete(A, index, axis=1)
     return col, A_rest
 
 
 def _pop_ele(row: np.array, index: int):
     ele = row[index]
-    row_rest = np.delete(row, index)
+    row_rest = delete(row, index)
     return ele, row_rest
 
 

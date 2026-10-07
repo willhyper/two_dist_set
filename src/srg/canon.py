@@ -145,18 +145,29 @@ def _build(M: np.ndarray):
     return R, n, adj, color, counts
 
 
+_TRIU = {}
+
+
+def _triu(n: int):
+    if n not in _TRIU:
+        _TRIU[n] = np.triu_indices(n, 1)
+    return _TRIU[n]
+
+
 def _canonical(M: np.ndarray, leaf_budget: int):
     R, n, adj, color, wts = _build(M)
 
+    A = np.zeros((n, n), dtype=np.uint8)
+    for i, nbrs in enumerate(adj):
+        A[i, nbrs] = 1
+    iu = _triu(n)
+    wts_arr = np.array(wts, dtype=np.uint8)
+
     def certificate(order):
-        pos = [0] * n
-        for p, x in enumerate(order):
-            pos[x] = p
         # processed vertices come first in the order (colour 0 is the lowest)
-        edges = tuple(sorted((min(pos[i], pos[j]), max(pos[i], pos[j]))
-                             for i in range(R) for j in adj[i] if j > i))
-        weights = tuple(wts[x - R] for x in order[R:])
-        return (edges, weights)
+        o = np.array(order)
+        bits = np.packbits(A[np.ix_(o, o)][iu])
+        return bits.tobytes() + wts_arr[o[R:] - R].tobytes()
 
     try:
         return _Search(adj, color, certificate, leaf_budget).best_cert
@@ -165,7 +176,7 @@ def _canonical(M: np.ndarray, leaf_budget: int):
 
 
 def canonical_key(M: np.ndarray, leaf_budget: int = LEAF_BUDGET):
-    '''hashable key equal for isomorphic partial matrices (and only those),
+    '''compact bytes key, equal for isomorphic partial matrices (and only those),
     or None if the matrix is too symmetric to canonize within leaf_budget.'''
     return _canonical(M, leaf_budget)
 
@@ -179,7 +190,8 @@ def canonical_matrix(A: np.ndarray, leaf_budget: int = 10 ** 7) -> np.ndarray:
     assert R == v, 'canonical_matrix needs a complete (square) matrix'
     cert = _canonical(A, leaf_budget)
     assert cert is not None, 'leaf budget exceeded'
+    nbits = v * (v - 1) // 2
+    bits = np.unpackbits(np.frombuffer(cert[:(nbits + 7) // 8], dtype=np.uint8))[:nbits]
     out = np.zeros((v, v), dtype=A.dtype)
-    for i, j in cert[0]:
-        out[i, j] = out[j, i] = 1
-    return out
+    out[_triu(v)] = bits
+    return out + out.T

@@ -49,10 +49,10 @@ def test_spectral_never_rejects_a_database_solution_prefix():
     for p in db.list_problems():
         v, k, l, u = db.extract_vklu(p)
         if v > 21: continue
-        r, s = spectral.eigen_rs(v, k, l, u)
+        spectrum = spectral.Spectrum(v, k, l, u)
         for A in db.get_solutions(v, k, l, u):
             for R in range(2, v + 1):
-                assert spectral.feasible(A[:R], r, s), (v, k, l, u, R)
+                assert spectral.feasible(A[:R], spectrum), (v, k, l, u, R)
 
 
 def test_canonical_matrix_is_a_standard_form():

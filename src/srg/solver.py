@@ -78,8 +78,8 @@ def reduce_col(Q: Question) -> None:
 
     col_to_drop_in_A = list(chain(*col_to_drop))
     col_to_drop_in_ans = Q.answer.unknown_loc[col_to_drop_in_A]
-    answer_new_v = np.delete(Q.answer._v, col_to_drop_in_ans)
-    answer_new_loc = np.delete(Q.answer._loc, col_to_drop_in_ans)
+    answer_new_v = fork.delete(Q.answer._v, col_to_drop_in_ans)
+    answer_new_loc = fork.delete(Q.answer._loc, col_to_drop_in_ans)
 
     Q.A = Q.A[:, col_to_keep]
     Q.bounds = model.array(bounds_new)
@@ -112,8 +112,8 @@ def zero_in_b(Q: Question) -> None:
     for zbl in zbls:
         zero_loc = val_unknown_locs[zbl]
         ans._v[zero_loc] = 0  # Q.answer updated in place
-    _bound_new = np.delete(Q.bounds, zbls)
-    _A_new = np.delete(Q.A, zbls, axis=1)
+    _bound_new = fork.delete(Q.bounds, zbls)
+    _A_new = fork.delete(Q.A, zbls, axis=1)
     Q.A, Q.bounds = _A_new, _bound_new
 
 
@@ -160,8 +160,8 @@ def only_1_element_in_row(Q: Question):
 
     # update b, reduce bounds, reduce A
     Q.b -= b_to_update # because check above, Q.b remains non-negative
-    Q.A = np.delete(Q.A, cs, axis=1)
-    Q.bounds = np.delete(Q.bounds, cs)
+    Q.A = fork.delete(Q.A, cs, axis=1)
+    Q.bounds = fork.delete(Q.bounds, cs)
 
 
 #@debug
@@ -177,7 +177,7 @@ def fork_enum(Q: Question):
     assert len(ans_unknown_loc) > 0
 
     minloc = np.argmin(Q.bounds)
-    new_bound = np.delete(Q.bounds, minloc)
+    new_bound = fork.delete(Q.bounds, minloc)
     Aminloc, new_A = fork._pop_col(Q.A, minloc)
 
     for q_used, q_rest in fork.enum(Q.quota, Q.bounds, minloc):
@@ -195,6 +195,13 @@ def fork_enum(Q: Question):
 
 
 
+def _fingerprint(Q: Question) -> tuple:
+    '''everything Question.__eq__ compares, as raw bytes: much cheaper than copying Q to compare'''
+    ans = Q.answer
+    return (Q.A.shape, Q.A.tobytes(), Q.b.tobytes(), Q.bounds.tobytes(), Q.quota,
+            ans._v.tobytes(), ans._loc.tobytes())
+
+
 def solve_question(Q: Question)->Iterator[array]:
     stack = list()
     stack.append(Q)
@@ -203,14 +210,16 @@ def solve_question(Q: Question)->Iterator[array]:
         Q : Question = stack.pop()
 
         try:
+            fp = _fingerprint(Q)
             while True:
-                Qdummy = Q.copy()
                 reduce_col(Q)
                 eliminate(Q)
                 zero_in_b(Q)
                 only_1_element_in_row(Q)
-                if Q == Qdummy:
+                fp_new = _fingerprint(Q)
+                if fp_new == fp:
                     break
+                fp = fp_new
 
             if Q.answer.unknown:
                 for Qnext in fork_enum(Q):
@@ -237,93 +246,88 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     ansgen_arr : Iterator[array] = solve_question(q)
     return list(map(s.append_and_return_new, ansgen_arr))
 
-PROGRESS_INTERVAL = 5.0  # seconds between progress lines within a level
+PROGRESS_INTERVAL = 5.0  # seconds between progress lines
 
 
-def _unique(matrices: list) -> list:
-    '''one matrix per isomorphism class (matrices too symmetric to canonize are all kept)'''
-    kept, seen = [], set()
-    for p in matrices:
-        key = canon.canonical_key(p._matrix)
-        if key is not None:
-            if key in seen:
-                continue
-            seen.add(key)
-        kept.append(p)
-    return kept
-
-
-def _prune(partials: list, r: float, s: float, isomorph_free: bool) -> list:
+def _fresh(seen: set, matrix: np.ndarray, isomorph_free: bool) -> bool:
     '''
-    drop partial matrices that provably cannot be completed (eigenvalue
-    interlacing, see spectral.py), and - if isomorph_free - all but one of
-    each isomorphism class (see canon.py): isomorphic partial matrices have
-    the same completions, so searching one representative loses nothing.
+    True if this matrix is the first of its isomorphism class to be seen
+    (and records it). Matrices too symmetric to canonize always count as fresh.
     '''
-    kept, seen = [], set()
-    for p in partials:
-        if not spectral.feasible(p._matrix, r, s):
-            continue
-        if isomorph_free:
-            key = canon.canonical_key(p._matrix)
-            if key is not None:
-                if key in seen:
-                    continue
-                seen.add(key)
-        kept.append(p)
-    return kept
+    if not isomorph_free:
+        return True
+    key = canon.canonical_key(matrix)
+    if key is None:
+        return True
+    if key in seen:
+        return False
+    seen.add(key)
+    return True
 
 
 def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
           progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True):
     '''
-    yields completed adjacency matrices, level by level (breadth-first over
-    partially-built rows), stopping once max_solutions have been yielded -
-    this only settles existence quickly instead of paying to enumerate every
-    symmetry of a solution-rich quest. Pass max_solutions=None to disable the
-    cap and enumerate exhaustively.
+    yields completed adjacency matrices as soon as each is found, searching
+    depth-first over partially-built rows (each partial matrix is extended by
+    one row at a time, see advance()), and stops once max_solutions have been
+    yielded - this only settles existence quickly instead of paying to
+    enumerate every symmetry of a solution-rich quest. Pass max_solutions=None
+    to disable the cap and enumerate exhaustively.
 
-    Every level is pruned with eigenvalue interlacing and, unless
-    isomorph_free=False, reduced to one partial matrix per isomorphism class,
-    so the matrices yielded are representatives, not every vertex-labeling of
-    each solution.
+    Every partial matrix is checked with eigenvalue interlacing (spectral.py)
+    and, unless isomorph_free=False, only the first partial matrix of each
+    isomorphism class (per number of rows built) is ever extended (canon.py):
+    isomorphic partial matrices have the same completions, so this loses
+    nothing. The matrices yielded are therefore one representative per
+    isomorphism class of solution, not every vertex-labeling of each.
 
-    progress, if given, is called with a one-line status string at the start
-    and end of every level and every PROGRESS_INTERVAL seconds within one.
+    progress, if given, is called with a one-line status string every
+    PROGRESS_INTERVAL seconds: how many partial matrices (isomorphism classes)
+    were reached at each number of built rows, and how many are still waiting
+    on the stack at each. Exhaustive searches finish when the stack empties.
     '''
+    t_start = last = time.time()
+    v, k, l, u = SRGProperties.from_matrix(srg._matrix).vklu
+    spectrum = spectral.Spectrum(v, k, l, u)
+
+    seen = defaultdict(set)  # rows built -> classes of partial matrices already reached
+    seen_done = set()
+    reached = defaultdict(int)  # rows built -> number of classes reached (for progress)
+    stack = [srg]
     yielded = 0
-    t_start = time.time()
-    r, s = spectral.eigen_rs(*SRGProperties.from_matrix(srg._matrix).vklu)
+    explored = 0
 
-    def _emit(matrices):
-        nonlocal yielded
-        for m in matrices:
-            if max_solutions is not None and yielded >= max_solutions:
-                return
-            yielded += 1
-            yield m
+    def status() -> str:
+        pending = defaultdict(int)
+        for p in stack:
+            pending[p._matrix.shape[0]] += 1
+        rows = sorted(set(reached) | set(pending))
+        per_row = ' '.join(f'{r}:{pending[r]}/{reached[r]}' for r in rows)
+        return (f'explored {explored} partial matrices, {yielded} solutions, {time.time() - t_start:.0f}s elapsed; '
+                f'pending/reached by rows built: {per_row}')
 
-    frontier = [srg]
-    while frontier and (max_solutions is None or yielded < max_solutions):
-        row = frontier[0]._matrix.shape[0] + 1  # the row being built
-        t_level = last = time.time()
-        if progress:
-            progress(f'row {row}/{srg._matrix.shape[1]}: {len(frontier)} partial matrices to advance')
+    while stack and (max_solutions is None or yielded < max_solutions):
+        partial = stack.pop()
+        explored += 1
 
-        grown = []
-        for i, partial in enumerate(frontier):
-            grown += advance(partial)
-            if progress and time.time() - last >= PROGRESS_INTERVAL:
-                last = time.time()
-                progress(f'row {row}: advanced {i + 1}/{len(frontier)}, {len(grown)} candidates, '
-                         f'{last - t_start:.0f}s elapsed')
+        children = []
+        for child in advance(partial):
+            if child.solved():
+                if _fresh(seen_done, child._matrix, isomorph_free):
+                    yielded += 1
+                    yield child._matrix
+                    if max_solutions is not None and yielded >= max_solutions:
+                        break
+            elif spectral.feasible(child._matrix, spectrum) \
+                    and _fresh(seen[child._matrix.shape[0]], child._matrix, isomorph_free):
+                reached[child._matrix.shape[0]] += 1
+                children.append(child)
+        stack.extend(reversed(children))  # the first child is explored first
 
-        lst_done, lst_undone = partition_by_done(grown)
-        if isomorph_free:
-            lst_done = _unique(lst_done)
-        frontier = _prune(lst_undone, r, s, isomorph_free)
-        if progress:
-            progress(f'row {row} done: {len(frontier)} kept of {len(grown)} candidates '
-                     f'({len(lst_done)} solved), level {time.time() - t_level:.1f}s, '
-                     f'{time.time() - t_start:.0f}s elapsed')
-        yield from _emit(p._matrix for p in lst_done)
+        if progress and time.time() - last >= PROGRESS_INTERVAL:
+            last = time.time()
+            progress(status())
+
+    if progress:
+        progress(('finished' if not stack else 'stopped at max_solutions') + ': ' + status())

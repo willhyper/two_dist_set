@@ -16,17 +16,20 @@ class NoSolution(Exception): pass
 class Answer:
     UNKNOWN = -1
 
-    def __init__(self, value: np.array, location: np.array, len: int):
-        #
+    def __init__(self, value: np.array, location: np.array, len: int, quota: np.array = None):
+        self._v = value
+        self._loc = location
+        self._len = len
+
+        if quota is not None:  # copy(): _loc/_len are identical, so is the quota
+            self._quota = quota
+            return
+
         assert np.array_equal(value.shape, location.shape)
         if location.size > 0:
             assert location[0] == 0
             assert all(np.diff(location)), f'location is not sorted: {location}'
             assert location[-1] < len
-
-        self._v = value
-        self._loc = location
-        self._len = len
 
         # quota depends only on _loc/_len, which never change after construction
         # (only _v is mutated in place elsewhere), so compute it once here.
@@ -51,7 +54,7 @@ class Answer:
         return any(self._v == self.UNKNOWN)
 
     def copy(self):
-        return Answer(self._v.copy(), self._loc.copy(), self._len)
+        return Answer(self._v.copy(), self._loc.copy(), self._len, self._quota)
 
     def __eq__(self, other):
         if not np.array_equal(self._v, other._v): return False
