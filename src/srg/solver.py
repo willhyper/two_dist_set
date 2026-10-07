@@ -1,13 +1,14 @@
 #!python
 #cython: language_level=3
 
+import time
 from itertools import chain
-from typing import Iterator, Optional
+from typing import Callable, Iterator, Optional
 from .model import array
-from .model import PartialSRG
+from .model import PartialSRG, SRGProperties
 import numpy as np
 from collections import defaultdict
-from . import gauss_elim, unique, bounds, fork, model
+from . import gauss_elim, unique, bounds, fork, model, spectral, canon
 from .model import Question, Answer, NoSolution
 from .utils import debug
 from functools import wraps
@@ -236,15 +237,50 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     ansgen_arr : Iterator[array] = solve_question(q)
     return list(map(s.append_and_return_new, ansgen_arr))
 
-def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS):
+PROGRESS_INTERVAL = 5.0  # seconds between progress lines within a level
+
+
+def _prune(partials: list, r: float, s: float, isomorph_free: bool) -> list:
+    '''
+    drop partial matrices that provably cannot be completed (eigenvalue
+    interlacing, see spectral.py), and - if isomorph_free - all but one of
+    each isomorphism class (see canon.py): isomorphic partial matrices have
+    the same completions, so searching one representative loses nothing.
+    '''
+    kept, seen = [], set()
+    for p in partials:
+        if not spectral.feasible(p._matrix, r, s):
+            continue
+        if isomorph_free:
+            key = canon.canonical_key(p._matrix)
+            if key is not None:
+                if key in seen:
+                    continue
+                seen.add(key)
+        kept.append(p)
+    return kept
+
+
+def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
+          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True):
     '''
     yields completed adjacency matrices, level by level (breadth-first over
     partially-built rows), stopping once max_solutions have been yielded -
     this only settles existence quickly instead of paying to enumerate every
     symmetry of a solution-rich quest. Pass max_solutions=None to disable the
     cap and enumerate exhaustively.
+
+    Every level is pruned with eigenvalue interlacing and, unless
+    isomorph_free=False, reduced to one partial matrix per isomorphism class,
+    so the matrices yielded are representatives, not every vertex-labeling of
+    each solution.
+
+    progress, if given, is called with a one-line status string at the start
+    and end of every level and every PROGRESS_INTERVAL seconds within one.
     '''
     yielded = 0
+    t_start = time.time()
+    r, s = spectral.eigen_rs(*SRGProperties.from_matrix(srg._matrix).vklu)
 
     def _emit(matrices):
         nonlocal yielded
@@ -254,10 +290,25 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS)
             yielded += 1
             yield m
 
-    lst = advance(srg)
-    lst_done, lst_undone = partition_by_done(lst)
-    yield from _emit(s._matrix for s in lst_done)
-    while lst_undone and (max_solutions is None or yielded < max_solutions):
-        lst = reduce(lambda x,y: x+y, map(advance, lst_undone),[])
-        lst_done, lst_undone = partition_by_done(lst)
-        yield from _emit(s._matrix for s in lst_done)
+    frontier = [srg]
+    while frontier and (max_solutions is None or yielded < max_solutions):
+        row = frontier[0]._matrix.shape[0] + 1  # the row being built
+        t_level = last = time.time()
+        if progress:
+            progress(f'row {row}/{srg._matrix.shape[1]}: {len(frontier)} partial matrices to advance')
+
+        grown = []
+        for i, partial in enumerate(frontier):
+            grown += advance(partial)
+            if progress and time.time() - last >= PROGRESS_INTERVAL:
+                last = time.time()
+                progress(f'row {row}: advanced {i + 1}/{len(frontier)}, {len(grown)} candidates, '
+                         f'{last - t_start:.0f}s elapsed')
+
+        lst_done, lst_undone = partition_by_done(grown)
+        frontier = _prune(lst_undone, r, s, isomorph_free)
+        if progress:
+            progress(f'row {row} done: {len(frontier)} kept of {len(grown)} candidates '
+                     f'({len(lst_done)} solved), level {time.time() - t_level:.1f}s, '
+                     f'{time.time() - t_start:.0f}s elapsed')
+        yield from _emit(p._matrix for p in lst_done)

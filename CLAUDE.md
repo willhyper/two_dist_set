@@ -42,7 +42,7 @@ Three concrete workflows built around that goal:
 2. **Bank solved quests as ground truth, permanently.** Once a quest is solved, its matrices get
    committed to `srg/database/problem_V_K_L_U.py` (see Architecture below) and are trusted from
    then on — **there is no reason to ever recompute a banked quest's solutions to re-verify
-   correctness**; `tests/test_database.py` / `tests/test_solver.py` already lock that in via
+   correctness**; `tests/test_database.py` / `tests/test_solver.py` (which compares isomorphism classes via `canon`) already lock that in via
    invariant checks (row sums, symmetry, eigenvalue/determinant identities, SRG-equation checks)
    run against the committed matrices, not against a fresh solve. The *only* legitimate reason to
    re-run a banked quest is to benchmark a new/faster algorithm against it — and when you do, the
@@ -144,6 +144,27 @@ renamed away; every import is `from .model import X` / `from srg.model import X`
   `PartialSRG`s, split into finished (`solved()`) vs. still-growing, and recurse until nothing is
   left to grow or `max_solutions` matrices have been yielded (see "Why this repo exists" above).
   `solve()` is a generator yielding completed adjacency matrices (numpy arrays).
+
+**`srg/spectral.py`** — eigenvalue-interlacing pruning: every principal submatrix of an SRG matrix
+has `lambda_min >= s` and `lambda_2 <= r` (`r > s` the non-principal eigenvalues). `feasible(M, r, s)`
+checks the known `R x R` block and that block extended by each distinct not-yet-built column. Necessary
+conditions only, so discarding a partial matrix that fails them never loses a solution.
+
+**`srg/canon.py`** — exact canonical form of a partial matrix (colour refinement + individualization with
+automorphism pruning; not-yet-built vertices with equal columns collapse to one weighted node).
+`canonical_key(M)` is equal for isomorphic partial matrices and only those (`None` if the matrix is too
+symmetric to canonize within `LEAF_BUDGET`, in which case it simply isn't deduplicated).
+`canonical_matrix(A)` is the true standard form of a *complete* SRG matrix — use it, not
+`sorter.maximize`, to compare/standardize solutions (`maximize` is not a canonical form: two isomorphic
+matrices can maximize to different matrices).
+
+**Isomorph rejection:** after every row, `solve()` prunes with `spectral.feasible` and keeps one partial
+matrix per isomorphism class (`canon.canonical_key`). Isomorphic partial matrices have the same
+completions, so this is exact for existence, and `solve()` therefore yields one representative per
+isomorphism class of solution, not every vertex labeling. `solve(..., isomorph_free=False)` restores the
+exhaustive labeled search (slow; used by tests). `solve(..., progress=callable)` reports a status line per
+level and every `PROGRESS_INTERVAL` seconds; `python -m srg` prints these to stderr, so a long run can be
+monitored (and Ctrl+C'd) without waiting for it to finish.
 
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts

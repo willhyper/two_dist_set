@@ -2,7 +2,7 @@ from srg import model
 from srg.model import Question, Answer, PartialSRG, array
 from srg import solver
 from srg import database as db
-from srg import sorter
+from srg import sorter, canon
 import numpy as np
 import pytest
 
@@ -16,14 +16,34 @@ for p in problems:
         problems_all.append((v,k,l,u, As))
 
 
+def _classes(matrices) -> set:
+    '''isomorphism classes of full SRG matrices, via exact canonical form'''
+    return {canon.canonical_key(m, leaf_budget=10 ** 7) for m in matrices}
+
+
 @pytest.mark.parametrize('v,k,l,u, As', problems_all)
 def test_solve(v: int, k: int, l: int, u: int, As):
+    '''
+    solve() yields one representative per isomorphism class, not every vertex
+    labeling the database happens to list, so compare isomorphism classes.
+    '''
     srg = PartialSRG(solver._seed(v,k,l,u))
-    actuals = solver.solve(srg)
-    actuals_sorted = sorter.sort(actuals)
+    actuals = list(solver.solve(srg))
 
-    for actual, expected in zip(actuals_sorted, As):
-        assert np.array_equal(actual, expected)
+    assert all(PartialSRG(a).solved() for a in actuals)
+    assert _classes(actuals) == _classes(As)
+
+
+@pytest.mark.parametrize('v,k,l,u, As', problems_all)
+def test_solve_without_isomorph_rejection(v: int, k: int, l: int, u: int, As):
+    '''
+    isomorph_free=False searches every vertex labeling; it must find exactly
+    the same isomorphism classes as the pruned search
+    '''
+    if v > 13: pytest.skip('unpruned search is slow')
+    srg = PartialSRG(solver._seed(v,k,l,u))
+    actuals = list(solver.solve(srg, isomorph_free=False))
+    assert _classes(actuals) == _classes(As)
 
 
 @pytest.mark.parametrize('v,k,l,u, As', problems_all)
@@ -43,14 +63,15 @@ def test_solve_question(v: int, k: int, l: int, u: int, As):
 def test_solve_max_solutions_caps_output():
     v, k, l, u = 10, 6, 3, 4
     expected = db.get_solutions(v, k, l, u)
-    assert len(expected) == 2, 'test assumes a quest with more than 1 known solution'
+    assert len(expected) == 2, 'test assumes a quest with more than 1 known labeling'
 
+    # isomorph_free=False enumerates every labeling, so there is more than 1
     srg = PartialSRG(solver._seed(v, k, l, u))
-    capped = list(solver.solve(srg, max_solutions=1))
+    capped = list(solver.solve(srg, max_solutions=1, isomorph_free=False))
     assert len(capped) == 1
 
     srg = PartialSRG(solver._seed(v, k, l, u))
-    uncapped = list(solver.solve(srg, max_solutions=None))
+    uncapped = list(solver.solve(srg, max_solutions=None, isomorph_free=False))
     assert len(uncapped) == len(expected)
 
 

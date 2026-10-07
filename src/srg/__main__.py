@@ -19,7 +19,10 @@ if __name__ == '__main__':
     assert SRGProperties(v, k, l, u).is_srg(), f'parameters {(v,k,l,u)=} do not form an SRG'
 
     s = PartialSRG(solver._seed(v, k, l, u))
-    ansgen = solver.solve(s, max_solutions=max_solutions)
+    def _progress(msg: str):
+        print(f'[srg] {msg}', file=sys.stderr, flush=True)
+
+    ansgen = solver.solve(s, max_solutions=max_solutions, progress=_progress)
     ans :list = sorter.sort(ansgen)
     pprint.green('*********** answers *************')
     for ans in ans:
