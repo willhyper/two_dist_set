@@ -1,6 +1,7 @@
 #!python
 #cython: language_level=3
 
+import random
 import time
 from itertools import chain
 from typing import Callable, Iterator, Optional
@@ -122,7 +123,8 @@ def _fresh(seen: set, matrix: np.ndarray, isomorph_free: bool) -> bool:
 
 
 def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
-          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True):
+          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True,
+          rng: Optional[random.Random] = None, node_budget: Optional[int] = None, info: Optional[dict] = None):
     '''
     yields completed adjacency matrices as soon as each is found, searching
     depth-first over partially-built rows (each partial matrix is extended by
@@ -137,6 +139,10 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
     isomorphic partial matrices have the same completions, so this loses
     nothing. The matrices yielded are therefore one representative per
     isomorphism class of solution, not every vertex-labeling of each.
+
+    rng and node_budget are used by solve_restarts(): with an rng the children of every node are visited in a
+    random order, and with a node_budget the search stops after that many partial matrices were extended;
+    info, if given, receives {'exhausted': whether the whole tree was searched, 'explored': nodes extended}.
 
     progress, if given, is called with a one-line status string every
     PROGRESS_INTERVAL seconds: how many partial matrices (isomorphism classes)
@@ -162,7 +168,7 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
         return (f'explored {explored} partial matrices, {yielded} solutions, {time.time() - t_start:.0f}s elapsed; '
                 f'pending/reached by rows built: {per_row}')
 
-    while stack and (max_solutions is None or yielded < max_solutions):
+    while stack and (max_solutions is None or yielded < max_solutions) and (node_budget is None or explored < node_budget):
         partial = stack.pop()
         pending[partial._matrix.shape[0]] -= 1
         explored += 1
@@ -179,6 +185,8 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
                     and _fresh(seen[child._matrix.shape[0]], child._matrix, isomorph_free):
                 reached[child._matrix.shape[0]] += 1
                 children.append(child)
+        if rng is not None:
+            rng.shuffle(children)
         stack.extend(reversed(children))  # the first child is explored first
         for child in children:
             pending[child._matrix.shape[0]] += 1
@@ -187,5 +195,37 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
             last = time.time()
             progress(status())
 
+    if info is not None:
+        info['exhausted'] = not stack
+        info['explored'] = explored
     if progress:
         progress(('finished' if not stack else 'stopped at max_solutions') + ': ' + status())
+
+
+def solve_restarts(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
+                   progress: Optional[Callable[[str], None]] = None, first_budget: int = 400,
+                   growth: float = 1.5, seed: int = 0):
+    '''
+    Find solutions by randomized restarts, for quests whose search tree is far too large to exhaust but which have
+    many solutions (so a systematic depth-first search can spend hours in one dead subtree). Each round searches
+    with a random child order for `budget` extended partial matrices, then starts over with a new seed and a
+    `growth` times larger budget. Solutions are deduplicated by isomorphism across rounds. Every solution is
+    exactly as valid as one from solve(); what is given up is completeness: this never proves non-existence
+    (it only stops early if a round happens to exhaust the whole tree, which then is a complete search).
+    '''
+    seen = set()
+    yielded, budget, rnd = 0, float(first_budget), 0
+    while max_solutions is None or yielded < max_solutions:
+        info = {}
+        sub = (lambda msg, r=rnd: progress(f'restart {r} (budget {int(budget)}): {msg}')) if progress else None
+        for m in solve(srg, max_solutions=None, progress=sub, rng=random.Random(seed + rnd),
+                       node_budget=int(budget), info=info):
+            if _fresh(seen, m, True):
+                yielded += 1
+                yield m
+                if max_solutions is not None and yielded >= max_solutions:
+                    return
+        if info.get('exhausted'):
+            return  # the whole tree was searched: this is all there is
+        rnd += 1
+        budget *= growth
