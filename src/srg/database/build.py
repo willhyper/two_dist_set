@@ -85,6 +85,16 @@ def _docstring_body(path: str) -> str:
     return src[3:src.index("'''", 3)].strip('\n')
 
 
+def note_attempt(v, k, l, u, text: str) -> None:
+    """append a line to the docstring of an existing result file (e.g. a solver run that found nothing new)"""
+    path = problem_path(v, k, l, u)
+    src = open(path).read()
+    if not src.startswith("'''"):
+        return
+    end = src.index("'''", 3)
+    open(path, 'w').write(src[:end].rstrip('\n') + '\n' + text.strip('\n') + '\n' + src[end:])
+
+
 def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     '''
     Write problem_V_K_L_U.py. A placeholder is replaced. A file that already holds a result is MERGED:
@@ -98,11 +108,23 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
         # keep what the placeholder says about the table (verdict, comments, complement), drop its old STATUS
         kept = [ln for ln in _docstring_body(path).split('\n') if not ln.startswith('STATUS:')]
         doc = '\n'.join([doc] + kept).strip('\n')
-    if os.path.exists(path) and not force and not is_placeholder(path):
+    merging = os.path.exists(path) and not force and not is_placeholder(path)
+    if merging:
         from . import get_solutions
         existing = get_solutions(v, k, l, u)
-        doc = (_docstring_body(path) + '\n\n' + doc).strip('\n')
     sols = standardize(list(existing) + list(matrices))
+    if merging:
+        # the file's old STATUS describes an older state: the new notes' STATUS replaces it (if they have one)
+        old_lines = _docstring_body(path).split('\n')
+        old_status = [ln for ln in old_lines if ln.startswith('STATUS:')]
+        old_rest = [ln for ln in old_lines if not ln.startswith('STATUS:')]
+        new_lines = doc.split('\n')
+        new_status = [ln for ln in new_lines if ln.startswith('STATUS:')]
+        new_rest = [ln for ln in new_lines if not ln.startswith('STATUS:')]
+        status = (new_status or old_status or [''])[0]
+        if new_status and existing:
+            status += f' [the file now records {len(sols)} graph(s) in total, merged with its earlier results]'
+        doc = '\n'.join(([status] if status else []) + old_rest + [''] + new_rest).strip('\n')
     for m in sols:
         assert SRGProperties.from_matrix(m).vklu == (v, k, l, u)
     body = ''.join(f'"""{codec.encode(m)}""",\n' for m in sols)
@@ -152,8 +174,12 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
     if stopped and not found:
         # not a proof of anything: do not write a 'no solution' file
         print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
-        mark_status(v, k, l, u, f'tackled - UNDECIDED: no solution found within the {time_limit:g}s time limit',
-                    f'{_hardware()}\nsearch stopped after {elapsed:.0f}s without finishing; not a proof of non-existence')
+        details = f'{_hardware()}\nsearch stopped after {elapsed:.0f}s without finishing; not a proof of non-existence'
+        if is_placeholder(problem_path(v, k, l, u)):
+            mark_status(v, k, l, u, f'tackled - UNDECIDED: no solution found within the {time_limit:g}s time limit', details)
+        elif os.path.exists(problem_path(v, k, l, u)):  # a graph is already recorded (e.g. constructed): note the attempt
+            note_attempt(v, k, l, u, f'solver attempt: found no graph within the {time_limit:g}s time limit '
+                                     f'({cpu:.0f}s CPU, {elapsed:.0f}s wall-clock); this says nothing about existence\n{_hardware()}')
         return None
     if resumable:
         with np.load(ckpt, allow_pickle=False) as z:
@@ -184,9 +210,13 @@ def derive_complement(v, k, l, u, force=False) -> str:
         c = 1 - m
         np.fill_diagonal(c, 0)
         mats.append(c.astype(m.dtype))
-    notes = (f'STATUS: derived - the complements of the {len(src)} graph(s) recorded in problem_{cv}_{ck}_{cl}_{cu}: the '
-             f'complement of an SRG({cv},{ck},{cl},{cu}) is an SRG({v},{k},{l},{u}) and vice versa, so this is exact and '
-             f'needs no search; it records as many graphs as its partner does\n')
+    if src:
+        notes = (f'STATUS: derived - the complements of the {len(src)} graph(s) recorded in problem_{cv}_{ck}_{cl}_{cu}: the '
+                 f'complement of an SRG({cv},{ck},{cl},{cu}) is an SRG({v},{k},{l},{u}) and vice versa, so this is exact and '
+                 f'needs no search; it records as many graphs as its partner does\n')
+    else:
+        notes = (f'STATUS: derived - problem_{cv}_{ck}_{cl}_{cu} has no solution, and the complement of an '
+                 f'SRG({v},{k},{l},{u}) would be an SRG({cv},{ck},{cl},{cu}), so this one does not exist either (exact, no search)\n')
     return write_problem(v, k, l, u, mats, notes, force=force)
 
 

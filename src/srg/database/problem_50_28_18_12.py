@@ -1,10 +1,9 @@
 '''
-STATUS: complement of problem_50_21_4_12 - derive it (python -m srg.database complement) once that one is tackled
+no solution.
+STATUS: derived - problem_50_21_4_12 has no solution, and the complement of an SRG(50,28,18,12) would be an SRG(50,21,4,12), so this one does not exist either (exact, no search)
 Brouwer table srgtab1-50: does not exist - Absolute bound
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
-
-status = 'todo'  # placeholder: not tackled yet, the empty solutions list below is NOT a proof of anything
-
 v, k, l, u = 50, 28, 18, 12
-solutions: list = []
+solutions: list[str] = [
+]

@@ -66,3 +66,34 @@ def test_build_records_a_finished_search_as_complete(tmp_db):
     text = open(path).read()
     assert 'STATUS: tackled - the search finished: these 1 graph(s) are ALL of them' in text
     assert 'Brouwer table srgtab1-50' in text
+
+
+def test_merging_a_new_result_replaces_the_stale_status(tmp_db):
+    A = db.get_solutions(5, 2, 0, 1)[0]
+    build.write_problem(5, 2, 0, 1, [A], 'STATUS: constructed - from a known construction (X); the solver has NOT found it')
+    path = build.write_problem(5, 2, 0, 1, [A], 'STATUS: tackled - the search finished: these 1 graph(s) are ALL of them\nsome timing')
+    text = open(path).read()
+    assert text.count('STATUS:') == 1
+    assert 'the search finished: these 1 graph(s) are ALL of them' in text and 'NOT found' not in text
+    assert 'the file now records 1 graph(s) in total' in text
+    assert 'Brouwer table srgtab1-50' in text and 'some timing' in text  # the table lines and the new notes survive
+
+
+def test_merging_notes_without_a_status_keeps_the_old_status(tmp_db):
+    A = db.get_solutions(5, 2, 0, 1)[0]
+    build.write_problem(5, 2, 0, 1, [A], 'STATUS: tackled - the search finished: these 1 graph(s) are ALL of them')
+    path = build.write_problem(5, 2, 0, 1, [A], 'known construction generated and checked')
+    text = open(path).read()
+    assert text.count('STATUS:') == 1 and 'ALL of them' in text and 'known construction generated and checked' in text
+
+
+def test_note_attempt_appends_to_the_docstring(tmp_db):
+    A = db.get_solutions(5, 2, 0, 1)[0]
+    path = build.write_problem(5, 2, 0, 1, [A], 'STATUS: constructed - X')
+    build.note_attempt(5, 2, 0, 1, 'solver attempt: found no graph within the 10s time limit')
+    text = open(path).read()
+    assert text.index('solver attempt') < text.index("v, k, l, u =")
+    assert text.count("'''") == 2  # the docstring is still closed exactly once
+    ns = {}
+    exec(text, ns)
+    assert 'solver attempt' in ns['__doc__']

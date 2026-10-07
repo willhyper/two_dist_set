@@ -3,6 +3,8 @@ STATUS: constructed - graph(s) recorded from a known construction (Latin square 
 Brouwer table srgtab1-50: exists (many graphs) - Behbahani-Lam; Crnković-Maksimović; OA(7,3); Pasechnik(7)
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_49_30_17_20 (derive from this one when done)
+solver attempt (2026-10-07, before the propagation speed-ups): found no graph within the 10800s time limit (10801s wall-clock); this says nothing about existence
+Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
 '''
 v, k, l, u = 49, 18, 7, 6
 solutions: list[str] = [

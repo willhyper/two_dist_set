@@ -1,8 +1,11 @@
 '''
-STATUS: constructed - graph(s) recorded from a known construction (Hoffman-Singleton graph); the solver has NOT found a solution for this quest itself yet, and the table may list more graphs than are recorded here
+STATUS: tackled - the solver found the Hoffman-Singleton graph and its exhaustive search finished (40s): this 1 graph is ALL of them, i.e. the graph is unique
 Brouwer table srgtab1-50: exists (unique) - U3(52).2 / Sym(7) - Hoffman-Singleton
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_50_42_35_36 (derive from this one when done)
+
+Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
+39.86s CPU (41.05s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 '''
 v, k, l, u = 50, 7, 0, 1
 solutions: list[str] = [

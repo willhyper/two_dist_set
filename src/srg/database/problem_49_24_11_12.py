@@ -2,6 +2,8 @@
 STATUS: constructed - graph(s) recorded from a known construction (Paley(49)); the solver has NOT found a solution for this quest itself yet, and the table may list more graphs than are recorded here
 Brouwer table srgtab1-50: exists (many graphs) - Paley(49); OA(7,4); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
+solver attempt (2026-10-07, before the propagation speed-ups): found no graph within the 10800s time limit (10818s wall-clock); this says nothing about existence
+Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
 '''
 v, k, l, u = 49, 24, 11, 12
 solutions: list[str] = [
