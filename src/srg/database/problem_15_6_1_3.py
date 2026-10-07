@@ -4,26 +4,11 @@ Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
 
 Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
 0.05s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 0.07s (1.40x)
+
+solutions deduplicated by isomorphism: 2 labelings of 1 graph(s) -> 1 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 15, 6, 1, 3
 solutions: list[str] = [
-"""
-011111100000000
-101000011110000
-110000000001111
-100010011001100
-100100000110011
-100000100111100
-100001011000011
-010100100101010
-010100100010101
-010011010000101
-010011001001010
-001101010010001
-001101001100010
-001010110010100
-001010101101000
-""",
 """
 011111100000000
 101000011110000

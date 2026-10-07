@@ -43,7 +43,7 @@ def test_roundtrip_every_database_solution():
         for A in db.get_solutions(*db.extract_vklu(p)):
             assert np.array_equal(codec.decode(codec.encode(A)), A)
             n += 1
-    assert n > 100
+    assert n >= 30  # one canonical matrix per graph, 30+ problem files have solutions
 
 
 def test_problem_files_store_text_not_arrays():
