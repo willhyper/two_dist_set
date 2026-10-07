@@ -392,8 +392,16 @@ class SRGProperties:
     
     @property
     def determinant(self) -> int:
-        ev1, ev2, ev3 = self.eigenvalues
+        '''
+        exact determinant of the adjacency matrix, det = k * r^f * s^g, in integer arithmetic
+        (floating-point eigenvalues lose digits already around v = 29).
+        '''
+        v, k, l, u = (int(x) for x in self.vklu)
         _, f, g = self.multiplicities
-
-        det = (ev1 ** 1) * (ev2 ** f) * (ev3 ** g)
-        return int(det)
+        f, g = int(round(f)), int(round(g))
+        if f == g:
+            # r and s are the roots of x^2 - (l-u)x - (k-u), so r*s = -(k-u) exactly
+            return k * (-(k - u)) ** f
+        # f != g: r and s are integers
+        _, r, s = self.eigenvalues
+        return k * int(round(r)) ** f * int(round(s)) ** g

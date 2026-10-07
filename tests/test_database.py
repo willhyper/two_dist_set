@@ -3,6 +3,7 @@ __author__ = 'Chao-Wei Chen, madmath0902@gmail.com'
 from srg import database as db
 from srg import model
 from srg.model import SRGProperties
+import math
 import numpy as np
 
 import pytest
@@ -97,9 +98,14 @@ def test_A_determinant(v: int, k: int, l: int, u: int, A : np.ndarray):
 
     eigval = tuple(int(np.round(x)) for x in eigval) if not_conference_graph else eigval
 
-    det_from_matrix = np.prod(eigval)
-    det_from_matrix = int(np.round(det_from_matrix))
-    assert det_from_matrix == det_expected, "determinant disagree"
+    # python ints: for v ~ 49 the determinant exceeds 2**63, where np.prod on int64 overflows silently
+    if not_conference_graph:
+        det_from_matrix = math.prod(eigval)  # exact python int
+        assert det_from_matrix == det_expected, "determinant disagree"
+    else:
+        # irrational eigenvalues: only a floating-point product of them is available
+        det_from_matrix = float(np.prod(eigval).real)
+        assert math.isclose(det_from_matrix, float(det_expected), rel_tol=1e-9), "determinant disagree"
 
 
 @pytest.mark.parametrize('v,k,l,u, A', problems_all)

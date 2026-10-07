@@ -114,7 +114,7 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
             resumed.append(msg)
         print(f'[srg {v},{k},{l},{u}] {msg}', file=sys.stderr, flush=True)
 
-    t0 = time.time()
+    t0, c0 = time.time(), time.process_time()
 
     def progress_limited(msg):
         progress(msg)
@@ -128,7 +128,7 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
             found.append(m)
     except TimeLimit:
         stopped = True
-    elapsed = time.time() - t0
+    elapsed, cpu = time.time() - t0, time.process_time() - c0
     if stopped and not found:
         # not a proof of anything: do not write a 'no solution' file
         print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
@@ -140,7 +140,7 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
             elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
     n = len(standardize(found))
     notes = (f'{_hardware()}\n'
-             f'{elapsed:.4g}s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
+             f'{cpu:.4g}s CPU ({elapsed:.4g}s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
              f'{" (total compute time across resumed runs)" if resumed else ""}\n')
     if stopped:
         notes += (f'search stopped by a {time_limit}s time limit with {n} isomorphism class(es) found: '
