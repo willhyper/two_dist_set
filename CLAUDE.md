@@ -166,6 +166,14 @@ exhaustive labeled search (slow; used by tests). `solve(..., progress=callable)`
 level and every `PROGRESS_INTERVAL` seconds; `python -m srg` prints these to stderr, so a long run can be
 monitored (and Ctrl+C'd) without waiting for it to finish.
 
+**Checkpoint / resume (branch `resume`):** `solve(..., checkpoint=path)` saves the search state (the BFS
+frontier, candidates produced so far from it, solutions found so far, elapsed compute time) atomically to
+`path` (npz + JSON, no pickle) at the end of every level and every `CHECKPOINT_INTERVAL` seconds within one,
+and resumes from it when the file holds a checkpoint of the same quest/cap/mode/`CHECKPOINT_VERSION`
+(bump the version whenever a search change alters what a frontier means). A finished checkpoint just
+replays its solutions. `python -m srg v k l u` checkpoints to `.srg_checkpoints/` by default, so Ctrl+C
+and re-run continues; `--fresh` discards it (use it when benchmarking!), `--no-checkpoint` disables it.
+
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts
 lists of solution matrices into a canonical order (used to diff against the database in tests).

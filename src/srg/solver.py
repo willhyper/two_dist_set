@@ -1,6 +1,8 @@
 #!python
 #cython: language_level=3
 
+import json
+import os
 import time
 from itertools import chain
 from typing import Callable, Iterator, Optional
@@ -274,8 +276,54 @@ def _prune(partials: list, r: float, s: float, isomorph_free: bool) -> list:
     return kept
 
 
+# Bump when a change to the search alters what a checkpoint means (the order
+# or content of a level's frontier), so stale checkpoints are not resumed.
+CHECKPOINT_VERSION = 1
+CHECKPOINT_INTERVAL = 60.0  # seconds between checkpoints within a level
+
+
+def _stack(matrices: list, rows: int, cols: int) -> np.ndarray:
+    return np.stack(matrices) if matrices else model.zeros((0, rows, cols))
+
+
+def _save_checkpoint(path: str, meta: dict, frontier: list, i: int, grown: list, found: list,
+                     elapsed: float, finished: bool) -> None:
+    '''
+    atomically write the search state: the partial matrices still to advance
+    (frontier, of which the first i are already advanced), the candidates they
+    produced so far (grown) and every solution found so far. Plain arrays plus
+    JSON, no pickle, so loading a file can never run code.
+    '''
+    v = meta['vklu'][0]
+    R = frontier[0]._matrix.shape[0] if frontier else v
+    state = dict(meta, i=i, elapsed=elapsed, finished=finished, version=CHECKPOINT_VERSION)
+    tmp = path + '.tmp'
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    with open(tmp, 'wb') as f:
+        np.savez_compressed(f, state=np.array(json.dumps(state)),
+                            frontier=_stack([p._matrix for p in frontier], R, v),
+                            grown=_stack([p._matrix for p in grown], R + 1, v),
+                            found=_stack(found, v, v))
+    os.replace(tmp, path)
+
+
+def _load_checkpoint(path: str, meta: dict):
+    '''(frontier, i, grown, found, elapsed, finished), or None if there is no usable checkpoint'''
+    if not path or not os.path.exists(path):
+        return None
+    with np.load(path, allow_pickle=False) as z:
+        state = json.loads(str(z['state']))
+        if state.get('version') != CHECKPOINT_VERSION or any(state.get(k) != v for k, v in meta.items()):
+            return None
+        frontier = [PartialSRG(m) for m in z['frontier']]
+        grown = [PartialSRG(m) for m in z['grown']]
+        found = list(z['found'])
+    return frontier, state['i'], grown, found, state['elapsed'], state['finished']
+
+
 def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
-          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True):
+          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True,
+          checkpoint: Optional[str] = None):
     '''
     yields completed adjacency matrices, level by level (breadth-first over
     partially-built rows), stopping once max_solutions have been yielded -
@@ -290,40 +338,71 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
 
     progress, if given, is called with a one-line status string at the start
     and end of every level and every PROGRESS_INTERVAL seconds within one.
+
+    checkpoint, if given, is a file path: the search state is saved there at
+    the end of every level and every CHECKPOINT_INTERVAL seconds within one,
+    and if the file already holds a checkpoint of the same quest (same
+    parameters, cap and mode) the search resumes from it instead of from
+    scratch - including yielding the solutions found before it. A checkpoint
+    of a finished search just replays its solutions.
     '''
-    yielded = 0
     t_start = time.time()
-    r, s = spectral.eigen_rs(*SRGProperties.from_matrix(srg._matrix).vklu)
+    v, k, l, u = SRGProperties.from_matrix(srg._matrix).vklu
+    r, s = spectral.eigen_rs(v, k, l, u)
+    meta = dict(vklu=[int(x) for x in (v, k, l, u)], max_solutions=max_solutions, isomorph_free=isomorph_free)
 
-    def _emit(matrices):
-        nonlocal yielded
-        for m in matrices:
-            if max_solutions is not None and yielded >= max_solutions:
-                return
-            yielded += 1
-            yield m
-
-    frontier = [srg]
-    while frontier and (max_solutions is None or yielded < max_solutions):
-        row = frontier[0]._matrix.shape[0] + 1  # the row being built
-        t_level = last = time.time()
+    frontier, i, grown, found, elapsed0, finished = [srg], 0, [], [], 0.0, False
+    resumed = _load_checkpoint(checkpoint, meta)
+    if resumed:
+        frontier, i, grown, found, elapsed0, finished = resumed
         if progress:
-            progress(f'row {row}/{srg._matrix.shape[1]}: {len(frontier)} partial matrices to advance')
+            progress(f'resumed from {checkpoint}: {"finished, " if finished else ""}{len(found)} solutions so far, '
+                     f'{len(frontier)} partial matrices (row {frontier[0]._matrix.shape[0] + 1 if frontier else v}'
+                     f', {i} advanced), {elapsed0:.0f}s already computed')
 
-        grown = []
-        for i, partial in enumerate(frontier):
-            grown += advance(partial)
-            if progress and time.time() - last >= PROGRESS_INTERVAL:
-                last = time.time()
-                progress(f'row {row}: advanced {i + 1}/{len(frontier)}, {len(grown)} candidates, '
-                         f'{last - t_start:.0f}s elapsed')
+    def elapsed() -> float:
+        return elapsed0 + time.time() - t_start
+
+    def save(finished_now: bool = False):
+        if checkpoint:
+            _save_checkpoint(checkpoint, meta, frontier, i, grown, found, elapsed(), finished_now)
+
+    yield from found  # solutions from before the checkpoint
+    while frontier and (max_solutions is None or len(found) < max_solutions):
+        row = frontier[0]._matrix.shape[0] + 1  # the row being built
+        t_level = last = last_save = time.time()
+        if progress:
+            progress(f'row {row}/{v}: {len(frontier)} partial matrices to advance'
+                     + (f' ({i} already advanced)' if i else ''))
+
+        while i < len(frontier):
+            grown += advance(frontier[i])
+            i += 1
+            now = time.time()
+            if progress and now - last >= PROGRESS_INTERVAL:
+                last = now
+                progress(f'row {row}: advanced {i}/{len(frontier)}, {len(grown)} candidates, '
+                         f'{elapsed():.0f}s elapsed')
+            if checkpoint and now - last_save >= CHECKPOINT_INTERVAL:
+                last_save = now
+                save()
 
         lst_done, lst_undone = partition_by_done(grown)
         if isomorph_free:
             lst_done = _unique(lst_done)
-        frontier = _prune(lst_undone, r, s, isomorph_free)
+        n_grown, n_done = len(grown), len(lst_done)
+        new_found = [p._matrix for p in lst_done]
+        if max_solutions is not None:
+            new_found = new_found[:max_solutions - len(found)]
+        found += new_found
+        frontier, i, grown = _prune(lst_undone, r, s, isomorph_free), 0, []
         if progress:
-            progress(f'row {row} done: {len(frontier)} kept of {len(grown)} candidates '
-                     f'({len(lst_done)} solved), level {time.time() - t_level:.1f}s, '
-                     f'{time.time() - t_start:.0f}s elapsed')
-        yield from _emit(p._matrix for p in lst_done)
+            progress(f'row {row} done: {len(frontier)} kept of {n_grown} candidates '
+                     f'({n_done} solved), level {time.time() - t_level:.1f}s, '
+                     f'{elapsed():.0f}s elapsed')
+        save(finished_now=not frontier)
+        yield from new_found
+
+    if checkpoint and not finished:
+        frontier = []  # capped out: nothing left to resume
+        save(finished_now=True)

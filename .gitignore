@@ -12,3 +12,4 @@ src/srg/*.c
 src/srg/*.so
 src/srg/*.pyx
 .venv/
+.srg_checkpoints/
