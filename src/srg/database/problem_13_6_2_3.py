@@ -1,6 +1,9 @@
 '''
 Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
 0.067s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+0.052s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 0.065s (1.25x)
 '''
 v, k, l, u = 13, 6, 2, 3
 solutions: list[str] = [

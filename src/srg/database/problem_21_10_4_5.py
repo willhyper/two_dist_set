@@ -8,6 +8,9 @@ Apple M1. python3.10
 Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
 579.39s. pure python, single process, no cython
 43.134s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+26.325s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 25.384s (0.96x)
 '''
 from srg.model import array
 

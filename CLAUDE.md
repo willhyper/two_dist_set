@@ -212,6 +212,15 @@ no-op (`ext_modules = []`) whenever no `.pyx` files exist yet. That guard is wha
 this used to have: the old `setup.py` called `cythonize("srg/*.pyx")` unconditionally, which
 raised `ValueError: 'srg/*.pyx' doesn't match any files` and broke plain `pip install -e .`.
 
+**Cython result (measured): compiling does not help.** `./cythonize.sh` now compiles every module in
+`src/srg/` except `__main__.py`, building with `annotation_typing=False` (this code uses annotations as
+hints only; Cython 3 would turn `f : int = ...` into typed declarations and fail on numpy scalars). It
+works with Cython 3.3 / Python 3.14 and the whole test suite passes against the compiled modules, but the
+speedup is nil: on every solved problem taking more than a second, compiled time is within ~5% of pure
+Python (SRG(21,10,4,5): 26.3s vs 25.4s; SRG(28,12,6,4): 27.5s vs 26.8s; see the problem docstrings). The
+time goes into many tiny numpy calls and dynamically typed Python, which Cython cannot speed up without
+type declarations. The real wins have come from the algorithm (isomorph rejection, pruning), not compilation.
+
 ## Gotchas
 
 - `unique._encode(A)` (row-encodes columns, no `b`) and `gauss_elim._encode(A, b)` (also folds in

@@ -1,5 +1,8 @@
 '''
 341.14s cythonized
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+2.043s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 2.011s (0.98x)
 '''
 v, k, l, u = 27, 10, 1, 5
 solutions: list[str] = [

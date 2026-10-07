@@ -1,5 +1,8 @@
 '''
 complement of problem_25_8_3_2: the complement of an SRG(25,8,3,2) is an SRG(25,16,9,12) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+32.352s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 30.923s (0.96x)
 '''
 v, k, l, u = 25, 16, 9, 12
 solutions: list[str] = [

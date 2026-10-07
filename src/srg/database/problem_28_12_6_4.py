@@ -5,6 +5,9 @@ Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
 45.1s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 4 solutions = the 4 known non-isomorphic SRG(28,12,6,4) (T(8) + 3 Chang graphs), same isomorphism
 classes as the matrices below
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+27.454s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 26.844s (0.98x)
 '''
 v, k, l, u = 28, 12, 6, 4
 solutions: list[str] = [
