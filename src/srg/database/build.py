@@ -19,6 +19,7 @@ import time
 import numpy as np
 
 from .. import canon, solver
+from . import codec
 from ..model import PartialSRG, SRGProperties
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -40,12 +41,6 @@ def _hardware() -> str:
     except OSError:
         cpu = platform.processor() or platform.machine()
     return f'{cpu}, {platform.system()} {platform.mac_ver()[0] or platform.release()}, python{platform.python_version()}'
-
-
-def _format_matrix(m: np.ndarray) -> str:
-    text = np.array2string(m, separator=', ', threshold=sys.maxsize, max_line_width=10 ** 6)
-    pad = ' ' * len('solutions: list = [array(')
-    return 'array(' + text.replace('\n', '\n' + pad).replace('[[', '[[', 1) + ')'
 
 
 def standardize(matrices) -> list:
@@ -89,15 +84,14 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     sols = standardize(matrices)
     for m in sols:
         assert SRGProperties.from_matrix(m).vklu == (v, k, l, u)
-    body = ',\n                         '.join(_format_matrix(m) for m in sols)
+    body = ''.join(f'"""{codec.encode(m)}""",\n' for m in sols)
     doc = notes.strip('\n')
     if not sols:
         doc = 'no solution.\n' + doc
     with open(path, 'w') as f:
         f.write(f"'''\n{doc}\n'''\n"
-                f"from srg.model import array\n\n"
                 f"v, k, l, u = {v}, {k}, {l}, {u}\n"
-                f"solutions: list = [{body}]\n")
+                f"solutions: list[str] = [\n{body}]\n")
     return path
 
 

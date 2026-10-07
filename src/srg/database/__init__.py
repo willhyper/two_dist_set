@@ -36,10 +36,12 @@ def extract_vklu(problem : str):
     return list(map(int, vklu))
 
 def get_solutions(v,k,l,u) -> list:
+    '''the stored solutions as numpy int8 matrices (problem files store them as text, see codec.py)'''
     import importlib
+    from .codec import decode
     name = __package__ + f'.problem_{v}_{k}_{l}_{u}'
     m = importlib.import_module(name)
-    return m.solutions
+    return [decode(s) if isinstance(s, str) else s for s in m.solutions]
 
 
 def draw(v, k, l, u):

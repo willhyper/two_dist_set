@@ -177,7 +177,9 @@ binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equa
 lists of solution matrices into a canonical order (used to diff against the database in tests).
 
 **`srg/database/`** — one `problem_V_K_L_U.py` module per known `(v,k,l,u)`, each exporting
-`v,k,l,u,solutions` (a list of numpy adjacency matrices) as ground truth. `__init__.py` provides
+`v,k,l,u,solutions` as ground truth, where `solutions` is a list of plain-text 0/1 grids (`list[str]`, one
+row per line, see `database/codec.py`); `get_solutions()` decodes them to numpy int8 matrices, and
+`codec.encode`/`codec.decode` convert either way. `__init__.py` provides
 `list_problems`, `extract_vklu`, `get_solutions`, and `draw` (renders via networkx/matplotlib).
 Tests in `tests/test_database.py` and `tests/test_solver.py` are parametrized over every problem
 in this directory, so adding a new verified `problem_*.py` module automatically extends coverage.
