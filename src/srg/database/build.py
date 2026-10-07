@@ -8,10 +8,13 @@ Every matrix is checked with PartialSRG.solved() and standardized with
 canon.canonical_matrix before it is written, so a file lists one matrix per
 isomorphism class, in a canonical form that does not depend on the search.
 '''
+import inspect
+import json
 import os
 import platform
 import subprocess
 import sys
+import time
 
 import numpy as np
 
@@ -75,10 +78,14 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
 
 
 def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False) -> str:
-    '''solve (checkpointed, so an interrupted build resumes) and write the problem file'''
+    '''
+    solve and write the problem file. If solve() supports checkpoints the search
+    is checkpointed, so an interrupted build resumes where it left off.
+    '''
     assert SRGProperties(v, k, l, u).is_srg(), f'{(v, k, l, u)} do not form an SRG'
+    resumable = 'checkpoint' in inspect.signature(solver.solve).parameters
     ckpt = f'.srg_checkpoints/srg_{v}_{k}_{l}_{u}_max{max_solutions}.npz'
-
+    kwargs = dict(checkpoint=ckpt) if resumable else {}
     resumed = []
 
     def progress(msg):
@@ -86,11 +93,13 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False) -
             resumed.append(msg)
         print(f'[srg {v},{k},{l},{u}] {msg}', file=sys.stderr, flush=True)
 
+    t0 = time.time()
     found = list(solver.solve(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
-                              progress=progress, checkpoint=ckpt))
-    with np.load(ckpt, allow_pickle=False) as z:
-        import json
-        elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
+                              progress=progress, **kwargs))
+    elapsed = time.time() - t0
+    if resumable:
+        with np.load(ckpt, allow_pickle=False) as z:
+            elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
     n = len(standardize(found))
     notes = (f'{_hardware()}\n'
              f'{elapsed:.4g}s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
