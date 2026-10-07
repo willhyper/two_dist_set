@@ -88,14 +88,31 @@ def _gram_ok(block: np.ndarray, cols: np.ndarray, s: float, dim: int) -> bool:
     rank = int(pos.sum())
     if rank > dim:
         return False
-    if rank < dim or cols.shape[1] == 0:
-        return True  # built vertices do not span the space yet: nothing is determined
+    if cols.shape[1] == 0:
+        return True
 
     Vr, wr = V[:, pos], w[pos]
     coords = Vr.T @ cols  # (rank, m)
+    # an unbuilt vertex x has <x, y_p> = cols[p] for the built vectors y_p (Gram matrix P), so cols must lie in
+    # range(P). Always true when P has full rank; a real condition when the built vectors are dependent.
     if np.abs(cols - Vr @ coords).max() > _VIOLATION:
-        return False  # a not-yet-built vertex lies outside the span
-    C = (coords.T / wr) @ coords  # (m, m) inner products of the determined vertices
+        return False
+    C = (coords.T / wr) @ coords  # (m, m): inner products of the parts of the unbuilt vertices inside the built span
+    z = -s - np.diag(C)  # squared norm of the part of each unbuilt vertex OUTSIDE the built span
+    if z.min() < -_VIOLATION:
+        return False
+    if rank < dim:
+        # not determined yet. Two unbuilt vertices i, j have <x_i, x_j> = a_ij in {0, 1} (their adjacency); writing
+        # x = (inside span) + (outside), Cauchy-Schwarz on the outside parts gives (a_ij - C_ij)^2 <= z_i z_j.
+        # If neither 0 nor 1 fits, no completion exists.
+        zz = np.sqrt(np.clip(z, 0.0, None))
+        bound = np.outer(zz, zz) + _VIOLATION
+        ok = (np.abs(C) <= bound) | (np.abs(1.0 - C) <= bound)
+        np.fill_diagonal(ok, True)
+        return bool(ok.all())
+
+    # rank == dim: the built vertices span the whole space, so every unbuilt vertex is determined by its column:
+    # its outside part must vanish (squared norm -s) and any two of them have inner product exactly 0 or 1.
     if np.abs(np.diag(C) + s).max() > _VIOLATION:
         return False  # wrong squared norm
     off = C - np.diag(np.diag(C))
