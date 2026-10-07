@@ -1,6 +1,6 @@
 '''
 STATUS: complement of problem_63_30_13_15 - derive it (python -m srg.database complement) once that one is tackled
-Brouwer table srgtab51-100: exists - S(2,4,28); intersection-6 graph of a quasisymmetric 2-(28,12,11) design with intersection numbers 4, 6; NU(3,3); 2-graph\*
+Brouwer table srgtab51-100: exists - S(2,4,28); intersection-6 graph of a quasisymmetric 2-(28,12,11) design with intersection numbers 4, 6; NU(3,3); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 

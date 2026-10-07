@@ -1,6 +1,6 @@
 '''
 STATUS: to tackle soon (queued, 3h time limit per quest)
-Brouwer table srgtab1-50: exists (many graphs) - Mathon; 2-graph\*
+Brouwer table srgtab1-50: exists (many graphs) - Mathon; 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
 

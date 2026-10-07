@@ -1,6 +1,6 @@
 '''
 STATUS: complement of problem_35_16_6_8 - derive it (python -m srg.database complement) once that one is tackled
-Brouwer table srgtab1-50: exists - S(2,3,15); lines in PG(3,2); O+(6,2); from ETF Fickus et al.; 2-graph\*
+Brouwer table srgtab1-50: exists - S(2,3,15); lines in PG(3,2); O+(6,2); from ETF Fickus et al.; 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
 
