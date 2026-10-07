@@ -1,6 +1,7 @@
 #!python
 #cython: language_level=3
 
+import random
 import time
 from itertools import chain
 from typing import Callable, Iterator, Optional
@@ -247,6 +248,7 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
     return list(map(s.append_and_return_new, ansgen_arr))
 
 PROGRESS_INTERVAL = 5.0  # seconds between progress lines
+DEFAULT_DIVERSIFY = 0.0
 
 
 def _fresh(seen: set, matrix: np.ndarray, isomorph_free: bool) -> bool:
@@ -266,7 +268,8 @@ def _fresh(seen: set, matrix: np.ndarray, isomorph_free: bool) -> bool:
 
 
 def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
-          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True):
+          progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True,
+          diversify: float = DEFAULT_DIVERSIFY):
     '''
     yields completed adjacency matrices as soon as each is found, searching
     depth-first over partially-built rows (each partial matrix is extended by
@@ -281,6 +284,13 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
     isomorphic partial matrices have the same completions, so this loses
     nothing. The matrices yielded are therefore one representative per
     isomorphism class of solution, not every vertex-labeling of each.
+
+    diversify is the probability that, instead of the most recently found partial
+    matrix, a uniformly random pending one is extended next. Strict depth-first
+    can spend ages exhausting one dead-end subtree while solutions sit in an
+    unexplored sibling; occasional jumps cure that, and since every pending
+    matrix is still extended eventually, exhaustive runs do the same work in a
+    different order (the random choices are seeded, so runs are reproducible).
 
     progress, if given, is called with a one-line status string every
     PROGRESS_INTERVAL seconds: how many partial matrices (isomorphism classes)
@@ -297,6 +307,7 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
     stack = [srg]
     yielded = 0
     explored = 0
+    rng = random.Random(0)
 
     def status() -> str:
         pending = defaultdict(int)
@@ -308,6 +319,9 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
                 f'pending/reached by rows built: {per_row}')
 
     while stack and (max_solutions is None or yielded < max_solutions):
+        if diversify and len(stack) > 1 and rng.random() < diversify:
+            j = rng.randrange(len(stack))
+            stack[j], stack[-1] = stack[-1], stack[j]
         partial = stack.pop()
         explored += 1
 

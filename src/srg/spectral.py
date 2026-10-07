@@ -37,6 +37,7 @@ class Spectrum:
         assert 1 + f + g == v
         self.v = v
         self.r, self.s = r, s
+        self.f, self.g = f, g
         # descending
         self.spec = np.array([k] + [r] * f + [s] * g)
         self.spec_c = np.array([v - k - 1] + [-1 - s] * g + [-1 - r] * f)
@@ -56,6 +57,51 @@ def _interlaces(ev_asc: np.ndarray, spec: np.ndarray) -> bool:
     if np.any(ev < spec[v - m:] - _EPS):
         return False
     return True
+
+
+# Gram-completion thresholds. A matrix is only rejected on a *clear* violation,
+# and an eigenvalue in the grey zone between ZERO and POSITIVE makes the check
+# give up (return True), so float round-off can never discard a real solution.
+_ZERO = 1e-8
+_POSITIVE = 1e-5
+_VIOLATION = 1e-4
+
+
+def _gram_ok(block: np.ndarray, cols: np.ndarray, s: float, dim: int) -> bool:
+    '''
+    A - sI is positive semidefinite of rank dim, i.e. the Gram matrix of vectors
+    in R^dim (diagonal -s, off-diagonal the 0/1 adjacency). Let P = block - sI
+    be the Gram matrix of the built vertices (R x R) and cols (R x m) their
+    adjacency to m not-yet-built vertices. If P already has rank dim, the built
+    vertices span the whole space, so every not-yet-built vertex is determined by
+    its column: it must lie in range(P) with squared norm -s, and the inner
+    product of any two of them (their adjacency) must be exactly 0 or 1.
+    Returns False only if that is clearly violated.
+    '''
+    R = block.shape[0]
+    w, V = np.linalg.eigh(block - s * np.eye(R))
+    if w[0] < -_POSITIVE:
+        return False  # not PSD (interlacing rejects this already)
+    if np.any((w > _ZERO) & (w < _POSITIVE)):
+        return True  # grey zone: cannot tell the rank reliably
+    pos = w >= _POSITIVE
+    rank = int(pos.sum())
+    if rank > dim:
+        return False
+    if rank < dim or cols.shape[1] == 0:
+        return True  # built vertices do not span the space yet: nothing is determined
+
+    Vr, wr = V[:, pos], w[pos]
+    coords = Vr.T @ cols  # (rank, m)
+    if np.abs(cols - Vr @ coords).max() > _VIOLATION:
+        return False  # a not-yet-built vertex lies outside the span
+    C = (coords.T / wr) @ coords  # (m, m) inner products of the determined vertices
+    if np.abs(np.diag(C) + s).max() > _VIOLATION:
+        return False  # wrong squared norm
+    off = C - np.diag(np.diag(C))
+    dist01 = np.minimum(np.abs(off), np.abs(off - 1.0))
+    np.fill_diagonal(dist01, 0.0)
+    return dist01.max() <= _VIOLATION  # off-diagonal entries must be 0 or 1
 
 
 def feasible(M: np.ndarray, spectrum: Spectrum) -> bool:
@@ -89,4 +135,14 @@ def feasible(M: np.ndarray, spectrum: Spectrum) -> bool:
     comp = 1.0 - aug
     idx = np.arange(R + 1)
     comp[:, idx, idx] = 0
-    return _interlaces(np.linalg.eigvalsh(comp), spectrum.spec_c)
+    if not _interlaces(np.linalg.eigvalsh(comp), spectrum.spec_c):
+        return False
+
+    # Gram completion, for the graph (smallest eigenvalue s, A - sI has rank f+1)
+    # and for its complement (smallest eigenvalue -1-r, rank g+1)
+    allcols = M[:, R:].astype(np.float64)
+    if not _gram_ok(block, allcols, spectrum.s, spectrum.f + 1):
+        return False
+    block_c = 1.0 - block
+    np.fill_diagonal(block_c, 0.0)
+    return _gram_ok(block_c, 1.0 - allcols, -1.0 - spectrum.r, spectrum.g + 1)

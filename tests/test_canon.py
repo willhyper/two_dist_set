@@ -46,13 +46,20 @@ def test_leaf_budget_falls_back_to_none():
 
 
 def test_spectral_never_rejects_a_database_solution_prefix():
+    '''
+    every prefix of rows of every true solution, under random relabelings, must
+    be feasible: the interlacing / Gram-completion checks are necessary
+    conditions, so a single rejection here would mean they can lose solutions
+    '''
+    rng = np.random.default_rng(2)
     for p in db.list_problems():
         v, k, l, u = db.extract_vklu(p)
-        if v > 21: continue
         spectrum = spectral.Spectrum(v, k, l, u)
-        for A in db.get_solutions(v, k, l, u):
-            for R in range(2, v + 1):
-                assert spectral.feasible(A[:R], spectrum), (v, k, l, u, R)
+        for A in db.get_solutions(v, k, l, u)[:4]:
+            for perm in [np.arange(v), rng.permutation(v), rng.permutation(v)]:
+                B = A[perm][:, perm]
+                for R in range(2, v + 1):
+                    assert spectral.feasible(B[:R], spectrum), (v, k, l, u, R)
 
 
 def test_canonical_matrix_is_a_standard_form():
