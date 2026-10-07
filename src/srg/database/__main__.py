@@ -20,7 +20,14 @@ else:
         pprint(get_solutions(v,k,l,u))
     elif cmd == 'draw':
         draw(v,k,l,u)
+    elif cmd == 'build':
+        from srg.database import build
+        extra = sys.argv[6:]
+        print(build.build(v, k, l, u, *(int(e) for e in extra)))
+    elif cmd == 'complement':
+        from srg.database import build
+        print(build.derive_complement(v, k, l, u))
     else:
-        sys.exit(f'command {cmd} is not recognized. support list or draw')
+        sys.exit(f'command {cmd} is not recognized. support list, draw, build or complement')
 
 
