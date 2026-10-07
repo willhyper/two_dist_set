@@ -94,6 +94,10 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     path = problem_path(v, k, l, u)
     doc = notes.strip('\n')
     existing = []
+    if is_placeholder(path):
+        # keep what the placeholder says about the table (verdict, comments, complement), drop its old STATUS
+        kept = [ln for ln in _docstring_body(path).split('\n') if not ln.startswith('STATUS:')]
+        doc = '\n'.join([doc] + kept).strip('\n')
     if os.path.exists(path) and not force and not is_placeholder(path):
         from . import get_solutions
         existing = get_solutions(v, k, l, u)
@@ -155,14 +159,18 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
         with np.load(ckpt, allow_pickle=False) as z:
             elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
     n = len(standardize(found))
-    notes = (f'{_hardware()}\n'
+    if stopped:
+        status = (f'STATUS: partially tackled - {n} graph(s) found; the search hit the {time_limit:g}s time limit before '
+                  f'finishing, so more graphs may exist')
+    elif n >= max_solutions:
+        status = f'STATUS: tackled - stopped at the cap of {max_solutions} graphs; more may exist'
+    elif n:
+        status = f'STATUS: tackled - the search finished: these {n} graph(s) are ALL of them'
+    else:
+        status = 'STATUS: tackled - the search finished and found no solution'
+    notes = (f'{status}\n{_hardware()}\n'
              f'{cpu:.4g}s CPU ({elapsed:.4g}s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
              f'{" (total compute time across resumed runs)" if resumed else ""}\n')
-    if stopped:
-        notes += (f'search stopped by a {time_limit}s time limit with {n} isomorphism class(es) found: '
-                  f'existence is settled, but more classes may exist\n')
-    elif n >= max_solutions:
-        notes += f'{n} isomorphism classes listed: search was capped at max_solutions={max_solutions}, more may exist\n'
     return write_problem(v, k, l, u, found, notes, force=force)
 
 
@@ -176,9 +184,9 @@ def derive_complement(v, k, l, u, force=False) -> str:
         c = 1 - m
         np.fill_diagonal(c, 0)
         mats.append(c.astype(m.dtype))
-    notes = (f'complement of problem_{cv}_{ck}_{cl}_{cu}: the complement of an SRG({cv},{ck},{cl},{cu}) is an '
-             f'SRG({v},{k},{l},{u}) and vice versa, so its solutions are exactly the complements of that '
-             f'problem\'s. No search was run.\n')
+    notes = (f'STATUS: derived - the complements of the {len(src)} graph(s) recorded in problem_{cv}_{ck}_{cl}_{cu}: the '
+             f'complement of an SRG({cv},{ck},{cl},{cu}) is an SRG({v},{k},{l},{u}) and vice versa, so this is exact and '
+             f'needs no search; it records as many graphs as its partner does\n')
     return write_problem(v, k, l, u, mats, notes, force=force)
 
 
@@ -206,8 +214,7 @@ def construct(v, k, l, u) -> str:
         notes = (f'known construction ({names}) generated, checked with solved(), and added: it is a graph this file '
                  f'did not have yet (NOT found by the solver)')
         return write_problem(v, k, l, u, new, notes)
-    # a placeholder: keep what it says about the table, replace its STATUS line
-    kept = [ln for ln in _docstring_body(path).split('\n') if not ln.startswith('STATUS:')]
+    # a placeholder: write_problem keeps what it says about the table and replaces its STATUS line
     status = (f'STATUS: constructed - graph(s) recorded from a known construction ({names}); the solver has NOT '
               f'found a solution for this quest itself yet, and the table may list more graphs than are recorded here')
-    return write_problem(v, k, l, u, [m for _, m in found], '\n'.join([status] + kept))
+    return write_problem(v, k, l, u, [m for _, m in found], status)
