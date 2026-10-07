@@ -26,10 +26,13 @@ else:
         limit = [a for a in sys.argv[6:] if a.startswith('--time-limit=')]
         print(build.build(v, k, l, u, *(int(e) for e in extra),
                           time_limit=float(limit[0].split('=')[1]) if limit else None))
+    elif cmd == 'construct':
+        from srg.database import build
+        print(build.construct(v, k, l, u) or 'no known construction for these parameters')
     elif cmd == 'complement':
         from srg.database import build
         print(build.derive_complement(v, k, l, u))
     else:
-        sys.exit(f'command {cmd} is not recognized. support list, draw, build or complement')
+        sys.exit(f'command {cmd} is not recognized. support list, draw, build, construct or complement')
 
 

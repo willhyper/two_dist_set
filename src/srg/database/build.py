@@ -77,15 +77,31 @@ def mark_status(v, k, l, u, status: str, details: str = '') -> None:
     open(path, 'w').write(text)
 
 
+def _docstring_body(path: str) -> str:
+    '''text inside the leading docstring of a problem file ('' if it has none)'''
+    src = open(path).read()
+    if not src.startswith("'''"):
+        return ''
+    return src[3:src.index("'''", 3)].strip('\n')
+
+
 def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
+    '''
+    Write problem_V_K_L_U.py. A placeholder is replaced. A file that already holds a result is MERGED:
+    its solutions are kept (one matrix per isomorphism class), the new matrices are added, and notes
+    are appended to its docstring - unless force=True, which overwrites it.
+    '''
     path = problem_path(v, k, l, u)
+    doc = notes.strip('\n')
+    existing = []
     if os.path.exists(path) and not force and not is_placeholder(path):
-        raise FileExistsError(f'{path} exists; pass force=True to overwrite')
-    sols = standardize(matrices)
+        from . import get_solutions
+        existing = get_solutions(v, k, l, u)
+        doc = (_docstring_body(path) + '\n\n' + doc).strip('\n')
+    sols = standardize(list(existing) + list(matrices))
     for m in sols:
         assert SRGProperties.from_matrix(m).vklu == (v, k, l, u)
     body = ''.join(f'"""{codec.encode(m)}""",\n' for m in sols)
-    doc = notes.strip('\n')
     if not sols:
         doc = 'no solution.\n' + doc
     with open(path, 'w') as f:
@@ -164,3 +180,34 @@ def derive_complement(v, k, l, u, force=False) -> str:
              f'SRG({v},{k},{l},{u}) and vice versa, so its solutions are exactly the complements of that '
              f'problem\'s. No search was run.\n')
     return write_problem(v, k, l, u, mats, notes, force=force)
+
+
+def construct(v, k, l, u) -> str:
+    '''
+    record graphs written down from a known construction (utils.constructions, e.g. Paley(q)) in the
+    problem file. They are verified with solved() and standardized like solver results, but the
+    docstring says they were NOT found by the search. Returns the path, or None if no construction
+    is known for these parameters.
+    '''
+    from .. import utils
+    found = utils.constructions(v, k, l, u)
+    if not found:
+        return None
+    for name, m in found:
+        assert PartialSRG(m).solved(), f'{name} is not an SRG({v},{k},{l},{u})'
+    names = ', '.join(sorted({n for n, _ in found}))
+    path = problem_path(v, k, l, u)
+    if not is_placeholder(path) and os.path.exists(path):
+        from . import get_solutions
+        have = {canon.canonical_key(m, 10 ** 7) for m in get_solutions(v, k, l, u)}
+        new = [m for _, m in found if canon.canonical_key(m, 10 ** 7) not in have]
+        if not new:
+            return None  # every constructed graph is already recorded: leave the file alone
+        notes = (f'known construction ({names}) generated, checked with solved(), and added: it is a graph this file '
+                 f'did not have yet (NOT found by the solver)')
+        return write_problem(v, k, l, u, new, notes)
+    # a placeholder: keep what it says about the table, replace its STATUS line
+    kept = [ln for ln in _docstring_body(path).split('\n') if not ln.startswith('STATUS:')]
+    status = (f'STATUS: constructed - graph(s) recorded from a known construction ({names}); the solver has NOT '
+              f'found a solution for this quest itself yet, and the table may list more graphs than are recorded here')
+    return write_problem(v, k, l, u, [m for _, m in found], '\n'.join([status] + kept))

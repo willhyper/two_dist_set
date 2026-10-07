@@ -1,10 +1,12 @@
 '''
 118s cythonized (old solver, before isomorph rejection).
 Brouwer table: "15!" = exactly 15 non-isomorphic graphs (complete enumeration; see database/__init__.py for the
-symbol convention). This file lists only 1 of the 15; the other 14 are not in the database yet.
+symbol convention). This file lists 2 of the 15 (one from the old solver, Paley(25) from a construction); the other 13 are not in the database yet.
 (An earlier note here read "total 15! solutions. too many" and took "15!" as a factorial; it is a count.)
 
 solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
+
+known construction (Paley(25)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 25, 12, 5, 6
 solutions: list[str] = [
@@ -34,5 +36,32 @@ solutions: list[str] = [
 0001100011110110011010010
 0010010110011101110010100
 0001100110011011101101000
+""",
+"""
+0111111111111000000000000
+1011111000000111111000000
+1101100110000001100110011
+1110100001100110000001111
+1111000000011000011111100
+1100000111010111010101000
+1100000110101110101010100
+1010011001010010100110101
+1010011000101101000111010
+1001010100011101001000111
+1001001010011010110001011
+1000110101100000111011010
+1000101011100001011100101
+0101011011000000101101110
+0101011100100001010011101
+0110010011001010011010011
+0110001100110100011100011
+0100110000111011100100110
+0100101001011101100011001
+0010110110001100110001101
+0010101110010011001001110
+0001110010110110001110001
+0001101101001110010110010
+0011000011110101110010100
+0011000101101011101101000
 """,
 ]
