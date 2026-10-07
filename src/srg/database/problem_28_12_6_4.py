@@ -1,5 +1,10 @@
 '''
 totally elapsed 94904.01194787025 s
+
+Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
+45.1s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+4 solutions = the 4 known non-isomorphic SRG(28,12,6,4) (T(8) + 3 Chang graphs), same isomorphism
+classes as the matrices below
 '''
 from srg.model import array
 

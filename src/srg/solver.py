@@ -240,6 +240,19 @@ def advance(s : PartialSRG) -> Iterator[PartialSRG]:
 PROGRESS_INTERVAL = 5.0  # seconds between progress lines within a level
 
 
+def _unique(matrices: list) -> list:
+    '''one matrix per isomorphism class (matrices too symmetric to canonize are all kept)'''
+    kept, seen = [], set()
+    for p in matrices:
+        key = canon.canonical_key(p._matrix)
+        if key is not None:
+            if key in seen:
+                continue
+            seen.add(key)
+        kept.append(p)
+    return kept
+
+
 def _prune(partials: list, r: float, s: float, isomorph_free: bool) -> list:
     '''
     drop partial matrices that provably cannot be completed (eigenvalue
@@ -306,6 +319,8 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
                          f'{last - t_start:.0f}s elapsed')
 
         lst_done, lst_undone = partition_by_done(grown)
+        if isomorph_free:
+            lst_done = _unique(lst_done)
         frontier = _prune(lst_undone, r, s, isomorph_free)
         if progress:
             progress(f'row {row} done: {len(frontier)} kept of {len(grown)} candidates '
