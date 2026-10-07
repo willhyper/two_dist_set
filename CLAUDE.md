@@ -123,7 +123,9 @@ renamed away; every import is `from .model import X` / `from srg.model import X`
 - `_seed(v,k,l,u)`: builds the canonical first two rows to start from.
 - `solve_question(Q)`: the propagate/branch loop. Each iteration runs a fixed-point of cheap
   deductions — `reduce_col` (merge duplicate columns via `unique._encode`), `eliminate`
-  (Gaussian elimination over the `A@x=b` system, `gauss_elim.py`), `zero_in_b` (columns forced
+  (Gaussian elimination over the `A@x=b` system, `gauss_elim.py`: it only subtracts a row from a row that
+  *contains* it, so `A` stays 0/1 and `b` stays >= 0; it raises `NoSolution` on the contradictions that exposes,
+  e.g. `x0+x1=3` together with `x0+x1=5`; see its module docstring), `zero_in_b` (columns forced
   to 0 by tight bounds, `bounds.py`), `only_1_element_in_row` (rows that pin a single column) —
   until nothing changes, then either yields a solved row or branches via `fork_enum` (picks the
   column with the smallest bound and enumerates its feasible values, `fork.py`).
@@ -171,6 +173,24 @@ therefore yields one representative per isomorphism class of solution, not every
 how many are still pending on the stack, per number of rows built (an exhaustive run ends when the pending
 counts are all 0); `python -m srg` prints these to stderr, so a long run can be monitored (and Ctrl+C'd)
 without waiting for it to finish.
+
+**`srg/utils.py` — known constructions.** Besides the `debug` decorator, `utils.py` writes SRGs down directly from
+their definitions (no search): `paley(q)` (any prime power q = 1 mod 4, via GF(q) tables), `triangular(n)`,
+`rook(n)`, `latin_square_cyclic(n)`, `net_graph(n, k)` (k parallel classes of AG(2,n)), `symplectic_gq(q)`,
+`hyperoval_gq(q)`, `hoffman_singleton()`, `affine_polar(q, m, elliptic[, nonisotropic])`, `hermitian_u42()`,
+`steiner_triple_system(v)` + `block_graph()`, `steiner_s3622()` -> `gewirtz()`, `m22_graph()`,
+`higman_sims()`. `constructions(v,k,l,u)` (registry `GENERATORS`; it also tries the complement's parameters) returns
+`[(name, matrix)]`; it finds a graph for about half of the table's parameter sets. Every generated matrix is
+verified with `PartialSRG.solved()` before it is recorded. Constructions are NOT solver results: the problem
+docstring says so, and a quest can be "constructed" while the solver still cannot finish it.
+
+**`srg/database/build.py`** (CLI: `python -m srg.database build|construct|complement v k l u`):
+- `build v k l u [cap] --time-limit=SECONDS` runs the solver and writes the problem file. Outcomes are
+  recorded honestly in a STATUS line: search finished (ALL graphs), stopped at the cap, partially tackled (time
+  limit hit with N found), or UNDECIDED (limit hit, nothing found: the empty list proves nothing).
+- `construct` records `utils.constructions` results; `complement` derives a problem from its partner exactly.
+- Placeholders (`status = 'todo'`) keep their table lines when replaced; an existing result is MERGED (one matrix
+  per isomorphism class), never overwritten.
 
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts
@@ -220,6 +240,19 @@ speedup is nil: on every solved problem taking more than a second, compiled time
 Python (SRG(21,10,4,5): 26.3s vs 25.4s; SRG(28,12,6,4): 27.5s vs 26.8s; see the problem docstrings). The
 time goes into many tiny numpy calls and dynamically typed Python, which Cython cannot speed up without
 type declarations. The real wins have come from the algorithm (isomorph rejection, pruning), not compilation.
+
+## Experiment branches (what was tried; results are in the commit messages)
+
+- `solution-representation`, `cythonize` — merged. `cythonize`: compiling does not help (see above).
+- `bool-dtype` — NOT merged: `bool` adjacency matrices are no faster (~1%) and bool `@`/`dot` are logical ORs.
+- `no-heapq` — `import heapq` was never the cost (2-5 ms once); `heapq.merge` (pure Python) was. Replacing it
+  speeds the elimination core up 7.7x with byte-identical output, ~5-8% end to end. Not merged yet.
+- `flexible-propagation` — propagation steps are composable (`propagate.run(Q, order)`, repeats and `name*`).
+  Measured: the SET OF COMPLETIONS never depends on the order (0/100), the propagated state does (49/100, not
+  confluent), the order matters for speed (0.96x-1.14x), only `only_1_element_in_row` is not idempotent, and a
+  dirty-tracking worklist does not beat plain rounds. Best order is ~13% faster. Not merged yet.
+- `resume` (checkpoint/resume) — only on this branch and only for the old level-by-level search; it has to be redone
+  for the depth-first solver (state = stack + seen sets + found).
 
 ## Gotchas
 
