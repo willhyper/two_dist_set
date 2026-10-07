@@ -1,5 +1,8 @@
 '''
-118s cythonized. total 15! solutions. too many. only list the first
+118s cythonized (old solver, before isomorph rejection).
+Brouwer table: "15!" = exactly 15 non-isomorphic graphs (complete enumeration; see database/__init__.py for the
+symbol convention). This file lists only 1 of the 15; the other 14 are not in the database yet.
+(An earlier note here read "total 15! solutions. too many" and took "15!" as a factorial; it is a count.)
 '''
 v, k, l, u = 25, 12, 5, 6
 solutions: list[str] = [

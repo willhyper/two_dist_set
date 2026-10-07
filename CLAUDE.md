@@ -19,10 +19,10 @@ by exhaustive backtracking search — it may produce zero matrices (proves no SR
 quest), a handful, or, for quests with a lot of symmetry, very many (some known solved quests have
 on the order of `n!` matrices, once you count every vertex-relabeling of the same underlying
 graph). **Once existence (or non-existence) is established, further enumeration has diminishing
-value** — the working convention seen in the database (`srg/database/problem_25_12_5_6.py` /
-`problem_26_10_3_4.py`'s docstrings: `"15!"` / `"10!"` solutions, "too many, only list the
-first") is to stop around ~100 matrices for a quest that's producing far more than that, rather
-than exhaust the full symmetry group. This is enforced in code, not just convention:
+value** — the working convention is to stop around ~100 matrices for a quest that's producing far
+more than that, rather than exhaust the full symmetry group. (Beware: Brouwer's `15!` / `10!` marks,
+for SRG(25,12,5,6) / SRG(26,10,3,4), mean *15 / 10 non-isomorphic graphs*, not factorials; the symbols
+are explained in `srg/database/__init__.py`.) This is enforced in code, not just convention:
 `solver.solve(srg, max_solutions=100)` (`DEFAULT_MAX_SOLUTIONS = 100` in `solver.py`) stops
 *advancing the search* once it's yielded that many matrices — it doesn't just truncate output
 after a full exhaustive run, it actually skips the further search work. Pass
