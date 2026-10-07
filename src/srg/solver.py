@@ -26,7 +26,7 @@ DEFAULT_MAX_SOLUTIONS = 100
 def _seed(v: int, k: int, l: int, u: int) -> np.array:
     remain_ones_number = k - l - 1
 
-    s = model.zeros((2, v))
+    s = model.bzeros((2, v))
     s[0, 1:k + 1] = 1  # 1st row
     s[1, 2:l + 2] = 1  # 2nd row under 1's
     s[1, k + 1:k + remain_ones_number + 1] = 1  # 2nd row under 0's.
@@ -330,7 +330,7 @@ def solve(srg: PartialSRG, max_solutions: Optional[int] = DEFAULT_MAX_SOLUTIONS,
             if child.solved():
                 if _fresh(seen_done, child._matrix, isomorph_free):
                     yielded += 1
-                    yield child._matrix
+                    yield child._matrix.astype(model.dtype)  # API / database files stay int8 0/1
                     if max_solutions is not None and yielded >= max_solutions:
                         break
             elif spectral.feasible(child._matrix, spectrum) \

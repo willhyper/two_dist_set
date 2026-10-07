@@ -5,11 +5,18 @@ import numpy as np
 from functools import partial
 from . import sorter
 
-dtype = np.int8 # ideal bool
+dtype = np.int8  # counts: b, bounds, answer values (up to v, and the -1 "unknown" sentinel)
 array = partial(np.array, dtype=dtype)
 ones = partial(np.ones, dtype=dtype)
 zeros = partial(np.zeros, dtype=dtype)
 identity = partial(np.identity, dtype=dtype)
+
+# 0/1 adjacency matrices. NB: bool @ bool is a logical OR in numpy, not a count, so
+# never matrix-multiply two of them (cast to dtype first), and `-m` is an error.
+bdtype = np.bool_
+barray = partial(np.array, dtype=bdtype)
+bones = partial(np.ones, dtype=bdtype)
+bzeros = partial(np.zeros, dtype=bdtype)
 
 class NoSolution(Exception): pass
 
@@ -90,7 +97,7 @@ class Answer:
         _quota = self.quota
         assert np.all(_v <= _quota), f'answer out of quota: {_v} > {_quota}'
 
-        _ans = zeros(self._len)
+        _ans = bzeros(self._len)
 
         ptr = 0
         for c, b in zip(_v, _quota):
@@ -153,7 +160,7 @@ class Question:
         v,k,l,u = SRGProperties.from_matrix(m).vklu
         R, C = m.shape
         assert C == v
-        known = np.r_[m[:, R], 0]
+        known = np.r_[m[:, R], 0].astype(dtype)
 
         # condition l, u
         quota_used = m[:, :R + 1] @ known
@@ -167,7 +174,7 @@ class Question:
         # quota_k = k
         unknown_len = v - R - 1
         b_k = k - known.sum()
-        a_k = ones(unknown_len)
+        a_k = bones(unknown_len)
 
         A = np.append(A, a_k.reshape(1, unknown_len), axis=0)
         b = np.append(b, b_k)
@@ -258,7 +265,7 @@ class PartialSRG:
         mat = self._matrix
         R, C = mat.shape
         
-        _flip = np.vectorize(lambda t: 0 if t else 1)(mat)
+        _flip = np.logical_not(mat).astype(mat.dtype)
         for r in range(R):
             _flip[r, r] = 0  # diagonal elements are 0
         
@@ -268,7 +275,7 @@ class PartialSRG:
     
     def append_and_return_new(self, ans_essential: np.array):
         R, C = self._matrix.shape
-        ans_row = np.r_[self._matrix[:, R], 0, ans_essential]
+        ans_row = np.concatenate([self._matrix[:, R], [False], ans_essential]).astype(self._matrix.dtype)
         assert len(ans_row) == C
         return PartialSRG(np.vstack([self._matrix, ans_row]))
 
@@ -283,12 +290,13 @@ class PartialSRG:
         I = identity(v)
         J = ones((v, v))
         const = (k - u) * I + u * J
-        
-        return np.array_equal(M @ M - (l - u) * M, const)
+
+        Mi = M.astype(dtype)  # bool @ bool would be a logical OR, not a count
+        return np.array_equal(Mi @ Mi - (l - u) * Mi, const)
 
 
     def __repr__(self):
-        M = self._matrix
+        M = self._matrix.astype(int)  # bool would print True/False
         R, C = M.shape
         dec = [int(''.join(map(str, M[ri, ri+1:])), 2) for ri in range(R-1)] + [0]
         
@@ -332,11 +340,12 @@ class SRGProperties:
     def from_matrix(cls, mat: array):
         R, C = mat.shape
         v, k = C, mat[0].sum()
+        overlap = np.count_nonzero(np.logical_and(mat[0], mat[1]))  # dot() of bool arrays is an OR
         if mat[0,1] == 1:
-            l = mat[0].dot(mat[1])
+            l = overlap
             u = k * (k - l - 1) // (v - k - 1)    
         else:
-            u = mat[0].dot(mat[1])
+            u = overlap
             l = -u * (v - k - 1) // k  + k - 1
         return SRGProperties(v, k, l, u)
     

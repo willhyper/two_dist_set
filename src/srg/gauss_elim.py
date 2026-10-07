@@ -129,7 +129,7 @@ def _decode(hd: list) -> tuple:
 
     R, C = len(_A), max(map(len, _A))
 
-    A = model.zeros((R, C))
+    A = model.bzeros((R, C))
 
     for r, _a in enumerate(_A):
         A[r, -len(_a):] = _a

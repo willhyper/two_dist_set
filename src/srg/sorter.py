@@ -58,7 +58,7 @@ class AdjMat:
 
         M = self.Mat
         a = M[row, colrange[0]:colrange[1]]
-        i = np.argsort(-a)  # large element first, so negate a.
+        i = np.argsort(np.logical_not(a), kind='stable')  # large (1) element first
 
         ii = np.arange(self.v)
         ii[colrange[0]: colrange[1]] = i + colrange[0]
