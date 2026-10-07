@@ -74,3 +74,24 @@ def test_canonical_matrix_is_a_standard_form():
             Ac = canon.canonical_matrix(A)
             assert np.array_equal(Ac, canon.canonical_matrix(A[perm][:, perm]))
             assert PartialSRG(Ac).solved()
+
+
+def test_very_symmetric_graphs_canonize_within_a_small_budget():
+    '''
+    The 8-class net graph of AG(2,9) used to need more than a million search nodes (and never finished): the
+    search did not jump back to where a leaf and an earlier automorphic leaf diverge. It is isomorphic to the
+    complement of the 9x9 rook's graph, so both must get the same key, and quickly.
+    '''
+    from srg import utils
+    net = canon.canonical_key(utils.net_graph(9, 8), leaf_budget=2000)
+    rook_c = canon.canonical_key(utils._complement(utils.rook(9)), leaf_budget=2000)
+    assert net is not None and rook_c is not None
+    assert net == rook_c
+
+
+def test_canonical_key_separates_non_isomorphic_srgs_with_equal_parameters():
+    '''SRG(16,6,2,2): the rook's graph K4xK4 and the Shrikhande graph are not isomorphic'''
+    from srg import utils
+    shrikhande = [A for A in db.get_solutions(16, 6, 2, 2)]
+    keys = {canon.canonical_key(A, 10 ** 6) for A in shrikhande} | {canon.canonical_key(utils.rook(4), 10 ** 6)}
+    assert len(keys) == 2

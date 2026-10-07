@@ -29,6 +29,21 @@ LEAF_BUDGET = 5000
 class BudgetExceeded(Exception): pass
 
 
+class _Backjump(Exception):
+    '''a leaf was found to be an automorphic image of an earlier leaf: return to the node at `depth`'''
+    def __init__(self, depth: int):
+        self.depth = depth
+
+
+def _common_prefix(a: tuple, b: tuple) -> int:
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
 def _refine(adj: list, color: list) -> list:
     '''1-WL colour refinement. Colours are ranks of label-independent
     signatures, so the result does not depend on the input vertex order.'''
@@ -49,8 +64,19 @@ class _Search:
         self.budget = leaf_budget
         self.best_cert = None
         self.best_order = None
+        self.first_cert = None  # the first leaf reached: leaves equal to it are automorphic images of it
+        self.first_order = None
+        self.first_path = None  # the individualized vertices leading to it (likewise for the best leaf)
+        self.best_path = None
         self.gens = []  # automorphisms found so far, as lists: image of each vertex
         self.run(color0, ())
+
+    def _automorphism(self, order_a, order_b):
+        '''two leaves with the same certificate: the map order_a[i] -> order_b[i] is an automorphism'''
+        g = [0] * self.n
+        for a, b in zip(order_a, order_b):
+            g[a] = b
+        self.gens.append(g)
 
     def _orbit_rep(self, prefix, cell):
         '''partition cell into orbits of the automorphisms fixing prefix pointwise'''
@@ -90,13 +116,16 @@ class _Search:
                 raise BudgetExceeded
             order = sorted(range(n), key=color.__getitem__)
             cert = self.certificate(order)
+            if self.first_cert is None:
+                self.first_cert, self.first_order, self.first_path = cert, order, prefix
+            elif cert == self.first_cert:
+                self._automorphism(self.first_order, order)
+                raise _Backjump(_common_prefix(prefix, self.first_path))
             if self.best_cert is None or cert < self.best_cert:
-                self.best_cert, self.best_order = cert, order
+                self.best_cert, self.best_order, self.best_path = cert, order, prefix
             elif cert == self.best_cert:
-                g = [0] * n
-                for a, b in zip(self.best_order, order):
-                    g[a] = b
-                self.gens.append(g)
+                self._automorphism(self.best_order, order)
+                raise _Backjump(_common_prefix(prefix, self.best_path))
             return
 
         c, cell = target
@@ -108,7 +137,12 @@ class _Search:
                     continue
             # individualize x: it gets a colour strictly below the rest of its cell
             col2 = [2 * ci + (1 if (ci == c and i != x) else 0) for i, ci in enumerate(color)]
-            self.run(col2, prefix + (x,))
+            try:
+                self.run(col2, prefix + (x,))
+            except _Backjump as jump:
+                if jump.depth != len(prefix):
+                    raise  # the divergence point is further up
+                # this child's subtree is the image of one that was already explored: go on to the next child
             tried.append(x)
 
 

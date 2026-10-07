@@ -45,9 +45,10 @@ def test_prime_power_field_uses_a_real_field_not_integers_mod_q():
     assert not PartialSRG(mod9).solved()
 
 
-def test_constructions_finds_paley_for_a_quest_and_nothing_for_others():
+def test_constructions_finds_the_right_family_for_a_quest_and_nothing_for_others():
     assert [n for n, _ in utils.constructions(29, 14, 6, 7)] == ['Paley(29)']
-    assert utils.constructions(28, 12, 6, 4) == []
+    assert [n for n, _ in utils.constructions(28, 12, 6, 4)] == ['Triangular graph T(8)']
+    assert utils.constructions(35, 16, 6, 8) == []  # no generator for this one (yet)
 
 
 def test_recorded_paley_problems_hold_the_generated_graph():
