@@ -55,7 +55,7 @@ def fork_enum(Q: Question):
     for q_used, q_rest in fork.enum(Q.quota, Q.bounds, minloc):
         #
         new_b = Q.b - Aminloc * q_used
-        if np.any(new_b < 0): continue
+        if (new_b < 0).any(): continue
         #
         new_ans: Answer = Q.answer.copy()
         ans_loc = ans_unknown_loc[minloc]

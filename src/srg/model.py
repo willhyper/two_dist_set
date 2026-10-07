@@ -51,7 +51,7 @@ class Answer:
 
     @property
     def unknown(self) -> bool:
-        return any(self._v == self.UNKNOWN)
+        return bool((self._v == self.UNKNOWN).any())
 
     def copy(self):
         return Answer(self._v.copy(), self._loc.copy(), self._len, self._quota)
@@ -85,10 +85,10 @@ class Answer:
         '''
 
         _v = self._v
-        assert np.all(_v != self.UNKNOWN), f'answer remains unknown: {_v}'
+        assert (_v != self.UNKNOWN).all(), f'answer remains unknown: {_v}'
 
         _quota = self.quota
-        assert np.all(_v <= _quota), f'answer out of quota: {_v} > {_quota}'
+        assert (_v <= _quota).all(), f'answer out of quota: {_v} > {_quota}'
 
         _ans = zeros(self._len)
 
@@ -172,7 +172,7 @@ class Question:
         A = np.append(A, a_k.reshape(1, unknown_len), axis=0)
         b = np.append(b, b_k)
 
-        if np.any(b < 0):
+        if (b < 0).any():
             raise NoSolution(f'some element in b is negative: b={b}')
 
         return Question(A, b, quota=b_k, bounds=a_k)
@@ -216,7 +216,7 @@ class Question:
 
     @b.setter
     def b(self, new_b):
-        assert np.all(new_b>=0), f'some element in b is negative: {new_b}'
+        assert (new_b >= 0).all(), f'some element in b is negative: {new_b}'
         self._b = new_b
 
     @property
@@ -234,7 +234,7 @@ class Question:
 
     @bounds.setter
     def bounds(self, new_bounds):
-        assert np.all(new_bounds>=0), f'some element in bounds is negative: {new_bounds}'
+        assert (new_bounds >= 0).all(), f'some element in bounds is negative: {new_bounds}'
         self._bounds = new_bounds
 
 

@@ -35,13 +35,10 @@ def one_element_row_locs(A: np.array) -> set:
     return {(0,4)}
 
     '''
-    rows, cols = A.nonzero()
-    nz = defaultdict(list)
-    for rnz, cnz in zip(rows.tolist(), cols.tolist()):
-        nz[rnz].append(cnz)
-
-    # reduce rcs so that columns are unique. Corresponding rows dont matter
-    # {(0, 1), (3, 0), (1, 1), (4, 0)} => { 1:1, 0:4 }
-    crs = {clist[0]:r for r, clist in nz.items() if len(clist) == 1}
-
+    # rows with exactly one non-zero entry, and where it is; if several such rows share a column, the last wins
+    rows = np.flatnonzero(A.sum(axis=1) == 1)
+    if rows.size == 0:
+        return set()
+    cols = A[rows].argmax(axis=1)
+    crs = dict(zip(cols.tolist(), rows.tolist()))
     return {(r, c) for c, r in crs.items()}

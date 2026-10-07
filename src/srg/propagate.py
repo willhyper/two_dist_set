@@ -33,14 +33,14 @@ def raiseExceptionIfNotSolvableAfterwards(func):
         ans = Q.answer
 
         R, C = Q.A.shape
-        if C == 0 and any(Q.b != 0):
+        if C == 0 and Q.b.any():
             raise NoSolution(f'after {func.__name__}, no answer can equate nonzero b: b={Q.b}')
 
         assert Q.bounds.size == C , "design error"
 
         if Q.bounds.size > 0 and Q.bounds.sum() < Q.quota:
             raise NoSolution(f'after {func.__name__}, cannot reach quota from bound: sum({Q.bounds})={Q.bounds.sum()} < {Q.quota}')
-        if np.any(ans._v > ans.quota):
+        if (ans._v > ans.quota).any():
             raise NoSolution(f'after {func.__name__}, answer out of quota: {ans._v}>{ans.quota}')
 
 
@@ -57,8 +57,10 @@ def reduce_col(Q: Question) -> None:
     R, C = Q.A.shape
     if C < 2: return
 
-    d = defaultdict(list)
     enc = unique._encode(Q.A)  # [7,7,5,5,3,3,1]
+    if len(set(enc)) == C:
+        return  # every column is different: nothing to merge (the common case, so don't rebuild A/bounds/answer)
+    d = defaultdict(list)
     for category, loc in zip(enc, range(C)):
         d[category].append(loc)  # defaultdict(<class 'list'>, {7: [0, 1], 5: [2, 3], 3: [4, 5], 1: [6]})
 
@@ -80,8 +82,12 @@ def reduce_col(Q: Question) -> None:
 def eliminate(Q: Question) -> None:
     R, C = Q.A.shape
     if C == 0: return
+    # idempotent: if A and b are exactly what the previous call left, there is nothing more to eliminate
+    if getattr(Q, '_eliminated', None) == (Q.A.shape, Q.A.tobytes(), Q.b.tobytes()):
+        return
     Ae, be = gauss_elim.elim(Q.A, Q.b)
     Q.A, Q.b = Ae, be
+    Q._eliminated = (Ae.shape, Ae.tobytes(), be.tobytes())
 
 
 #@debug
@@ -90,21 +96,21 @@ def zero_in_b(Q: Question) -> None:
     '''
     if element in bounds is 0, respective element in answer is 0
     '''
-    #
+    # idempotent: skip when A, b and bounds are exactly what the previous call left
+    if getattr(Q, '_zeroed', None) == (Q.A.shape, Q.A.tobytes(), Q.b.tobytes(), Q.bounds.tobytes()):
+        return
     bounds.lower_upper_bound(Q.A, Q.b, Q.bounds)
-    #
-    ans: Answer = Q.answer
-    val_unknown_locs = ans.unknown_loc
-    assert np.array_equal(val_unknown_locs.shape, Q.bounds.shape)
-
     zbls = bounds.zero_bound_loc(Q.bounds)
-    for zbl in zbls:
-        zero_loc = val_unknown_locs[zbl]
-        ans._v[zero_loc] = 0  # Q.answer updated in place
-    _bound_new = fork.delete(Q.bounds, zbls)
-    _A_new = fork.delete(Q.A, zbls, axis=1)
-    Q.A, Q.bounds = _A_new, _bound_new
-
+    if zbls.size:
+        ans: Answer = Q.answer
+        val_unknown_locs = ans.unknown_loc
+        assert np.array_equal(val_unknown_locs.shape, Q.bounds.shape)
+        for zbl in zbls:
+            zero_loc = val_unknown_locs[zbl]
+            ans._v[zero_loc] = 0  # Q.answer updated in place
+        Q.bounds = fork.delete(Q.bounds, zbls)
+        Q.A = fork.delete(Q.A, zbls, axis=1)
+    Q._zeroed = (Q.A.shape, Q.A.tobytes(), Q.b.tobytes(), Q.bounds.tobytes())
 
 
 #@debug
@@ -114,14 +120,12 @@ def only_1_element_in_row(Q: Question):
     if only 1 element in a row r is non-zero, b[r] is the answer to respective element in answer
     :return proceed as bool
     '''
-    #
+    rcs = bounds.one_element_row_locs(Q.A)  # [(0,4), (1,2), (2,0)]
+    if not rcs: return
     ans: Answer = Q.answer
     val_unknown_locs = ans.unknown_loc
     assert np.array_equal(val_unknown_locs.shape, Q.bounds.shape)
 
-    #
-    rcs = bounds.one_element_row_locs(Q.A)  # [(0,4), (1,2), (2,0)]
-    if not rcs: return
     rs = [r for r, c in rcs]  # [0,1,2]
     cs = [c for r, c in rcs]  # [4,2,0]
 
@@ -137,7 +141,7 @@ def only_1_element_in_row(Q: Question):
     if subx.sum() > Q.quota:
         raise NoSolution(f'sum({subx})={subx.sum()} > {Q.quota} = Q.quota')
 
-    if np.any(b_to_update > Q.b):
+    if (b_to_update > Q.b).any():
         raise NoSolution(f'b_to_update={b_to_update} > {Q.b} = Q.b')
 
     # check done, update Question now
