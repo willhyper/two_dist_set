@@ -26,7 +26,7 @@ def expected(v, k, l, u):
     if not f.exists():
         return '?'
     head = f.read_text().split('\nv, k, l, u')[0]
-    if 'does not exist' in head:
+    if re.search(r'Brouwer table[^\n]*: does not exist', head):
         return '0'
     m = re.search(r'exists \((\d+) graphs?\)', head)
     if m:
