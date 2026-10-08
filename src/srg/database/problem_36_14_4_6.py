@@ -1,5 +1,5 @@
 '''
-STATUS: derived - problem_36_21_12_12 has no solution, and the complement of an SRG(36,14,4,6) would be an SRG(36,21,12,12), so this one does not exist either (exact, no search) [the file now records 4 graph(s) in total, merged with its earlier results]
+STATUS: partially tackled - 4 graph(s) found; the search hit the 43200s time limit before finishing, so more graphs may exist
 the 4 graphs came out of one 12 h run; the search did not finish, so the count is not complete (Brouwer: 180 graphs)
 Brouwer table srgtab1-50: exists (180 graphs) - U3(3).2 / L2(7).2 - subconstituent of Hall-Janko graph; complete enumeration by McKay & Spence; RSHCD–; 2-graph
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
