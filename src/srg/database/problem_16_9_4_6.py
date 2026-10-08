@@ -1,5 +1,5 @@
 '''
-STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
+STATUS: tackled - the search finished: these 2 graph(s) are ALL of them [the file now records 2 graph(s) in total, merged with its earlier results]
 solutions deduplicated by isomorphism: 13 labelings of 2 graph(s) -> 2 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 16, 9, 4, 6

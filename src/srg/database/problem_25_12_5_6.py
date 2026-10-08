@@ -10,8 +10,8 @@ solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_m
 known construction (Paley(25)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 25, 12, 5, 6
-cpu_sec = 2834  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = 4181  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 1476  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 1510  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 0111111111111000000000000

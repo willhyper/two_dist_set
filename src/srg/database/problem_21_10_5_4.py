@@ -1,10 +1,10 @@
 '''
-STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
+STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 solutions deduplicated by isomorphism: 2 labelings of 1 graph(s) -> 1 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 21, 10, 5, 4
-cpu_sec = 1.821  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = 2.65  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 1.044  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 1.329  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 011111111110000000000

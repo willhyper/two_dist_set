@@ -1,13 +1,13 @@
 '''
-STATUS: tackled - the search finished: these 4 graph(s) are ALL of them (the table: 4!)
+STATUS: tackled - the search finished: these 4 graph(s) are ALL of them [the file now records 4 graph(s) in total, merged with its earlier results]
 4 solutions = the 4 known non-isomorphic SRG(28,12,6,4) (T(8) + 3 Chang graphs), same isomorphism
 classes as the matrices below
 
 solutions deduplicated by isomorphism: 161 labelings of 4 graph(s) -> 4 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 28, 12, 6, 4
-cpu_sec = 26.84  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = 45.1  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 8.147  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 10.72  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 0111111111111000000000000000

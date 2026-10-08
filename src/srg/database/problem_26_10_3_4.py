@@ -10,8 +10,8 @@ solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_m
 known construction (complement of block graph of a cyclic Steiner triple system STS(13)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 26, 10, 3, 4
-cpu_sec = 1279  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = 1754  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 770  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 812  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 01111111111000000000000000

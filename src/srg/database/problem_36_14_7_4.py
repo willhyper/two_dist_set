@@ -1,9 +1,9 @@
 '''
-STATUS: tackled - the search finished and found the graph: it is the only one (the table: unique, T(9))
+STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 '''
 v, k, l, u = 36, 14, 7, 4
-cpu_sec = None
-wall_clock_sec = None
+cpu_sec = 60.01  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 104  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 011111111111111000000000000000000000

@@ -1,9 +1,9 @@
 '''
-STATUS: derived - the complement(s) of the graph(s) of problem_21_10_5_4: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
+STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 '''
 v, k, l, u = 21, 10, 3, 6
 cpu_sec = 0.093  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = None
+wall_clock_sec = 0.1758  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 011111111110000000000

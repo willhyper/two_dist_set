@@ -1,5 +1,5 @@
 '''
-STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
+STATUS: tackled - the search finished: these 2 graph(s) are ALL of them [the file now records 2 graph(s) in total, merged with its earlier results]
 '''
 v, k, l, u = 16, 6, 2, 2
 cpu_sec = 0.091  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7

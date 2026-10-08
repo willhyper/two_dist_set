@@ -1,8 +1,8 @@
 '''
-STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
+STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 '''
 v, k, l, u = 12, 6, 0, 6
-cpu_sec = 0.07  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 0.06988  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 wall_clock_sec = 0.054  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """

@@ -1,5 +1,5 @@
 '''
-STATUS: tackled - the solver found the Hoffman-Singleton graph and its exhaustive search finished (40s): this 1 graph is ALL of them, i.e. the graph is unique
+STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 Brouwer table srgtab1-50: exists (unique) - U3(52).2 / Sym(7) - Hoffman-Singleton
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_50_42_35_36 (derive from this one when done)
