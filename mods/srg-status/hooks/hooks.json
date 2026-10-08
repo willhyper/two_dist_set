@@ -1,0 +1,4 @@
+{
+  "description": "The srg-status hooks module",
+  "modules": ["./register.js"]
+}

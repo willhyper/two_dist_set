@@ -1,0 +1,6 @@
+{
+  "name": "srg-status",
+  "version": "0.1.0",
+  "description": "Status board of the running and queued SRG quests: elapsed / pending / harvested / expected",
+  "author": { "name": "two_dist_set" }
+}
