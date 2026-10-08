@@ -153,7 +153,9 @@ renamed away; every import is `from .model import X` / `from srg.model import X`
 **`srg/spectral.py`** — eigenvalue-interlacing pruning: every principal submatrix of an SRG matrix
 interlaces the full spectrum `(k, r^f, s^g)` (`lambda_i(A) >= lambda_i(B) >= lambda_{i+v-m}(A)`), and the
 same holds for the complement graph's spectrum. `feasible(M, Spectrum(v,k,l,u))` checks the known `R x R`
-block and that block extended by each distinct not-yet-built column. Necessary conditions only, so
+block and that block extended by each distinct not-yet-built column. Beyond interlacing, `_gram_ok` uses `P = A_R - sI` (the Gram matrix of the built vertices): every
+unbuilt column must lie in range(P), any two unbuilt vertices need a legal 0/1 adjacency (Cauchy-Schwarz on the
+parts outside the built span), and once the built rows span the whole eigenspace every unbuilt entry is determined. Necessary conditions only, so
 discarding a partial matrix that fails them never loses a solution.
 
 **`srg/canon.py`** — exact canonical form of a partial matrix (colour refinement + individualization with
@@ -241,6 +243,16 @@ Python (SRG(21,10,4,5): 26.3s vs 25.4s; SRG(28,12,6,4): 27.5s vs 26.8s; see the 
 time goes into many tiny numpy calls and dynamically typed Python, which Cython cannot speed up without
 type declarations. The real wins have come from the algorithm (isomorph rejection, pruning), not compilation.
 
+## Is the search complete? (evidence, not a proof)
+
+- Finished exhaustive enumerations equal the literature counts: SRG(25,12,5,6) -> exactly 15 graphs, SRG(26,10,3,4) -> exactly
+  10, SRG(28,12,6,4) -> 4, SRG(16,6,2,2) -> 2, Hoffman-Singleton unique, and the non-existence of (21,10,4,5), (28,9,0,4), (50,21,4,12).
+- `studies/reachability.py` (and `tests/test_reachability.py`) rebuild every KNOWN graph row by row and check that the true
+  next row is among the candidates `solver.advance` enumerates and that the pruning accepts every prefix. All known graphs up to
+  49 vertices pass (the 41-50 vertex run was still going when this was written), 0 failures; a regular non-SRG is correctly rejected.
+- A progress line is a snapshot: "N solutions" with pending counts > 0 means the search was cut off (time limit), not that it
+  found everything. Only `finished:` with all pending counts 0 means complete.
+
 ## Experiment branches (what was tried; results are in the commit messages)
 
 - `solution-representation`, `cythonize` — merged. `cythonize`: compiling does not help (see above).
@@ -251,6 +263,10 @@ type declarations. The real wins have come from the algorithm (isomorph rejectio
   Measured: the SET OF COMPLETIONS never depends on the order (0/100), the propagated state does (49/100, not
   confluent), the order matters for speed (0.96x-1.14x), only `only_1_element_in_row` is not idempotent, and a
   dirty-tracking worklist does not beat plain rounds. Best order is ~13% faster. Not merged yet.
+- `random-restarts` — NOT merged: randomized restarts (`solve_restarts`) find nothing on the quests where plain depth-first finds nothing
+  (29,14,6,7; 36,15,6,6; 35,16,6,8 in 15 min each) and are no faster where it succeeds; the dead ends are not an ordering problem.
+- `fast-propagation`, `pair-pruning` — merged: skipping redundant work in the propagation steps (SRG(21,10,4,5) 20.5s -> 9s CPU) and
+  the range/pair Gram conditions (-34%/-32% explored partial matrices on the full SRG(26,10,3,4)/(25,12,5,6) enumerations).
 - `resume` (checkpoint/resume) — only on this branch and only for the old level-by-level search; it has to be redone
   for the depth-first solver (state = stack + seen sets + found).
 
