@@ -7,6 +7,10 @@ try:
 except IndexError:
     cmd = 'list'
 
+if cmd == 'status':
+    from srg.database import status
+    sys.exit(print(status.report(sys.argv[2] if len(sys.argv) > 2 else '.')))
+
 try:
     v,k,l,u = list(map(int, sys.argv[2:6]))
 except ValueError:
@@ -33,6 +37,6 @@ else:
         from srg.database import build
         print(build.derive_complement(v, k, l, u))
     else:
-        sys.exit(f'command {cmd} is not recognized. support list, draw, build, construct or complement')
+        sys.exit(f'command {cmd} is not recognized. support list, draw, build, construct, complement or status')
 
 
