@@ -7,6 +7,8 @@ Complement: problem_64_35_18_20 (derive from this one when done)
 known construction (complement of affine polar graph VO+(6,2), complement of net graph of 5 parallel classes of AG(2,8) (OA(8,5)), net graph of 4 parallel classes of AG(2,8) (OA(8,4))) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 64, 28, 12, 12
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111111111111111111100000000000000000000000000000000000

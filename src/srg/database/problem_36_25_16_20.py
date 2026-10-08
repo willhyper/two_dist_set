@@ -1,7 +1,9 @@
 '''
-complement of problem_36_10_4_2: the complement of an SRG(36,10,4,2) is an SRG(36,25,16,20) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
+STATUS: derived - the complement(s) of the graph(s) of problem_36_10_4_2: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
 '''
 v, k, l, u = 36, 25, 16, 20
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111111111111110000000000

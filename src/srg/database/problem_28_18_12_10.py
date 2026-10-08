@@ -1,8 +1,10 @@
 '''
 no solution.
-complement of problem_28_9_0_4: the complement of an SRG(28,9,0,4) is an SRG(28,18,12,10) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
+STATUS: derived - the complement(s) of the graph(s) of problem_28_9_0_4: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
 '''
 from srg.model import array
 
 v, k, l, u = 28, 18, 12, 10
+cpu_sec = None
+wall_clock_sec = None
 solutions: list = []

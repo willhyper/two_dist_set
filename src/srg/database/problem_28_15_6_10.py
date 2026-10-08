@@ -1,9 +1,10 @@
 '''
-complement of problem_28_12_6_4: the complement of an SRG(28,12,6,4) is an SRG(28,15,6,10) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
-
+STATUS: derived - the complement(s) of the graph(s) of problem_28_12_6_4: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
 solutions standardized: 4 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
 '''
 v, k, l, u = 28, 15, 6, 10
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111111000000000000

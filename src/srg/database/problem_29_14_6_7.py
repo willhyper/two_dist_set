@@ -16,6 +16,8 @@ For comparison, the same solver finds a first solution of SRG(27,10,1,5) in 3.9s
 6.1s and SRG(25,12,5,6) in 13.8s, so this one is much harder than its neighbours.
 '''
 v, k, l, u = 29, 14, 6, 7
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111100000000000000

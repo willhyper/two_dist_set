@@ -1,10 +1,9 @@
 '''
-complement of problem_25_8_3_2: the complement of an SRG(25,8,3,2) is an SRG(25,16,9,12) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-32.352s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 30.923s (0.96x)
+STATUS: derived - the complement(s) of the graph(s) of problem_25_8_3_2: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
 '''
 v, k, l, u = 25, 16, 9, 12
+cpu_sec = 30.92  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111111100000000

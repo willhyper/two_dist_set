@@ -28,6 +28,14 @@ v, k, l, u, and solutions: list[str] of plain-text 0/1 grids (see codec.py; get_
     starts with a STATUS line saying whether it is still to be tackled, undecided after a time limit, or a
     complement to derive
   - otherwise solutions holds one matrix per isomorphism class found, which may be fewer than the table's count
+Performance of the solver on a quest is NOT in the docstring but in two variables of the problem file:
+    cpu_sec          CPU seconds of the FASTEST finished solver run on this quest      (None if never finished)
+    wall_clock_sec   wall-clock seconds of the fastest finished run                    (None if never finished)
+each followed by a comment with the machine and Python version. "Finished" means the search ended (all graphs found, the
+requested number found, or non-existence proved); a run stopped by a time limit records nothing here (its narrative stays
+in the docstring). The builder (build.py) replaces a stored number only when a new run is FASTER, each variable compared on
+its own, so the files always show the best known performance whatever version of the code produced it. Files whose graphs
+were constructed or derived (not solved by the solver) have None until the solver finishes the quest itself.
 '''
 
 def list_problems():

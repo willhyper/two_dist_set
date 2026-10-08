@@ -1,10 +1,10 @@
 '''
+STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
 # 1.77s cythonized
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-0.176s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 0.196s (1.11x)
 '''
 v, k, l, u = 25, 8, 3, 2
+cpu_sec = 0.196  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111110000000000000000

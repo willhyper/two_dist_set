@@ -4,6 +4,8 @@ Brouwer table srgtab1-50: exists
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
 v, k, l, u = 50, 42, 35, 36
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111111111111111111111111111110000000

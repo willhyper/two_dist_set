@@ -4,6 +4,8 @@ Brouwer table srgtab51-100: exists - Witt: intersection-2 graph of a quasisymmet
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 v, k, l, u = 56, 45, 36, 36
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111111111111111111111111111111110000000000

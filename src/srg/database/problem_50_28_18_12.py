@@ -5,5 +5,7 @@ Brouwer table srgtab1-50: does not exist - Absolute bound
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
 v, k, l, u = 50, 28, 18, 12
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 ]

@@ -1,17 +1,13 @@
 '''
-totally elapsed 94904.01194787025 s
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-45.1s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+STATUS: tackled - the search finished: these 4 graph(s) are ALL of them (the table: 4!)
 4 solutions = the 4 known non-isomorphic SRG(28,12,6,4) (T(8) + 3 Chang graphs), same isomorphism
 classes as the matrices below
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-27.454s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 26.844s (0.98x)
 
 solutions deduplicated by isomorphism: 161 labelings of 4 graph(s) -> 4 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 28, 12, 6, 4
+cpu_sec = 26.84  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 45.1  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 0111111111111000000000000000

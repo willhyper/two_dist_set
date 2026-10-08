@@ -4,6 +4,8 @@ Brouwer table srgtab1-50: exists - S(2,3,15); lines in PG(3,2); O+(6,2); from ET
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 '''
 v, k, l, u = 35, 18, 9, 9
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111110000000000000000

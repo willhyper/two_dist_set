@@ -1,13 +1,10 @@
 '''
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-0.229s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-0.166s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 0.19s (1.14x)
-
+STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
 solutions deduplicated by isomorphism: 2 labelings of 1 graph(s) -> 1 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 15, 8, 4, 4
+cpu_sec = 0.19  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 0.229  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 011111111000000

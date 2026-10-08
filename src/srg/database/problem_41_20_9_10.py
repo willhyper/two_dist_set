@@ -3,9 +3,10 @@ STATUS: constructed - graph(s) recorded from a known construction (Paley(41)); t
 Brouwer table srgtab1-50: exists (many graphs) - Maksimović-Rukavina; Paley(41); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 solver attempt (2026-10-07, before the propagation speed-ups): found no graph within the 10800s time limit (10804s wall-clock); this says nothing about existence
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
 '''
 v, k, l, u = 41, 20, 9, 10
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111111100000000000000000000

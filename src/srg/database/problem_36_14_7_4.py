@@ -1,10 +1,9 @@
 '''
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-3276s wall-clock. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
-NB: that is wall-clock time and includes roughly half an hour during which the process was suspended
-(SIGSTOP) to keep other benchmarks clean, so the real compute time is lower (not re-timed yet).
+STATUS: tackled - the search finished and found the graph: it is the only one (the table: unique, T(9))
 '''
 v, k, l, u = 36, 14, 7, 4
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111000000000000000000000

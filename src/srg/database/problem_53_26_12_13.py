@@ -4,6 +4,8 @@ Brouwer table srgtab51-100: exists (many graphs) - Paley(53); 2-graph*
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 v, k, l, u = 53, 26, 12, 13
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111111111111100000000000000000000000000

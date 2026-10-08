@@ -8,4 +8,6 @@ Complement: problem_96_76_60_60 (derive from this one when done)
 status = 'todo'  # placeholder: not tackled yet, the empty solutions list below is NOT a proof of anything
 
 v, k, l, u = 96, 19, 2, 4
+cpu_sec = None
+wall_clock_sec = None
 solutions: list = []

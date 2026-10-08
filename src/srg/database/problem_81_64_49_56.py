@@ -4,6 +4,8 @@ Brouwer table srgtab51-100: exists - OA(9,8); vanLint-Schrijver(4)
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 v, k, l, u = 81, 64, 49, 56
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111111111111111111111111111111111111111111111111111110000000000000000

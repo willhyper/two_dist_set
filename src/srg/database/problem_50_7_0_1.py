@@ -3,11 +3,10 @@ STATUS: tackled - the solver found the Hoffman-Singleton graph and its exhaustiv
 Brouwer table srgtab1-50: exists (unique) - U3(52).2 / Sym(7) - Hoffman-Singleton
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_50_42_35_36 (derive from this one when done)
-
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-39.86s CPU (41.05s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 '''
 v, k, l, u = 50, 7, 0, 1
+cpu_sec = 39.86  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 41.05  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 01111111000000000000000000000000000000000000000000

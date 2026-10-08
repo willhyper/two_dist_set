@@ -4,11 +4,11 @@ Brouwer table srgtab1-50: exists (78 graphs) - complete enumeration by Coolsaet,
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_45_32_22_24 (derive from this one when done)
 
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-9424s CPU (1.08e+04s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 search stopped by a 10800.0s time limit with 9 isomorphism class(es) found: existence is settled, but more classes may exist
 '''
 v, k, l, u = 45, 12, 3, 3
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111100000000000000000000000000000000

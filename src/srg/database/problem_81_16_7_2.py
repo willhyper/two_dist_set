@@ -5,6 +5,8 @@ Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 Complement: problem_81_64_49_56 (derive from this one when done)
 '''
 v, k, l, u = 81, 16, 7, 2
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111110000000000000000000000000000000000000000000000000000000000000000

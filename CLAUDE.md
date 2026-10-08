@@ -193,6 +193,9 @@ docstring says so, and a quest can be "constructed" while the solver still canno
 - `construct` records `utils.constructions` results; `complement` derives a problem from its partner exactly.
 - Placeholders (`status = 'todo'`) keep their table lines when replaced; an existing result is MERGED (one matrix
   per isomorphism class), never overwritten.
+- Performance is stored in the variables `cpu_sec` and `wall_clock_sec` of each problem file (fastest finished run, `None` if
+  never finished; the builder only replaces a number by a faster one), not in the docstring. `studies/plot_performance.py`
+  plots them (k linear, seconds log).
 
 **`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
 binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts

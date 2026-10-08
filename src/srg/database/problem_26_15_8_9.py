@@ -1,11 +1,12 @@
 '''
-complement of problem_26_10_3_4: the complement of an SRG(26,10,3,4) is an SRG(26,15,8,9) and vice versa, so its solutions are exactly the complements of that problem's. No search was run.
-
+STATUS: derived - the complement(s) of the graph(s) of problem_26_10_3_4: exact, no search was run for the recorded graph(s); cpu_sec / wall_clock_sec below are the solver's own fastest finished run on this quest
 solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
 
 known construction (block graph of a cyclic Steiner triple system STS(13)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 26, 15, 8, 9
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111110000000000

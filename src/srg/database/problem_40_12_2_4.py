@@ -1,12 +1,12 @@
 '''
-STATUS: partially tackled - 17 graph(s) found; the search hit the 10800s time limit before finishing, so more graphs may exist
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-1.08e+04s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+STATUS: partially tackled - the solver found 17 of the 28 graphs; two runs hit their time limit before the search finished (3h on the old code, 12h on the current code: 17 graphs both times), so more graphs may exist
 Brouwer table srgtab1-50: exists (28 graphs) - complete enumeration by Spence; O(5,3) Sp(4,3); GQ(3,3)
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_40_27_18_18 (derive from this one when done)
 '''
 v, k, l, u = 40, 12, 2, 4
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111000000000000000000000000000

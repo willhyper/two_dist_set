@@ -1,6 +1,5 @@
 '''
 STATUS: tackled - the search finished: these 10 graph(s) are ALL of them [the file now records 10 graph(s) in total, merged with its earlier results]
-21.97s cythonized (old solver, before isomorph rejection).
 Brouwer table: "10!" = exactly 10 non-isomorphic graphs (complete enumeration; see database/__init__.py for the
 symbol convention). This file lists all 10: the solver's exhaustive search finished and returned exactly the table's count, an independent
 check that the solver loses no solutions (and that the search is complete) for this quest.
@@ -9,11 +8,10 @@ check that the solver loses no solutions (and that the search is complete) for t
 solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
 
 known construction (complement of block graph of a cyclic Steiner triple system STS(13)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
-
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-1279s CPU (1754s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 '''
 v, k, l, u = 26, 10, 3, 4
+cpu_sec = 1279  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 1754  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 01111111111000000000000000

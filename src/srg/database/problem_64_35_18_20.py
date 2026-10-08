@@ -6,6 +6,8 @@ Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 known construction (affine polar graph VO+(6,2), complement of net graph of 4 parallel classes of AG(2,8) (OA(8,4)), net graph of 5 parallel classes of AG(2,8) (OA(8,5))) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 64, 35, 18, 20
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111111111111111111111111110000000000000000000000000000

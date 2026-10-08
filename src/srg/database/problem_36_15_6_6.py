@@ -4,9 +4,10 @@ Brouwer table srgtab1-50: exists (32548 graphs) - complete enumeration by McKay 
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_36_20_10_12 (derive from this one when done)
 solver attempt (2026-10-07, before the propagation speed-ups): found no graph within the 10800s time limit (10804s wall-clock); this says nothing about existence
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
 '''
 v, k, l, u = 36, 15, 6, 6
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111100000000000000000000

@@ -1,12 +1,10 @@
 '''
-341.14s cythonized
-
-Intel Core i5-4258U 2.40GHz (4 cores), macOS 15.7.3, python3.14.7
-2.043s. cythonized (./cythonize.sh: all modules, Cython 3.3, annotation_typing=False); same session pure python: 2.011s (0.98x)
-
+STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
 solutions deduplicated by isomorphism: 2 labelings of 1 graph(s) -> 1 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 27, 10, 1, 5
+cpu_sec = 2.011  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111110000000000000000

@@ -1,6 +1,5 @@
 '''
 STATUS: tackled - the search finished: these 15 graph(s) are ALL of them [the file now records 15 graph(s) in total, merged with its earlier results]
-118s cythonized (old solver, before isomorph rejection).
 Brouwer table: "15!" = exactly 15 non-isomorphic graphs (complete enumeration; see database/__init__.py for the
 symbol convention). This file lists all 15: the solver's exhaustive search finished (68,351 partial matrices explored, 2,834s CPU) and returned
 exactly the table's count, an independent check that the solver loses no solutions and that its search is complete.
@@ -9,11 +8,10 @@ exactly the table's count, an independent check that the solver loses no solutio
 solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
 
 known construction (Paley(25)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
-
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-2834s CPU (4181s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process
 '''
 v, k, l, u = 25, 12, 5, 6
+cpu_sec = 2834  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+wall_clock_sec = 4181  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 0111111111111000000000000

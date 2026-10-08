@@ -6,6 +6,8 @@ Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 known construction (complement of Latin square graph of the cyclic Latin square of order 9, complement of affine polar graph VNO+(4,3), complement of net graph of 3 parallel classes of AG(2,9) (OA(9,3)), net graph of 7 parallel classes of AG(2,9) (OA(9,7))) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 81, 56, 37, 42
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111111111111111111111111111111111111111111111000000000000000000000000

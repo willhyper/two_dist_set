@@ -4,6 +4,8 @@ Brouwer table srgtab51-100: exists - from 2-(8,2,1) with 1-factor Fickus et al.;
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 v, k, l, u = 64, 36, 20, 20
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 0111111111111111111111111111111111111000000000000000000000000000

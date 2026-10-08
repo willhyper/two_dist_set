@@ -4,6 +4,8 @@ Brouwer table srgtab51-100: exists (many graphs) - Paley(89); Martin-Williford; 
 Source: https://aeb.win.tue.nl/graphs/srg/srgtab51-100.html
 '''
 v, k, l, u = 89, 44, 21, 22
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 01111111111111111111111111111111111111111111100000000000000000000000000000000000000000000

@@ -7,6 +7,8 @@ Complement: problem_81_56_37_42 (derive from this one when done)
 known construction (Latin square graph of the cyclic Latin square of order 9, affine polar graph VNO+(4,3), complement of net graph of 7 parallel classes of AG(2,9) (OA(9,7)), net graph of 3 parallel classes of AG(2,9) (OA(9,3))) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 81, 24, 9, 6
+cpu_sec = None
+wall_clock_sec = None
 solutions: list[str] = [
 """
 011111111111111111111111100000000000000000000000000000000000000000000000000000000

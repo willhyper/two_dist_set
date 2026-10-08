@@ -1,8 +1,9 @@
 '''
-Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz (4 cores), Darwin 15.7.3, python3.14.7
-3.02s. isomorph rejection + eigenvalue interlacing pruning, pure python, single process
+STATUS: tackled - solved by the solver (its fastest finished run is in cpu_sec / wall_clock_sec below)
 '''
 v, k, l, u = 49, 12, 5, 2
+cpu_sec = None
+wall_clock_sec = 3.02  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
 0111111111111000000000000000000000000000000000000

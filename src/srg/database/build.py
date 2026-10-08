@@ -12,6 +12,7 @@ import inspect
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import time
@@ -51,6 +52,54 @@ def standardize(matrices) -> list:
         c = canon.canonical_matrix(m)
         by_key.setdefault(c.tobytes(), c)
     return [by_key[k] for k in sorted(by_key)]
+
+
+_STAT = re.compile(r'^(cpu_sec|wall_clock_sec) = (None|[0-9][0-9.eE+-]*)(?:  # (.*))?$', re.M)
+
+
+def _hardware_short() -> str:
+    '''the machine tag stored next to a performance number: CPU model and Python version'''
+    try:
+        cpu = subprocess.run(['sysctl', '-n', 'machdep.cpu.brand_string'], capture_output=True, text=True).stdout.strip()
+    except OSError:
+        cpu = ''
+    return f'{cpu or platform.processor() or platform.machine()}, python{platform.python_version()}'
+
+
+def read_stats(path: str) -> dict:
+    '''{'cpu_sec': (value or None, comment), 'wall_clock_sec': (...)} as stored in a problem file'''
+    out = {'cpu_sec': (None, ''), 'wall_clock_sec': (None, '')}
+    if os.path.exists(path):
+        for name, value, comment in _STAT.findall(open(path).read()):
+            out[name] = (None if value == 'None' else float(value), comment)
+    return out
+
+
+def _fmt_stat(x: float) -> str:
+    return str(int(round(x))) if x >= 100 else f'{x:.4g}'
+
+
+def merge_stats(old: dict, cpu_sec=None, wall_clock_sec=None, hardware: str = '') -> dict:
+    '''
+    Lazy update: a stored number is replaced only by a FASTER finished run (a smaller number); None means "not
+    tackled", so any finished run replaces it. cpu_sec and wall_clock_sec are compared independently.
+    '''
+    new = {'cpu_sec': cpu_sec, 'wall_clock_sec': wall_clock_sec}
+    out = {}
+    for name, (value, comment) in old.items():
+        if new[name] is not None and (value is None or new[name] < value):
+            out[name] = (new[name], hardware)
+        else:
+            out[name] = (value, comment)
+    return out
+
+
+def _stat_lines(stats: dict) -> str:
+    lines = []
+    for name in ('cpu_sec', 'wall_clock_sec'):
+        value, comment = stats[name]
+        lines.append(f'{name} = None' if value is None else f'{name} = {_fmt_stat(value)}  # {comment}')
+    return '\n'.join(lines) + '\n'
 
 
 def is_placeholder(path: str) -> bool:
@@ -95,9 +144,11 @@ def note_attempt(v, k, l, u, text: str) -> None:
     open(path, 'w').write(src[:end].rstrip('\n') + '\n' + text.strip('\n') + '\n' + src[end:])
 
 
-def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
+def write_problem(v, k, l, u, matrices, notes: str, force: bool = False, perf: dict = None) -> str:
     '''
-    Write problem_V_K_L_U.py. A placeholder is replaced. A file that already holds a result is MERGED:
+    Write problem_V_K_L_U.py. perf = {'cpu_sec', 'wall_clock_sec', 'hardware'} of a FINISHED solver run, or None: the
+    stored cpu_sec / wall_clock_sec are replaced only by faster numbers (merge_stats), never by slower ones.
+    A placeholder is replaced. A file that already holds a result is MERGED:
     its solutions are kept (one matrix per isomorphism class), the new matrices are added, and notes
     are appended to its docstring - unless force=True, which overwrites it.
     '''
@@ -130,9 +181,13 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False) -> str:
     body = ''.join(f'"""{codec.encode(m)}""",\n' for m in sols)
     if not sols:
         doc = 'no solution.\n' + doc
+    stats = read_stats(path)
+    if perf:
+        stats = merge_stats(stats, perf.get('cpu_sec'), perf.get('wall_clock_sec'), perf.get('hardware', ''))
     with open(path, 'w') as f:
         f.write(f"'''\n{doc}\n'''\n"
                 f"v, k, l, u = {v}, {k}, {l}, {u}\n"
+                f"{_stat_lines(stats)}"
                 f"solutions: list[str] = [\n{body}]\n")
     return path
 
@@ -195,10 +250,9 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
         status = f'STATUS: tackled - the search finished: these {n} graph(s) are ALL of them'
     else:
         status = 'STATUS: tackled - the search finished and found no solution'
-    notes = (f'{status}\n{_hardware()}\n'
-             f'{cpu:.4g}s CPU ({elapsed:.4g}s wall-clock). isomorph rejection + eigenvalue interlacing pruning, pure python, single process'
-             f'{" (total compute time across resumed runs)" if resumed else ""}\n')
-    return write_problem(v, k, l, u, found, notes, force=force)
+    notes = status + '\n'
+    perf = None if stopped else dict(cpu_sec=cpu, wall_clock_sec=elapsed, hardware=_hardware_short())
+    return write_problem(v, k, l, u, found, notes, force=force, perf=perf)
 
 
 def derive_complement(v, k, l, u, force=False) -> str:
