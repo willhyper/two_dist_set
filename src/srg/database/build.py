@@ -160,7 +160,8 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
 
     def progress_limited(msg):
         progress(msg)
-        if time_limit is not None and time.time() - t0 > time_limit:
+        # CPU seconds, not wall-clock: a process that is paused or starved by other jobs must not use up its budget
+        if time_limit is not None and time.process_time() - c0 > time_limit:
             raise TimeLimit
 
     found, stopped = [], False
