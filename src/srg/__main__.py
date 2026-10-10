@@ -11,7 +11,8 @@ import sys
 if __name__ == '__main__':
     pprint.clear()
 
-    args = sys.argv[1:]
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    workers = next((int(a.split('=')[1]) for a in sys.argv[1:] if a.startswith('--workers=')), 1)
     v, k, l, u = map(int, args[:4])
     max_solutions = int(args[4]) if len(args) > 4 else solver.DEFAULT_MAX_SOLUTIONS
     print(v, k, l, u, f'max_solutions={max_solutions}')
@@ -22,7 +23,11 @@ if __name__ == '__main__':
     def _progress(msg: str):
         print(f'[srg] {msg}', file=sys.stderr, flush=True)
 
-    ansgen = solver.solve(s, max_solutions=max_solutions, progress=_progress)
+    if workers > 1:
+        from . import parallel
+        ansgen = parallel.solve_parallel(s, max_solutions=max_solutions, progress=_progress, workers=workers)
+    else:
+        ansgen = solver.solve(s, max_solutions=max_solutions, progress=_progress)
     ans :list = sorter.sort(ansgen)
     pprint.green('*********** answers *************')
     for ans in ans:

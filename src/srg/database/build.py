@@ -19,7 +19,7 @@ import time
 
 import numpy as np
 
-from .. import canon, solver
+from .. import canon, parallel, solver
 from . import codec
 from ..model import PartialSRG, SRGProperties
 
@@ -195,7 +195,7 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False, perf: d
 class TimeLimit(Exception): pass
 
 
-def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, time_limit=None):
+def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, time_limit=None, workers=1):
     '''
     solve and write the problem file. If solve() supports checkpoints the search
     is checkpointed, so an interrupted build resumes where it left off.
@@ -213,20 +213,26 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
 
     t0, c0 = time.time(), time.process_time()
 
+    def cpu_used():  # the master's CPU time plus that of the worker processes
+        return time.process_time() - c0 + (parallel.worker_cpu_seconds if workers > 1 else 0.0)
+
     def progress_limited(msg):
         progress(msg)
         # CPU seconds, not wall-clock: a process that is paused or starved by other jobs must not use up its budget
-        if time_limit is not None and time.process_time() - c0 > time_limit:
+        if time_limit is not None and cpu_used() > time_limit:
             raise TimeLimit
 
     found, stopped = [], False
     try:
-        for m in solver.solve(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
-                              progress=progress_limited, **kwargs):
+        search = (parallel.solve_parallel(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
+                                          progress=progress_limited, workers=workers) if workers > 1 else
+                  solver.solve(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
+                               progress=progress_limited, **kwargs))
+        for m in search:
             found.append(m)
     except TimeLimit:
         stopped = True
-    elapsed, cpu = time.time() - t0, time.process_time() - c0
+    elapsed, cpu = time.time() - t0, cpu_used()
     if stopped and not found:
         # not a proof of anything: do not write a 'no solution' file
         print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
