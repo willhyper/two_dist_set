@@ -14,6 +14,13 @@ identity = partial(np.identity, dtype=dtype)
 class NoSolution(Exception): pass
 
 class Answer:
+    '''
+    The next row being solved, one entry per class of identical columns.
+
+    _loc[i] is the first column of class i (sorted, _loc[0] == 0), _len the row length, quota[i] the size of class i;
+    _v[i] is the number of 1's in class i, or UNKNOWN. Only _v is ever changed in place.
+    '''
+    __slots__ = ('_v', '_loc', '_len', '_quota')
     UNKNOWN = -1
 
     def __init__(self, value: np.array, location: np.array, len: int, quota: np.array = None):
@@ -31,10 +38,7 @@ class Answer:
             assert all(np.diff(location)), f'location is not sorted: {location}'
             assert location[-1] < len
 
-        # quota depends only on _loc/_len, which never change after construction
-        # (only _v is mutated in place elsewhere), so compute it once here.
-        loc_end_inclusive = np.hstack((self._loc, self._len))  # [0,2,4,6,7]
-        self._quota = np.diff(loc_end_inclusive)  # [2,2,2,1]
+        self._quota = np.diff(np.append(location, len))  # [0,2,4,6] with len 7 -> [2,2,2,1]
         assert self._quota.sum() == self._len, f'{self._len} != sum({self._quota})'
 
     @classmethod
@@ -47,20 +51,14 @@ class Answer:
 
     @property
     def unknown_loc(self) -> np.array:
-        return np.where(self._v == self.UNKNOWN)[0]
+        return np.flatnonzero(self._v == self.UNKNOWN)
 
     @property
     def unknown(self) -> bool:
         return bool((self._v == self.UNKNOWN).any())
 
     def copy(self):
-        return Answer(self._v.copy(), self._loc.copy(), self._len, self._quota)
-
-    def __eq__(self, other):
-        if not np.array_equal(self._v, other._v): return False
-        if not np.array_equal(self._loc, other._loc): return False
-        if self._len != other._len: return False
-        return True
+        return Answer(self._v.copy(), self._loc, self._len, self._quota)  # _loc/_quota are never changed in place
 
     def __repr__(self):
         return f'Answer(value={repr(self._v)}, \n    location={repr(self._loc)}, len={self._len})'
@@ -68,7 +66,7 @@ class Answer:
     def __len__(self):
         return self._len
 
-    def binarize(self)-> array:
+    def binarize(self) -> array:
         '''
         for example,
         _quota = (3, 4, 4, 2)
@@ -83,38 +81,30 @@ class Answer:
                     ^     ^       ^       ^
                     1st   2nd     3rd     4th
         '''
-
         _v = self._v
         assert (_v != self.UNKNOWN).all(), f'answer remains unknown: {_v}'
-
-        _quota = self.quota
-        assert (_v <= _quota).all(), f'answer out of quota: {_v} > {_quota}'
+        assert (_v <= self._quota).all(), f'answer out of quota: {_v} > {self._quota}'
 
         _ans = zeros(self._len)
-
-        ptr = 0
-        for c, b in zip(_v, _quota):
-            _ans[ptr: ptr + c] = 1
-            ptr += b
-
+        for start, c in zip(self._loc, _v):
+            _ans[start: start + c] = 1
         return _ans
+
 
 class Question:
     '''
-    given A, b, find x st A @ x = b
+    given A, b, find x st A @ x = b, 0 <= x <= bounds, sum(x) = quota.
+    Plain attributes; the propagation steps (propagate.py) keep b, bounds, quota >= 0 or raise NoSolution,
+    and _invariant_check() verifies that when debugging.
     '''
+    # _eliminated / _zeroed: memos of propagate.eliminate / zero_in_b (skip a step when nothing changed since its last run)
+    __slots__ = ('A', 'b', 'quota', 'bounds', 'answer', '_eliminated', '_zeroed')
 
     def __init__(self, A: np.array, b: np.array, quota: int, bounds: np.array, ans: Answer = None):
-        R, C = A.shape
-        assert R == b.shape[0], f'{R}!=len({b})'
-        assert C == bounds.shape[0], f'{C}!=len({bounds})'
-
+        assert A.shape[0] == b.shape[0], f'{A.shape[0]}!=len({b})'
+        assert A.shape[1] == bounds.shape[0], f'{A.shape[1]}!=len({bounds})'
         self.A, self.b, self.quota, self.bounds = A, b, quota, bounds
-
-        self._ans = Answer.default(C) if ans is None else ans
-
-    def __str__(self):
-        return repr(self)
+        self.answer = Answer.default(A.shape[1]) if ans is None else ans
 
     def __repr__(self):
         '''
@@ -127,30 +117,24 @@ class Question:
             4	[1 0]
             4	[1 0]
             0	[0 0]
-            x=	[? ?]_(2x1)
-            bnd	[4 4]	quota=sum(x)=8
+            x=	[? ?]_(2x1)	quota=sum(x)=8
+            bnd	[4 4]
             Answer(value=array([ 0, -1,  0,  0, -1], dtype=int8),
                 location=array([ 0,  4,  8, 12, 16]), len=20)
         '''
-
-
         R, C = self.A.shape
-        x = ' '.join('?' * C)
-        szx = '(%dx1)' % C
-
         out = f'b\tA_({R}x{C})\n'
         for b, a in zip(self.b, self.A):
             out += f'{b}\t{a}\n'
+        out += f'x=\t[{" ".join("?" * C)}]_({C}x1)\tquota=sum(x)={self.quota}\n'
+        out += f'bnd\t{self.bounds}\n'
+        return out + repr(self.answer)
 
-        out += f'x=\t[{x}]_{szx}\tquota=sum(x)={self.quota}\n'
-        out += f'bnd\t{self._bounds}\n'
-
-        return f'{out}' \
-               f'{self._ans}'
+    __str__ = __repr__
 
     @classmethod
     def from_matrix(cls, m: array):
-        v,k,l,u = SRGProperties.from_matrix(m).vklu
+        v, k, l, u = SRGProperties.from_matrix(m).vklu
         R, C = m.shape
         assert C == v
         known = np.r_[m[:, R], 0]
@@ -163,8 +147,6 @@ class Question:
         A = m[:, R + 1:]
 
         # condition k
-        # quota_used_k = known.sum()
-        # quota_k = k
         unknown_len = v - R - 1
         b_k = k - known.sum()
         a_k = ones(unknown_len)
@@ -177,91 +159,34 @@ class Question:
 
         return Question(A, b, quota=b_k, bounds=a_k)
 
-    @property
-    def answer(self):
-        return self._ans
-
-    @answer.setter
-    def answer(self, update: Answer)->None:
-        # the number of -1 is same as C = self.A.shape[1]
-        num_unknown = len(update.unknown_loc)
-        assert num_unknown == self.A.shape[1]
-
-        self._ans = update
-
-    @property
-    def bounds(self):
-        return self._bounds
-
-    @bounds.setter
-    def bounds(self, new_bounds:array)->None:
-        assert all(new_bounds >= 0), f'some element in bounds are negative : {new_bounds}'
-        self._bounds = new_bounds
-
     def copy(self):
         return Question(self.A.copy(), self.b.copy(), self.quota, self.bounds.copy(), self.answer.copy())
 
-    def __eq__(self, other):
-        if not np.array_equal(self.A, other.A): return False
-        if not np.array_equal(self.b, other.b): return False
-        if self.quota != other.quota: return False
-        if not np.array_equal(self.bounds, other.bounds): return False
-        if self.answer != other.answer: return False
-
-        return True
-
-    @property
-    def b(self):
-        return self._b
-
-    @b.setter
-    def b(self, new_b):
-        assert (new_b >= 0).all(), f'some element in b is negative: {new_b}'
-        self._b = new_b
-
-    @property
-    def quota(self):
-        return self._quota
-
-    @quota.setter
-    def quota(self, new_quota):
-        assert new_quota >= 0, f'new quota should not be negative: {new_quota}'
-        self._quota = new_quota
-
-    @property
-    def bounds(self):
-        return self._bounds
-
-    @bounds.setter
-    def bounds(self, new_bounds):
-        assert (new_bounds >= 0).all(), f'some element in bounds is negative: {new_bounds}'
-        self._bounds = new_bounds
-
-
     def _invariant_check(self):
-        assert np.all(self._b >= 0)
-        assert np.all(self._bounds >= 0)
+        assert np.all(self.b >= 0)
+        assert np.all(self.bounds >= 0)
+        assert self.quota >= 0
         R, C = self.A.shape
-        assert R == self._b.size
-        assert C == self._bounds.size
+        assert R == self.b.size
+        assert C == self.bounds.size
         assert self.answer.unknown_loc.size == C
         assert np.all(self.answer._v <= self.answer.quota)
 
         if C == 0:
-            assert np.all(self._b == 0)
+            assert np.all(self.b == 0)
+
 
 class PartialSRG:
+    '''the first R rows of an adjacency matrix (R x v int8)'''
+    __slots__ = ('_matrix',)
+
     def __init__(self, mat: array):
         self._matrix = mat
 
     def complement_matrix(self, maximize: bool = False):
-        mat = self._matrix
-        R, C = mat.shape
-        
-        _flip = np.vectorize(lambda t: 0 if t else 1)(mat)
-        for r in range(R):
-            _flip[r, r] = 0  # diagonal elements are 0
-        
+        _flip = 1 - self._matrix
+        np.fill_diagonal(_flip, 0)  # diagonal elements are 0 (only the first R of them exist)
+
         if maximize:
             _flip = sorter.maximize(_flip)
         return PartialSRG(_flip)
@@ -320,6 +245,7 @@ class PartialSRG:
         return _repr
 
 class SRGProperties:
+    __slots__ = ('vklu',)
 
     def __init__(self, v: int, k: int, l: int, u: int):
         self.vklu = (v, k, l, u)
