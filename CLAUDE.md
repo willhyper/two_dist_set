@@ -197,9 +197,9 @@ docstring says so, and a quest can be "constructed" while the solver still canno
   never finished; the builder only replaces a number by a faster one), not in the docstring. `studies/plot_performance.py`
   plots them (k linear, seconds log).
 
-**`srg/sorter.py`** — canonicalizes a solved matrix by permuting vertex labels to maximize its
-binary encoding (`maximize`/`AdjMat.sort`), so isomorphic solutions compare equal; also sorts
-lists of solution matrices into a canonical order (used to diff against the database in tests).
+**`srg/sorter.py`** — permutes vertex labels to maximize a matrix's binary encoding (`maximize`/`AdjMat.sort`) and
+sorts lists of matrices. NOT a canonical form (isomorphic matrices can maximize differently): compare and standardize
+with `canon.canonical_matrix` / `canon.canonical_key` instead.
 
 **`srg/database/`** — one `problem_V_K_L_U.py` module per known `(v,k,l,u)`, each exporting
 `v,k,l,u,solutions` as ground truth, where `solutions` is a list of plain-text 0/1 grids (`list[str]`, one
@@ -260,18 +260,30 @@ type declarations. The real wins have come from the algorithm (isomorph rejectio
 
 - `solution-representation`, `cythonize` — merged. `cythonize`: compiling does not help (see above).
 - `bool-dtype` — NOT merged: `bool` adjacency matrices are no faster (~1%) and bool `@`/`dot` are logical ORs.
-- `no-heapq` — `import heapq` was never the cost (2-5 ms once); `heapq.merge` (pure Python) was. Replacing it
-  speeds the elimination core up 7.7x with byte-identical output, ~5-8% end to end. Not merged yet.
+- `no-heapq` — merged. `import heapq` was never the cost (2-5 ms once); `heapq.merge` (pure Python) was. Replacing it
+  speeds the elimination core up 7.7x with byte-identical output, ~5-8% end to end.
 - `flexible-propagation` — propagation steps are composable (`propagate.run(Q, order)`, repeats and `name*`).
   Measured: the SET OF COMPLETIONS never depends on the order (0/100), the propagated state does (49/100, not
   confluent), the order matters for speed (0.96x-1.14x), only `only_1_element_in_row` is not idempotent, and a
-  dirty-tracking worklist does not beat plain rounds. Best order is ~13% faster. Not merged yet.
+  dirty-tracking worklist does not beat plain rounds. Best order is ~13% faster. Merged.
 - `random-restarts` — NOT merged: randomized restarts (`solve_restarts`) find nothing on the quests where plain depth-first finds nothing
   (29,14,6,7; 36,15,6,6; 35,16,6,8 in 15 min each) and are no faster where it succeeds; the dead ends are not an ordering problem.
 - `fast-propagation`, `pair-pruning` — merged: skipping redundant work in the propagation steps (SRG(21,10,4,5) 20.5s -> 9s CPU) and
   the range/pair Gram conditions (-34%/-32% explored partial matrices on the full SRG(26,10,3,4)/(25,12,5,6) enumerations).
 - `resume` (checkpoint/resume) — only on this branch and only for the old level-by-level search; it has to be redone
   for the depth-first solver (state = stack + seen sets + found).
+- `compact-key` — merged: `canon.canonical_key` is a compact exact code (class sizes in unary, built block, one column
+  per class; `canon.decode_key` reads it back), ~30-37% less memory per seen entry, same results and speed. The seen
+  sets, not Question/Answer objects, are what fills RAM in multi-day runs (~150 B per partial matrix reached).
+- `parallel` — NOT merged yet: `parallel.solve_parallel` (one Pool, time-sliced depth-first tasks, leftover stack
+  re-queued by the master, isomorph classes shared through a Manager dict so it explores as many partial matrices as
+  the serial search); `--workers=N` for `python -m srg` and the builder. Correct on the small quests; the speedup is
+  still to be measured on an idle machine. Master stays single-process until then.
+- `model-slim` — NOT merged: `__slots__` and dead-code removal in `model.py`; tests pass, no speed or memory change
+  worth having (Question/Answer objects are short-lived).
+- Hashing the seen keys (e.g. a 16-byte digest) was rejected: it is not exact (a collision would silently drop a
+  partial matrix and could fake a non-existence proof). Next memory idea: cap the seen sets of deep rows, where
+  duplicates (measured) almost never occur; dropping a seen entry only costs repeated work, never correctness.
 
 ## Gotchas
 
@@ -280,3 +292,34 @@ type declarations. The real wins have come from the algorithm (isomorph rejectio
   navigating.
 - `model.dtype = np.int8` is used everywhere as an "ideal bool"; matrices should stay `int8`, not
   be upcast, since `unique`/`gauss_elim` bit-pack rows into integers keyed on column dtype width.
+
+## Working conventions (how the maintainer wants agents to work here)
+
+- **Exactness first.** Never record a partial answer: every matrix stored in a problem file must pass
+  `PartialSRG.solved()`. Store one canonical matrix per isomorphism class (`canon.canonical_matrix`), never
+  `sorter.maximize`. An empty `solutions` list proves non-existence only if the run finished exhaustively (status
+  line says so); time-limited or interrupted runs say UNDECIDED / partially tackled. No hashing or heuristics that
+  could silently drop a candidate.
+- **Commit and push.** After a verified change: tests -> commit -> push, so progress can be followed from GitHub.
+  "main" means `master` (there is no `main` branch). If plain `git push` fails (HTTPS remote, gh configured for ssh):
+  `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`. Never force-push or
+  rewrite a remote branch; leave that to the maintainer.
+- **Experiments on branches.** Each idea gets its own branch (and a git worktree next to the repo, e.g.
+  `../two_dist_set_<name>`); merge into `master` only when the maintainer approves, after the full test suite passes
+  and a measurement shows it helps. Record negative results too (see "Experiment branches").
+- **Measure fairly.** The machine is an Intel i5-4258U (2 cores / 4 threads, 4 GB RAM, macOS) - not the Apple M1 of
+  old docstring entries. Compare with CPU time (`time.process_time`) or explored-node counts, not wall clock, while
+  other jobs run; run at most ~3 CPU-heavy jobs at once. Performance goes into the problem file's `cpu_sec` /
+  `wall_clock_sec` (fastest finished run only, updated lazily by the builder).
+- **Long runs are allowed and expected.** Quests with v < 50 may run for days; do not cap them with time limits unless
+  asked. Run them with the builder (`python -O -m srg.database build v k l u 100`), stderr to a `*.err` log, and
+  watch them with `python -m srg.database status <logdir>` (elapsed / pending / harvested / expected; `queue.txt` in
+  the log dir lists queued quests). The Claude Code mod in `mods/srg-status` shows the same board in the terminal.
+- **Keep venvs and logs out of /tmp.** macOS deletes /tmp files untouched for ~3 days, which breaks the venv of a
+  multi-day run (lazy imports at the end of the run then fail and the graphs found are lost). Use e.g.
+  `~/.venvs/srg_<branch>` with an editable install of the matching worktree.
+- **Brouwer table symbols** (problem docstrings, from aeb.win.tue.nl/graphs/srg): `!` exactly one graph, `N!` exactly
+  N graphs (not factorial), `+` many known, `-` does not exist, `?` open; documented in `database/__init__.py`.
+- **zsh**: an unquoted `$var` is not word-split, so `cmd $args` passes one argument; spell arguments out or use
+  `${=args}`.
+
