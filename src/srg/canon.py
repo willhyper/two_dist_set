@@ -194,14 +194,19 @@ def _canonical(M: np.ndarray, leaf_budget: int):
     A = np.zeros((n, n), dtype=np.uint8)
     for i, nbrs in enumerate(adj):
         A[i, nbrs] = 1
-    iu = _triu(n)
-    wts_arr = np.array(wts, dtype=np.uint8)
+    iu = _triu(R)
+    wts_arr = np.array(wts, dtype=np.int64)
+    rest = int(wts_arr.sum())  # = v - R, the number of unbuilt columns
 
     def certificate(order):
-        # processed vertices come first in the order (colour 0 is the lowest)
+        # processed vertices come first in the order (colour 0 is the lowest). The key is a compact, exact code
+        # (see canonical_key): class sizes in unary, the built rows among themselves, then one column per class.
         o = np.array(order)
-        bits = np.packbits(A[np.ix_(o, o)][iu])
-        return bits.tobytes() + wts_arr[o[R:] - R].tobytes()
+        built, classes = o[:R], o[R:]
+        unary = np.ones(rest, dtype=np.uint8)
+        unary[np.cumsum(wts_arr[classes - R]) - 1] = 0
+        return np.packbits(np.concatenate((unary, A[np.ix_(built, built)][iu],
+                                           A[np.ix_(classes, built)].ravel()))).tobytes()
 
     try:
         return _Search(adj, color, certificate, leaf_budget).best_cert
@@ -210,9 +215,39 @@ def _canonical(M: np.ndarray, leaf_budget: int):
 
 
 def canonical_key(M: np.ndarray, leaf_budget: int = LEAF_BUDGET):
-    '''compact bytes key, equal for isomorphic partial matrices (and only those),
-    or None if the matrix is too symmetric to canonize within leaf_budget.'''
+    '''
+    compact bytes key, equal for isomorphic partial matrices (and only those),
+    or None if the matrix is too symmetric to canonize within leaf_budget.
+
+    For an R x v partial matrix whose v - R unbuilt columns fall into m classes of identical columns, the key is
+    the bits (packed, zero padded to whole bytes)
+
+        class sizes in unary   v - R bits     size s -> s-1 ones and a 0 (so m = number of 0's)
+        built rows             R(R-1)/2 bits  upper triangle of the R x R block
+        classes                m * R bits     one column of the built rows per class
+
+    all in canonical vertex order. Given R and v (keys are only compared between partial matrices with the same
+    shape) every part can be read back (decode_key), so the code is exact - no hashing - at about 40% of the size
+    of the plain relabeled adjacency matrix it replaced. For a complete matrix (R = v) it is just the upper
+    triangle, which canonical_matrix decodes.
+    '''
     return _canonical(M, leaf_budget)
+
+
+def decode_key(key: bytes, R: int, v: int) -> np.ndarray:
+    '''the R x v partial matrix (in canonical order, classes in key order) that canonical_key encoded'''
+    bits = np.unpackbits(np.frombuffer(key, dtype=np.uint8))
+    rest = v - R
+    unary, bits = bits[:rest], bits[rest:]
+    ends = np.flatnonzero(unary == 0)  # the last column of every class
+    sizes = np.diff(np.r_[-1, ends])
+    m = len(sizes)
+    nb = R * (R - 1) // 2
+    block = np.zeros((R, R), dtype=np.int8)
+    block[_triu(R)] = bits[:nb]
+    cols = bits[nb:nb + m * R].reshape(m, R).astype(np.int8)
+    assert not bits[nb + m * R:].any(), 'padding must be zero'
+    return np.hstack([block + block.T, np.repeat(cols, sizes, axis=0).T])
 
 
 def canonical_matrix(A: np.ndarray, leaf_budget: int = 10 ** 7) -> np.ndarray:

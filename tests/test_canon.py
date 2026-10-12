@@ -95,3 +95,26 @@ def test_canonical_key_separates_non_isomorphic_srgs_with_equal_parameters():
     shrikhande = [A for A in db.get_solutions(16, 6, 2, 2)]
     keys = {canon.canonical_key(A, 10 ** 6) for A in shrikhande} | {canon.canonical_key(utils.rook(4), 10 ** 6)}
     assert len(keys) == 2
+
+
+@pytest.mark.parametrize('vklu', [(16, 6, 2, 2), (25, 12, 5, 6), (27, 10, 1, 5), (36, 14, 4, 6), (40, 12, 2, 4)])
+def test_key_decodes_back_exactly(vklu):
+    '''canonical_key is an exact code, not a hash: decoding it gives a partial matrix with the very same key'''
+    rng = np.random.default_rng(7)
+    v = vklu[0]
+    for A in db.get_solutions(*vklu)[:3]:
+        for R in (2, 5, v // 3, v // 2, v - 3, v):
+            p = rng.permutation(v)
+            P = A[p][:, p]  # a relabeling: same graph, different partial matrices
+            M = P[:R]
+            key = canon.canonical_key(M, 10 ** 7)
+            D = canon.decode_key(key, R, v)
+            assert D.shape == (R, v)
+            assert canon.canonical_key(D, 10 ** 7) == key
+            if R == v:
+                assert (D == canon.canonical_matrix(A)).all()
+
+
+def test_key_is_smaller_than_the_matrix_it_encodes():
+    A = db.get_solutions(36, 14, 4, 6)[0]
+    assert len(canon.canonical_key(A[:10])) < A[:10].size // 8
