@@ -106,15 +106,15 @@ def _encode(A: np.array, b: np.array) -> list:
     R, C = A.shape
     assert b.size == R, f'{b.size} != {R}'
 
-    # plain Python ints (via tolist()), not numpy scalars: these tuples get
-    # pushed through heapq millions of times, and native int comparisons are
+    # plain Python ints (via tolist()), not numpy scalars: these tuples are
+    # sorted and compared millions of times, and native int comparisons are
     # much cheaper than numpy scalar comparisons.
     weights = 1 << np.arange(C - 1, -1, -1, dtype=np.int64)
     _sum = (A.astype(np.int64) @ weights).tolist()
 
     return list(zip(_sum, range(R), b.tolist()))
-    # including range(R) to keep the tuple comparable in heapq.
-    # heapq compares _sum first. if equal items in _sum, heapq compares the next element in the tuple.
+    # range(R) breaks ties between equal _sum values, so the tuples sort in the same
+    # order the original heapq.merge version processed them (gauss_elim is not confluent).
 
 
 def _dec2bin(a):
