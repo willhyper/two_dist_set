@@ -5,13 +5,16 @@ symbol convention). This file lists all 15: the solver's exhaustive search finis
 exactly the table's count, an independent check that the solver loses no solutions and that its search is complete.
 (An earlier note here read "total 15! solutions. too many" and took "15!" as a factorial; it is a count.)
 
+Parallel solver: an exhaustive 14-worker run on an Apple M4 Pro finished all 46,557 explored partial matrices,
+returned all 15 graphs, and took 344.025s aggregate CPU / 51.498s wall-clock.
+
 solutions standardized: 1 canonical matrix(es), one per graph (canon.canonical_matrix); they were the old solver's vertex labelings
 
 known construction (Paley(25)) generated, checked with solved(), and added: it is a graph this file did not have yet (NOT found by the solver)
 '''
 v, k, l, u = 25, 12, 5, 6
-cpu_sec = 1476  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
-wall_clock_sec = 1510  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 344  # Apple M4 Pro (14 workers), python3.9.6
+wall_clock_sec = 51.5  # Apple M4 Pro (14 workers), python3.9.6
 solutions: list[str] = [
 """
 0111111111111000000000000
