@@ -6,7 +6,7 @@ classes as the matrices below
 solutions deduplicated by isomorphism: 161 labelings of 4 graph(s) -> 4 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 28, 12, 6, 4
-cpu_sec = 8.147  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 1.017  # Apple M4 Pro (14 workers), python3.9.6
 wall_clock_sec = 10.72  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """

@@ -5,7 +5,7 @@ Source: https://aeb.win.tue.nl/graphs/srg/srgtab1-50.html
 Complement: problem_50_42_35_36 (derive from this one when done)
 '''
 v, k, l, u = 50, 7, 0, 1
-cpu_sec = 39.86  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 9.268  # Apple M4 Pro (14 workers), python3.9.6
 wall_clock_sec = 41.05  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """

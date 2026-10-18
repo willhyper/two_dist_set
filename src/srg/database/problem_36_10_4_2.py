@@ -2,7 +2,7 @@
 STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the file now records 1 graph(s) in total, merged with its earlier results]
 '''
 v, k, l, u = 36, 10, 4, 2
-cpu_sec = 0.663  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 0.1419  # Apple M4 Pro (14 workers), python3.9.6
 wall_clock_sec = 1.104  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """

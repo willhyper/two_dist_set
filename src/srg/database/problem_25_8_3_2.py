@@ -3,7 +3,7 @@ STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the fil
 # 1.77s cythonized
 '''
 v, k, l, u = 25, 8, 3, 2
-cpu_sec = 0.196  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 0.06628  # Apple M4 Pro (14 workers), python3.9.6
 wall_clock_sec = 0.2921  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
