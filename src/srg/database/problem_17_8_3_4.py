@@ -3,7 +3,7 @@ STATUS: tackled - the search finished: these 1 graph(s) are ALL of them [the fil
 solutions deduplicated by isomorphism: 6 labelings of 1 graph(s) -> 1 canonical matrix(es) (canon.canonical_matrix)
 '''
 v, k, l, u = 17, 8, 3, 4
-cpu_sec = 0.2513  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
+cpu_sec = 0.05016  # Apple M4 Pro (14 workers), python3.9.6
 wall_clock_sec = 0.3506  # Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz, python3.14.7
 solutions: list[str] = [
 """
