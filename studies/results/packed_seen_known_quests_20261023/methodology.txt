@@ -1,0 +1,31 @@
+Paired known-quest benchmark: master vs packed-seen
+
+Scope: the 29 earlier database quests, exhaustive on both branches, 14 workers.
+All 58 runs completed. Every returned matrix passed PartialSRG.solved().
+The complete canonical matrix bytes matched the database and the other branch;
+there were no duplicate classes. Total expected/returned solutions: 54 per branch.
+Raw canonical representations, per-run logs, and original harness remain at:
+/Users/willhyper/.srg_runs/packed_seen_benchmark_20261023
+
+CPU is total parent plus reaped child user/system time for the solve, including
+manager work and worker startup. It excludes final canonical validation. This
+is broader than the stored historical cpu_sec values and worker_slice_cpu_sec.
+Compare the paired branch columns, not these numbers against database cpu_sec.
+Wall time covers the solve only. Canonical validation happens after timing.
+RSS is sampled process-tree resident memory every ~20 ms, including the parent,
+manager, resource tracker, and 14 workers. Sampling covers startup through exit.
+Manager peak RSS is also measured separately. Shared pages can count multiple
+times. Short-lived peaks may be missed. Per-quest peaks must not be added.
+
+The machine was also running the original 14-worker SRG(29,14,6,7) quest.
+Each branch ran sequentially, with first-branch order alternating by quest.
+Python 3.9.6, NumPy 2.0.2, python -O, PYTHONHASHSEED=0, BLAS thread limits=1.
+Single paired pass: these are measured results under load, not confidence
+intervals or a guarantee for the unfinished multi-day quest. Small quests are
+mostly process startup, which obscures key-store savings in whole-tree RSS.
+No database performance values or active solver files were changed.
+
+Aggregate results:
+Total CPU: 722.137810 -> 603.592267 s (16.42% lower).
+Maximum combined RSS: 541.921875 -> 525.437500 MiB.
+Maximum manager RSS: 35.796875 -> 23.015625 MiB.

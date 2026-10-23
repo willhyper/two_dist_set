@@ -1,0 +1,1104 @@
+[
+  {
+    "quest": [
+      4,
+      2,
+      0,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.192104,
+    "wall_sec": 0.314394583,
+    "worker_slice_cpu_sec": 0.0010720000000000035,
+    "stored_cpu_sec": 0.014,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.40625,
+    "peak_manager_rss_mib": 21.484375,
+    "max_processes": 17,
+    "memory_samples": 20
+  },
+  {
+    "quest": [
+      4,
+      2,
+      0,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.177661,
+    "wall_sec": 0.3092705,
+    "worker_slice_cpu_sec": 0.0011440000000000061,
+    "stored_cpu_sec": 0.014,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 360.3125,
+    "peak_manager_rss_mib": 21.125,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      5,
+      2,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.167922,
+    "wall_sec": 0.327830833,
+    "worker_slice_cpu_sec": 0.0016479999999999967,
+    "stored_cpu_sec": 0.005,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 358.875,
+    "peak_manager_rss_mib": 20.890625,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      5,
+      2,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.182614,
+    "wall_sec": 0.334839041,
+    "worker_slice_cpu_sec": 0.0030770000000000103,
+    "stored_cpu_sec": 0.005,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.84375,
+    "peak_manager_rss_mib": 20.921875,
+    "max_processes": 17,
+    "memory_samples": 17
+  },
+  {
+    "quest": [
+      9,
+      4,
+      1,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1143230000000002,
+    "wall_sec": 0.227556292,
+    "worker_slice_cpu_sec": 0.008729,
+    "stored_cpu_sec": 0.014,
+    "branch": "master",
+    "peak_tree_rss_mib": 365.03125,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 13
+  },
+  {
+    "quest": [
+      9,
+      4,
+      1,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1126479999999999,
+    "wall_sec": 0.23763941699999996,
+    "worker_slice_cpu_sec": 0.008759000000000003,
+    "stored_cpu_sec": 0.014,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 360.59375,
+    "peak_manager_rss_mib": 21.359375,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      10,
+      3,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.12394,
+    "wall_sec": 0.21883295800000002,
+    "worker_slice_cpu_sec": 0.010021000000000002,
+    "stored_cpu_sec": 0.02448,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.765625,
+    "peak_manager_rss_mib": 21.34375,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      10,
+      3,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1226399999999999,
+    "wall_sec": 0.235521708,
+    "worker_slice_cpu_sec": 0.010193999999999995,
+    "stored_cpu_sec": 0.02448,
+    "branch": "master",
+    "peak_tree_rss_mib": 365.125,
+    "peak_manager_rss_mib": 21.265625,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      10,
+      6,
+      3,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.137264,
+    "wall_sec": 0.23746066600000001,
+    "worker_slice_cpu_sec": 0.015865000000000004,
+    "stored_cpu_sec": 0.02633,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.78125,
+    "peak_manager_rss_mib": 21.296875,
+    "max_processes": 17,
+    "memory_samples": 13
+  },
+  {
+    "quest": [
+      10,
+      6,
+      3,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.139446,
+    "wall_sec": 0.23322783400000002,
+    "worker_slice_cpu_sec": 0.015398999999999996,
+    "stored_cpu_sec": 0.02633,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.171875,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      12,
+      6,
+      0,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.170661,
+    "wall_sec": 0.24239245899999998,
+    "worker_slice_cpu_sec": 0.019532999999999995,
+    "stored_cpu_sec": 0.03385,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.296875,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      12,
+      6,
+      0,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1552229999999999,
+    "wall_sec": 0.26101970900000004,
+    "worker_slice_cpu_sec": 0.019048999999999983,
+    "stored_cpu_sec": 0.03385,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.125,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      13,
+      6,
+      2,
+      3
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.166671,
+    "wall_sec": 0.25155625000000004,
+    "worker_slice_cpu_sec": 0.01907500000000001,
+    "stored_cpu_sec": 0.03113,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.796875,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      13,
+      6,
+      2,
+      3
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1517140000000001,
+    "wall_sec": 0.24467895899999997,
+    "worker_slice_cpu_sec": 0.018874000000000002,
+    "stored_cpu_sec": 0.03113,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 363.640625,
+    "peak_manager_rss_mib": 21.359375,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      15,
+      6,
+      1,
+      3
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.131384,
+    "wall_sec": 0.23450829199999998,
+    "worker_slice_cpu_sec": 0.027893999999999988,
+    "stored_cpu_sec": 0.03511,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.609375,
+    "peak_manager_rss_mib": 21.359375,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      15,
+      6,
+      1,
+      3
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.206037,
+    "wall_sec": 0.28846283300000003,
+    "worker_slice_cpu_sec": 0.028004000000000015,
+    "stored_cpu_sec": 0.03511,
+    "branch": "master",
+    "peak_tree_rss_mib": 362.921875,
+    "peak_manager_rss_mib": 21.078125,
+    "max_processes": 17,
+    "memory_samples": 16
+  },
+  {
+    "quest": [
+      15,
+      8,
+      4,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1855559999999998,
+    "wall_sec": 0.279887791,
+    "worker_slice_cpu_sec": 0.05674499999999999,
+    "stored_cpu_sec": 0.04639,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.734375,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 16
+  },
+  {
+    "quest": [
+      15,
+      8,
+      4,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.193679,
+    "wall_sec": 0.269338583,
+    "worker_slice_cpu_sec": 0.054347000000000006,
+    "stored_cpu_sec": 0.04639,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.4375,
+    "peak_manager_rss_mib": 21.140625,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      16,
+      5,
+      0,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.1696989999999998,
+    "wall_sec": 0.256385333,
+    "worker_slice_cpu_sec": 0.02755400000000001,
+    "stored_cpu_sec": 0.03305,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 361.84375,
+    "peak_manager_rss_mib": 21.46875,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      16,
+      5,
+      0,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.143697,
+    "wall_sec": 0.253530291,
+    "worker_slice_cpu_sec": 0.027815000000000006,
+    "stored_cpu_sec": 0.03305,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.578125,
+    "peak_manager_rss_mib": 21.296875,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      16,
+      6,
+      2,
+      2
+    ],
+    "solutions": 2,
+    "exact": true,
+    "cpu_sec": 1.17102,
+    "wall_sec": 0.272755541,
+    "worker_slice_cpu_sec": 0.04664599999999999,
+    "stored_cpu_sec": 0.04066,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.546875,
+    "peak_manager_rss_mib": 21.421875,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      16,
+      6,
+      2,
+      2
+    ],
+    "solutions": 2,
+    "exact": true,
+    "cpu_sec": 1.1977559999999998,
+    "wall_sec": 0.281094958,
+    "worker_slice_cpu_sec": 0.048972000000000016,
+    "stored_cpu_sec": 0.04066,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 363.484375,
+    "peak_manager_rss_mib": 21.25,
+    "max_processes": 17,
+    "memory_samples": 16
+  },
+  {
+    "quest": [
+      16,
+      9,
+      4,
+      6
+    ],
+    "solutions": 2,
+    "exact": true,
+    "cpu_sec": 1.2448329999999999,
+    "wall_sec": 0.326161,
+    "worker_slice_cpu_sec": 0.08881499999999999,
+    "stored_cpu_sec": 0.05896,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 364.3125,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      16,
+      9,
+      4,
+      6
+    ],
+    "solutions": 2,
+    "exact": true,
+    "cpu_sec": 1.2473649999999998,
+    "wall_sec": 0.330175291,
+    "worker_slice_cpu_sec": 0.08721000000000001,
+    "stored_cpu_sec": 0.05896,
+    "branch": "master",
+    "peak_tree_rss_mib": 366.328125,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      16,
+      10,
+      6,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.257066,
+    "wall_sec": 0.327231583,
+    "worker_slice_cpu_sec": 0.10442699999999999,
+    "stored_cpu_sec": 0.06562,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.84375,
+    "peak_manager_rss_mib": 21.046875,
+    "max_processes": 17,
+    "memory_samples": 17
+  },
+  {
+    "quest": [
+      16,
+      10,
+      6,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.270226,
+    "wall_sec": 0.339841334,
+    "worker_slice_cpu_sec": 0.10606099999999999,
+    "stored_cpu_sec": 0.06562,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 361.921875,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      17,
+      8,
+      3,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.2407780000000002,
+    "wall_sec": 0.298024667,
+    "worker_slice_cpu_sec": 0.07437200000000001,
+    "stored_cpu_sec": 0.05016,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.953125,
+    "peak_manager_rss_mib": 21.34375,
+    "max_processes": 17,
+    "memory_samples": 17
+  },
+  {
+    "quest": [
+      17,
+      8,
+      3,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.2119659999999999,
+    "wall_sec": 0.300411875,
+    "worker_slice_cpu_sec": 0.07367099999999999,
+    "stored_cpu_sec": 0.05016,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.84375,
+    "peak_manager_rss_mib": 21.171875,
+    "max_processes": 17,
+    "memory_samples": 17
+  },
+  {
+    "quest": [
+      21,
+      10,
+      3,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.204562,
+    "wall_sec": 0.266554583,
+    "worker_slice_cpu_sec": 0.043272000000000005,
+    "stored_cpu_sec": 0.03904,
+    "branch": "master",
+    "peak_tree_rss_mib": 364.15625,
+    "peak_manager_rss_mib": 21.265625,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      21,
+      10,
+      3,
+      6
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.2194709999999997,
+    "wall_sec": 0.285756,
+    "worker_slice_cpu_sec": 0.043441999999999995,
+    "stored_cpu_sec": 0.03904,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 363.234375,
+    "peak_manager_rss_mib": 21.3125,
+    "max_processes": 17,
+    "memory_samples": 16
+  },
+  {
+    "quest": [
+      21,
+      10,
+      4,
+      5
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 2.868486,
+    "wall_sec": 1.441050875,
+    "worker_slice_cpu_sec": 1.3911780000000002,
+    "stored_cpu_sec": 0.6958,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 443.984375,
+    "peak_manager_rss_mib": 21.515625,
+    "max_processes": 17,
+    "memory_samples": 60
+  },
+  {
+    "quest": [
+      21,
+      10,
+      4,
+      5
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 2.987472,
+    "wall_sec": 1.418715708,
+    "worker_slice_cpu_sec": 1.4263370000000002,
+    "stored_cpu_sec": 0.6958,
+    "branch": "master",
+    "peak_tree_rss_mib": 467.0625,
+    "peak_manager_rss_mib": 21.671875,
+    "max_processes": 17,
+    "memory_samples": 59
+  },
+  {
+    "quest": [
+      21,
+      10,
+      5,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.439972,
+    "wall_sec": 0.513532625,
+    "worker_slice_cpu_sec": 0.2777,
+    "stored_cpu_sec": 0.1479,
+    "branch": "master",
+    "peak_tree_rss_mib": 365.1875,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 25
+  },
+  {
+    "quest": [
+      21,
+      10,
+      5,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.4349859999999999,
+    "wall_sec": 0.494579333,
+    "worker_slice_cpu_sec": 0.27231700000000003,
+    "stored_cpu_sec": 0.1479,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 363.28125,
+    "peak_manager_rss_mib": 21.171875,
+    "max_processes": 17,
+    "memory_samples": 24
+  },
+  {
+    "quest": [
+      25,
+      8,
+      3,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.242807,
+    "wall_sec": 0.32859725,
+    "worker_slice_cpu_sec": 0.091407,
+    "stored_cpu_sec": 0.06628,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 364.65625,
+    "peak_manager_rss_mib": 21.359375,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      25,
+      8,
+      3,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.262845,
+    "wall_sec": 0.369907042,
+    "worker_slice_cpu_sec": 0.090647,
+    "stored_cpu_sec": 0.06628,
+    "branch": "master",
+    "peak_tree_rss_mib": 366.3125,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 18
+  },
+  {
+    "quest": [
+      25,
+      12,
+      5,
+      6
+    ],
+    "solutions": 15,
+    "exact": true,
+    "cpu_sec": 442.144441,
+    "wall_sec": 86.9888255,
+    "worker_slice_cpu_sec": 435.02299599999964,
+    "stored_cpu_sec": 310,
+    "branch": "master",
+    "peak_tree_rss_mib": 541.921875,
+    "peak_manager_rss_mib": 35.796875,
+    "max_processes": 17,
+    "memory_samples": 3355
+  },
+  {
+    "quest": [
+      25,
+      12,
+      5,
+      6
+    ],
+    "solutions": 15,
+    "exact": true,
+    "cpu_sec": 377.71491399999996,
+    "wall_sec": 63.376302958,
+    "worker_slice_cpu_sec": 371.1269260000001,
+    "stored_cpu_sec": 310,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 523.46875,
+    "peak_manager_rss_mib": 21.75,
+    "max_processes": 17,
+    "memory_samples": 2404
+  },
+  {
+    "quest": [
+      25,
+      16,
+      9,
+      12
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.8096029999999999,
+    "wall_sec": 0.8816807919999999,
+    "worker_slice_cpu_sec": 0.592805,
+    "stored_cpu_sec": 0.3937,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 361.875,
+    "peak_manager_rss_mib": 21.40625,
+    "max_processes": 17,
+    "memory_samples": 39
+  },
+  {
+    "quest": [
+      25,
+      16,
+      9,
+      12
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.79024,
+    "wall_sec": 0.8241914170000001,
+    "worker_slice_cpu_sec": 0.5643769999999999,
+    "stored_cpu_sec": 0.3937,
+    "branch": "master",
+    "peak_tree_rss_mib": 361.984375,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 37
+  },
+  {
+    "quest": [
+      26,
+      10,
+      3,
+      4
+    ],
+    "solutions": 10,
+    "exact": true,
+    "cpu_sec": 222.04925,
+    "wall_sec": 78.55205691699999,
+    "worker_slice_cpu_sec": 217.48656499999996,
+    "stored_cpu_sec": 128,
+    "branch": "master",
+    "peak_tree_rss_mib": 536.546875,
+    "peak_manager_rss_mib": 30.9375,
+    "max_processes": 17,
+    "memory_samples": 3016
+  },
+  {
+    "quest": [
+      26,
+      10,
+      3,
+      4
+    ],
+    "solutions": 10,
+    "exact": true,
+    "cpu_sec": 167.53604499999997,
+    "wall_sec": 69.99058262499999,
+    "worker_slice_cpu_sec": 163.51924600000004,
+    "stored_cpu_sec": 128,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 525.4375,
+    "peak_manager_rss_mib": 23.015625,
+    "max_processes": 17,
+    "memory_samples": 2675
+  },
+  {
+    "quest": [
+      27,
+      10,
+      1,
+      5
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.37943,
+    "wall_sec": 0.45604454099999997,
+    "worker_slice_cpu_sec": 0.24560800000000002,
+    "stored_cpu_sec": 0.1829,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.015625,
+    "peak_manager_rss_mib": 20.984375,
+    "max_processes": 17,
+    "memory_samples": 23
+  },
+  {
+    "quest": [
+      27,
+      10,
+      1,
+      5
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.3708049999999998,
+    "wall_sec": 0.46567770799999997,
+    "worker_slice_cpu_sec": 0.241498,
+    "stored_cpu_sec": 0.1829,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.375,
+    "peak_manager_rss_mib": 21.09375,
+    "max_processes": 17,
+    "memory_samples": 24
+  },
+  {
+    "quest": [
+      28,
+      9,
+      0,
+      4
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 1.1403579999999998,
+    "wall_sec": 0.24495487500000002,
+    "worker_slice_cpu_sec": 0.029866000000000004,
+    "stored_cpu_sec": 0.0384,
+    "branch": "master",
+    "peak_tree_rss_mib": 359.8125,
+    "peak_manager_rss_mib": 21.34375,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      28,
+      9,
+      0,
+      4
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 1.128914,
+    "wall_sec": 0.24984966699999997,
+    "worker_slice_cpu_sec": 0.026710999999999985,
+    "stored_cpu_sec": 0.0384,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 360.421875,
+    "peak_manager_rss_mib": 21.078125,
+    "max_processes": 17,
+    "memory_samples": 15
+  },
+  {
+    "quest": [
+      28,
+      12,
+      6,
+      4
+    ],
+    "solutions": 4,
+    "exact": true,
+    "cpu_sec": 3.053605,
+    "wall_sec": 1.652559208,
+    "worker_slice_cpu_sec": 1.597261,
+    "stored_cpu_sec": 1.017,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 437.453125,
+    "peak_manager_rss_mib": 21.4375,
+    "max_processes": 17,
+    "memory_samples": 71
+  },
+  {
+    "quest": [
+      28,
+      12,
+      6,
+      4
+    ],
+    "solutions": 4,
+    "exact": true,
+    "cpu_sec": 2.776088,
+    "wall_sec": 1.459882458,
+    "worker_slice_cpu_sec": 1.37515,
+    "stored_cpu_sec": 1.017,
+    "branch": "master",
+    "peak_tree_rss_mib": 436.265625,
+    "peak_manager_rss_mib": 21.4375,
+    "max_processes": 17,
+    "memory_samples": 61
+  },
+  {
+    "quest": [
+      36,
+      10,
+      4,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.2965609999999999,
+    "wall_sec": 0.4478275420000001,
+    "worker_slice_cpu_sec": 0.120938,
+    "stored_cpu_sec": 0.1419,
+    "branch": "master",
+    "peak_tree_rss_mib": 361.390625,
+    "peak_manager_rss_mib": 21.03125,
+    "max_processes": 17,
+    "memory_samples": 22
+  },
+  {
+    "quest": [
+      36,
+      10,
+      4,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.2987999999999997,
+    "wall_sec": 0.43205191600000004,
+    "worker_slice_cpu_sec": 0.121654,
+    "stored_cpu_sec": 0.1419,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 361.9375,
+    "peak_manager_rss_mib": 20.984375,
+    "max_processes": 17,
+    "memory_samples": 22
+  },
+  {
+    "quest": [
+      36,
+      14,
+      7,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 8.658125,
+    "wall_sec": 4.34354925,
+    "worker_slice_cpu_sec": 7.0579719999999995,
+    "stored_cpu_sec": 7.338,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 470.453125,
+    "peak_manager_rss_mib": 21.296875,
+    "max_processes": 17,
+    "memory_samples": 170
+  },
+  {
+    "quest": [
+      36,
+      14,
+      7,
+      4
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 8.678459,
+    "wall_sec": 4.381182666,
+    "worker_slice_cpu_sec": 7.077373,
+    "stored_cpu_sec": 7.338,
+    "branch": "master",
+    "peak_tree_rss_mib": 469.8125,
+    "peak_manager_rss_mib": 21.03125,
+    "max_processes": 17,
+    "memory_samples": 170
+  },
+  {
+    "quest": [
+      49,
+      12,
+      5,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.9298739999999999,
+    "wall_sec": 1.081838667,
+    "worker_slice_cpu_sec": 0.768897,
+    "stored_cpu_sec": 0.4176,
+    "branch": "master",
+    "peak_tree_rss_mib": 363.5,
+    "peak_manager_rss_mib": 21.328125,
+    "max_processes": 17,
+    "memory_samples": 50
+  },
+  {
+    "quest": [
+      49,
+      12,
+      5,
+      2
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 1.9022479999999997,
+    "wall_sec": 1.074339166,
+    "worker_slice_cpu_sec": 0.741768,
+    "stored_cpu_sec": 0.4176,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 365.6875,
+    "peak_manager_rss_mib": 21.234375,
+    "max_processes": 17,
+    "memory_samples": 45
+  },
+  {
+    "quest": [
+      50,
+      7,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 14.673195999999999,
+    "wall_sec": 4.908467417,
+    "worker_slice_cpu_sec": 12.853311999999999,
+    "stored_cpu_sec": 9.268,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 493.28125,
+    "peak_manager_rss_mib": 21.625,
+    "max_processes": 17,
+    "memory_samples": 194
+  },
+  {
+    "quest": [
+      50,
+      7,
+      0,
+      1
+    ],
+    "solutions": 1,
+    "exact": true,
+    "cpu_sec": 14.418626000000001,
+    "wall_sec": 4.82635825,
+    "worker_slice_cpu_sec": 12.67944,
+    "stored_cpu_sec": 9.268,
+    "branch": "master",
+    "peak_tree_rss_mib": 495.0,
+    "peak_manager_rss_mib": 21.421875,
+    "max_processes": 17,
+    "memory_samples": 191
+  },
+  {
+    "quest": [
+      50,
+      21,
+      4,
+      12
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 1.1547109999999998,
+    "wall_sec": 0.22778304200000005,
+    "worker_slice_cpu_sec": 0.0009709999999999996,
+    "stored_cpu_sec": 0.002966,
+    "branch": "master",
+    "peak_tree_rss_mib": 341.25,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 14
+  },
+  {
+    "quest": [
+      50,
+      21,
+      4,
+      12
+    ],
+    "solutions": 0,
+    "exact": true,
+    "cpu_sec": 1.17929,
+    "wall_sec": 0.230638833,
+    "worker_slice_cpu_sec": 0.0011060000000000098,
+    "stored_cpu_sec": 0.002966,
+    "branch": "packed-seen",
+    "peak_tree_rss_mib": 362.0,
+    "peak_manager_rss_mib": 21.28125,
+    "max_processes": 17,
+    "memory_samples": 14
+  }
+]
