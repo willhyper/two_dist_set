@@ -1,6 +1,6 @@
 Paired known-quest benchmark: master vs packed-seen
 
-Scope: the 29 earlier database quests, exhaustive on both branches, 14 workers.
+Scope: the 29 benchmark quests, exhaustive on both branches, 14 workers.
 All 58 runs completed. Every returned matrix passed PartialSRG.solved().
 The complete canonical matrix bytes matched the database and the other branch;
 there were no duplicate classes. Total expected/returned solutions: 54 per branch.

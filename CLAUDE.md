@@ -61,6 +61,23 @@ Three concrete workflows built around that goal:
 3. **Visualize a banked solution.** `python -m srg.database draw v k l u` renders a saved quest's
    matrices as graphs via networkx/matplotlib (`srg/database/__init__.py`'s `draw()`).
 
+## Benchmark quests
+
+The **benchmark quests** are the fixed 29 database parameter sets in
+`studies/compare_seen.py` (`BENCHMARK_QUESTS`). Use this name for the standard
+regression and performance comparison set. The 2026-10-23 comparison is recorded
+in `studies/results/packed_seen_known_quests_20261023/`.
+
+For solver changes, compare the complete canonical solution set against the
+stored database first, including zero-solution quests, and verify every returned
+matrix with `PartialSRG.solved()`. Then compare CPU time and memory using identical
+worker counts and settings. `studies/compare_seen.py` runs each quest in a fresh
+process against two source trees and records total solver CPU, sampled combined
+RSS, and manager RSS separately. Total CPU includes process startup and manager
+work; it is not directly comparable to older worker-only database timings.
+Record key-store bytes per retained key separately when assessing storage
+changes: interpreter and worker allocations can dominate combined RSS.
+
 ## Commands
 
 ```bash
@@ -275,12 +292,14 @@ type declarations. The real wins have come from the algorithm (isomorph rejectio
 - `compact-key` — merged: `canon.canonical_key` is a compact exact code (class sizes in unary, built block, one column
   per class; `canon.decode_key` reads it back), ~30-37% less memory per seen entry, same results and speed. The seen
   sets, not Question/Answer objects, are what fills RAM in multi-day runs (~150 B per partial matrix reached).
-- `parallel` — NOT merged yet: `parallel.solve_parallel` (one Pool, time-sliced depth-first tasks, leftover stack
+- `parallel` — merged: `parallel.solve_parallel` (one Pool, time-sliced depth-first tasks, leftover stack
   re-queued by the master, isomorph classes shared through a Manager dict so it explores as many partial matrices as
-  the serial search); `--workers=N` for `python -m srg` and the builder. Correct on the small quests; the speedup is
-  still to be measured on an idle machine. Master stays single-process until then.
+  the serial search); `--workers=N` for `python -m srg` and the builder. Verified against all 29 benchmark quests.
 - `model-slim` — NOT merged: `__slots__` and dead-code removal in `model.py`; tests pass, no speed or memory change
   worth having (Question/Answer objects are short-lived).
+- `packed-seen` — merged: exact shared canonical keys live in packed byte tables instead of per-entry Python
+  bytes/tuple/ownership objects. Every full key is retained; hash collisions use byte-for-byte comparison. All 29
+  benchmark quests matched exactly. See the recorded paired CPU/RSS results above; no eviction is used.
 - Hashing the seen keys (e.g. a 16-byte digest) was rejected: it is not exact (a collision would silently drop a
   partial matrix and could fake a non-existence proof). Next memory idea: cap the seen sets of deep rows, where
   duplicates (measured) almost never occur; dropping a seen entry only costs repeated work, never correctness.

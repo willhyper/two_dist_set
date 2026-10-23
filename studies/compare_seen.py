@@ -1,4 +1,4 @@
-"""Paired exactness/CPU/RSS benchmark for master and packed-seen on macOS.
+"""Run the 29 benchmark quests: paired exactness/CPU/RSS comparison on macOS.
 
 Run from packed-seen with a persistent output directory:
   python studies/compare_seen.py --output ~/.srg_runs/packed_seen_benchmark --workers 14
@@ -25,7 +25,7 @@ import subprocess
 import sys
 import time
 
-QUESTS = [
+BENCHMARK_QUESTS = [
  (4,2,0,2),(5,2,0,1),(9,4,1,2),(10,3,0,1),(10,6,3,4),
  (12,6,0,6),(13,6,2,3),(15,6,1,3),(15,8,4,4),(16,5,0,2),
  (16,6,2,2),(16,9,4,6),(16,10,6,6),(17,8,3,4),(21,10,3,6),
@@ -142,11 +142,11 @@ def main(args):
         'branches':{name:{'root':str(root),'commit':git(root,'rev-parse','HEAD')}
                     for name,root in ROOTS.items()},
         'notes':__doc__, 'python_hash_seed':'0',
-        'blas_thread_limit':'1', 'quest_count':len(QUESTS),
+        'blas_thread_limit':'1', 'quest_count':len(BENCHMARK_QUESTS),
     }
     (output/'metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
     rows=[]
-    for index,quest in enumerate(QUESTS):
+    for index,quest in enumerate(BENCHMARK_QUESTS):
         name='problem_'+'_'.join(map(str,quest))
         order=['master','packed-seen'] if index%2==0 else ['packed-seen','master']
         pair={}
@@ -191,7 +191,7 @@ def main(args):
             print(json.dumps(small),flush=True)
         if pair['master']['canonical_solutions'] != pair['packed-seen']['canonical_solutions']:
             raise RuntimeError('cross-branch solution mismatch for '+name)
-        (output/'progress.json').write_text(json.dumps({'completed_pairs':index+1,'total_pairs':len(QUESTS),'last_quest':quest})+'\n')
+        (output/'progress.json').write_text(json.dumps({'completed_pairs':index+1,'total_pairs':len(BENCHMARK_QUESTS),'last_quest':quest})+'\n')
     print('ALL_29_PAIRS_EXACT',flush=True)
 
 
