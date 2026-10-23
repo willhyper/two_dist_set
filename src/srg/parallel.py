@@ -4,15 +4,16 @@ Multi-process version of solver.solve: one Pool, created once, no nested pools.
 The depth-first search is cut into time slices. A task is a list of partial matrices (subtree roots); a worker runs
 the ordinary depth-first loop of solver.solve on them for ``SLICE_SECONDS`` and returns the solutions it found, plus
 the part of its stack that it did not get to (siblings at every depth). The master puts those leftovers back on its
-own stack (global depth-first order, so memory stays small), drops the ones whose isomorphism class it has already
-sent out (one global ``seen`` per number of rows), and hands the next ones to whichever worker is free. Because
+own stack (global depth-first order), then hands the next ones to whichever worker is free. Partial classes are
+claimed before queuing; without shared claims the master deduplicates returned roots itself. Because
 subtrees are wildly uneven, slicing keeps every core busy until the stack is empty, which static splitting of the
 stack cannot do. The stack the master holds *is* a checkpoint of the whole search.
 
-What is lost against the serial search: workers do not share ``seen``, so two workers can rebuild the same
-isomorphic subtree below their roots (wasted work, not wrong answers; solutions are de-duplicated by
-canon.canonical_key at the master). Completeness is unchanged: every partial matrix that is not extended is either
-infeasible (spectral), isomorphic to one that is, or already extended.
+Workers share exact canonical keys through packed byte tables in a manager process. A claim stores only the
+complete key plus an occupancy byte per allocated slot; there are no persistent per-key Python bytes objects,
+(row, key) tuples, or ownership tokens. Hash collisions are resolved by comparing the full keys. No entries are
+evicted, so the shared set rejects the same duplicate classes as the unbounded dictionary it replaces.
+Worker-local sets are discarded after each time slice; complete solutions are deduplicated at the master.
 """
 import multiprocessing
 import queue
@@ -24,6 +25,7 @@ import numpy as np
 
 from . import canon, solver, spectral
 from .model import PartialSRG, SRGProperties
+from .seen import SeenManager
 
 SLICE_SECONDS = 20.0  # a worker hands back its stack after this long
 FIRST_SLICE_SECONDS = 1.0  # the root is cut up quickly so that every worker has something to do
@@ -37,8 +39,8 @@ def _spectrum(vklu):
     return _spectra[vklu]
 
 
-def _fresh_shared(local: set, shared, token, rows: int, matrix, isomorph_free: bool) -> bool:
-    """solver._fresh against a dict shared by all workers: the first process to claim an isomorphism class wins."""
+def _fresh_shared(local: set, shared, rows: int, matrix, isomorph_free: bool) -> bool:
+    """solver._fresh against the shared exact-key store: the first class claim wins."""
     if not isomorph_free:
         return True
     key = canon.canonical_key(matrix)
@@ -47,10 +49,7 @@ def _fresh_shared(local: set, shared, token, rows: int, matrix, isomorph_free: b
     if key in local:
         return False
     local.add(key)
-    return shared is None or shared.setdefault((rows, key), token) == token
-
-
-_slices = 0
+    return shared is None or shared.claim(rows, key)
 
 
 def work(task):
@@ -59,10 +58,7 @@ def work(task):
     task = (vklu, roots, seconds, isomorph_free). Returns (solutions, leftover, explored, cpu_seconds):
     leftover is the unexplored part of the stack in stack order (last = next to explore).
     """
-    global _slices
     vklu, roots, seconds, isomorph_free, shared = task
-    _slices += 1
-    token = (multiprocessing.current_process().pid, _slices)
     t0 = time.process_time()
     deadline = time.time() + seconds
     spectrum = _spectrum(vklu)
@@ -80,7 +76,7 @@ def work(task):
                 if solver._fresh(seen_done, child._matrix, isomorph_free):
                     solutions.append(child._matrix)
             elif spectral.feasible(child._matrix, spectrum) \
-                    and _fresh_shared(seen[rows], shared, token, rows, child._matrix, isomorph_free):
+                    and _fresh_shared(seen[rows], shared, rows, child._matrix, isomorph_free):
                 children.append(child)
         stack.extend(reversed(children))
     return solutions, [p._matrix for p in stack], explored, time.process_time() - t0
@@ -117,10 +113,10 @@ def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAUL
 
     # 'spawn' on macOS: the worker function is importable, nothing is inherited
     ctx = multiprocessing.get_context()
-    with ctx.Manager() as manager, ctx.Pool(workers) as pool:
+    with SeenManager(ctx=ctx) as manager, ctx.Pool(workers) as pool:
         # the isomorphism classes reached so far, shared by all workers (a worker that finds one already claimed drops
         # it), so the parallel search expands about as many partial matrices as the serial one
-        shared = manager.dict() if share_seen and isomorph_free else None
+        shared = manager.SharedSeen() if share_seen and isomorph_free else None
         def submit():
             nonlocal in_flight
             while stack and in_flight < workers:

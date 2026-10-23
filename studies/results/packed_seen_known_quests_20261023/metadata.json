@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-10-23 13:07:53 PDT",
+  "workers": 14,
+  "python": "3.9.6 (default, Aug 25 2026, 21:26:21) \n[Clang 21.0.0 (clang-2100.3.34.2)]",
+  "interval_sec": 0.02,
+  "branches": {
+    "master": {
+      "root": "/Users/willhyper/repo/two_dist_set",
+      "commit": "028c6e94c22d4ceb9da278cbb3d1ffb1d5098a87"
+    },
+    "packed-seen": {
+      "root": "/Users/willhyper/repo/two_dist_set_packed_seen",
+      "commit": "3097522a6161beb029a15e8bff4d3a77bbe5a18d"
+    }
+  },
+  "notes": "Paired exactness/CPU/RSS benchmark for master and packed-seen on macOS.\n\nRun from packed-seen with a persistent output directory:\n  python studies/compare_seen.py --output ~/.srg_runs/packed_seen_benchmark --workers 14\n\nEach solve runs in a fresh Python process. Full canonical matrix bytes (not\nhash digests) must equal the saved database solution set, with no duplicates;\nevery returned matrix must pass PartialSRG.solved(). CPU covers the timed\nsolve's parent plus reaped children, including manager and worker startup.\nCombined process-tree RSS and manager RSS are sampled externally every 20 ms\nusing macOS libproc. RSS can double-count shared pages and miss short peaks.\nMemory sampling covers process startup through validation/exit. Wall time is\nsolve-only. Existing CPU/memory load affects both branches. No source changes\nor database performance updates are made by this benchmark.\n",
+  "python_hash_seed": "0",
+  "blas_thread_limit": "1",
+  "quest_count": 29
+}

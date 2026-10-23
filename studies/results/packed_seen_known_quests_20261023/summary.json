@@ -1,0 +1,24 @@
+{
+  "quest_pairs": 29,
+  "all_exact": true,
+  "solutions_across_quests": 54,
+  "branches": {
+    "master": {
+      "total_cpu_sec": 722.13781,
+      "total_wall_sec": 185.98409245399995,
+      "maximum_tree_rss_mib": 541.921875,
+      "median_tree_rss_mib": 364.78125,
+      "maximum_manager_rss_mib": 35.796875,
+      "median_manager_rss_mib": 21.328125
+    },
+    "packed-seen": {
+      "total_cpu_sec": 603.5922669999999,
+      "total_wall_sec": 153.965276958,
+      "maximum_tree_rss_mib": 525.4375,
+      "median_tree_rss_mib": 362.765625,
+      "maximum_manager_rss_mib": 23.015625,
+      "median_manager_rss_mib": 21.3125
+    }
+  },
+  "cpu_ratio_packed_over_master": 0.8358408307134616
+}
