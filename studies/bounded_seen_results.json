@@ -1,0 +1,71 @@
+{
+  "hardware": "Apple M4 Pro, 64 GiB; original 14-worker quest running concurrently",
+  "scope": "Isolated experiment; the existing SRG(29,14,6,7) run is unchanged.",
+  "cache_policy": "Exact FIFO, 250000 shared partial-class entries by default; solution keys never evicted.",
+  "memory_experiment": {
+    "description": "One million unique (row, 32-byte key) insertions, same interpreter, separate processes; peak RSS includes interpreter and NumPy. Synthetic cache experiment, not whole-quest memory.",
+    "unbounded": {
+      "retained": 1000000,
+      "peak_rss_mib": 245.078125
+    },
+    "bounded": {
+      "retained": 250000,
+      "peak_rss_mib": 137.734375
+    }
+  },
+  "quest_benchmarks": [
+    {
+      "quest": [
+        21,
+        10,
+        4,
+        5
+      ],
+      "baseline": {
+        "cpu_sec": 1.476856,
+        "wall_sec": 1.530158125,
+        "explored": 221
+      },
+      "default_250000": {
+        "cpu_sec": 1.491324,
+        "wall_sec": 1.566728375,
+        "explored": 221
+      },
+      "capacity_128": {
+        "cpu_sec": 1.603384,
+        "wall_sec": 1.60687175,
+        "explored": 233
+      },
+      "exact_solution_count": 0
+    },
+    {
+      "quest": [
+        36,
+        14,
+        7,
+        4
+      ],
+      "baseline": {
+        "cpu_sec": 9.766336,
+        "wall_sec": 6.77014025,
+        "explored": 211
+      },
+      "default_250000": {
+        "cpu_sec": 9.829637,
+        "wall_sec": 7.102297292,
+        "explored": 211
+      },
+      "capacity_128": {
+        "cpu_sec": 10.26588,
+        "wall_sec": 6.974355875,
+        "explored": 229
+      },
+      "exact_solution_count": 1
+    }
+  ],
+  "limits": [
+    "Single timing samples; no speedup established. CPU is master plus returned worker slice CPU; excludes manager and worker startup CPU.",
+    "Aggressive eviction repeated work. Long-quest runtime impact is unmeasured.",
+    "Resident memory may not fall immediately after eviction because of allocator reuse."
+  ]
+}
