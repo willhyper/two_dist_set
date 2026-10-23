@@ -1,0 +1,61 @@
+{
+  "hardware": "Apple M4 Pro, 64 GiB RAM; original 14-worker SRG(29,14,6,7) quest active concurrently",
+  "policy": "Full exact keys retained permanently for this solve. No eviction, truncation, or hash-only identity. No owner tokens.",
+  "representation": "One bytearray table per (rows built, key byte length), each slot occupancy byte plus full key. Linear probing; resize at two-thirds load. Hash collisions compared byte for byte.",
+  "synthetic_memory": {
+    "keys": 1000000,
+    "key_bytes": 5,
+    "dict_peak_rss_mib": 202.796875,
+    "packed_peak_rss_mib": 38.25,
+    "packed_payload_bytes": 5000000,
+    "packed_table_bytes": 12582912,
+    "dict_insert_sec": 0.248631708,
+    "packed_insert_sec": 2.949978792,
+    "dict_lookup_sec": 0.265181834,
+    "packed_lookup_sec": 1.173092708,
+    "note": "Separate processes; includes interpreter/imports. Baseline shares ownership tuples, conservatively understating production overhead. Live quest memory impact unmeasured."
+  },
+  "solver_benchmarks": [
+    {
+      "quest": [
+        21,
+        10,
+        4,
+        5
+      ],
+      "expected_solutions": 0,
+      "canonical_sets_exact": true,
+      "baseline": {
+        "cpu_sec": 1.825443,
+        "wall_sec": 1.594820125,
+        "explored": 221
+      },
+      "packed": {
+        "cpu_sec": 1.783438,
+        "wall_sec": 1.5313365,
+        "explored": 221
+      }
+    },
+    {
+      "quest": [
+        36,
+        14,
+        7,
+        4
+      ],
+      "expected_solutions": 1,
+      "canonical_sets_exact": true,
+      "baseline": {
+        "cpu_sec": 10.009321,
+        "wall_sec": 7.023257,
+        "explored": 211
+      },
+      "packed": {
+        "cpu_sec": 10.093934,
+        "wall_sec": 7.0359935,
+        "explored": 211
+      }
+    }
+  ],
+  "timing_limits": "Single samples; CPU includes parent plus reaped child processes. Small benchmarks show roughly similar solver times, not a proven speedup. Packed local operations are slower; manager IPC and solving dominate these runs."
+}
