@@ -15,6 +15,7 @@ complete key plus an occupancy byte per allocated slot; there are no persistent 
 evicted, so the shared set rejects the same duplicate classes as the unbounded dictionary it replaces.
 Worker-local sets are discarded after each time slice; complete solutions are deduplicated at the master.
 """
+import json
 import multiprocessing
 import queue
 import time
@@ -39,14 +40,18 @@ def _spectrum(vklu):
     return _spectra[vklu]
 
 
-def _fresh_shared(local: set, shared, rows: int, matrix, isomorph_free: bool) -> bool:
+def _fresh_shared(local: set, shared, rows: int, matrix, isomorph_free: bool, counts=None) -> bool:
     """solver._fresh against the shared exact-key store: the first class claim wins."""
     if not isomorph_free:
         return True
     key = canon.canonical_key(matrix)
     if key is None:
+        if counts is not None:
+            counts[rows][1] += 1
         return True
     if key in local:
+        if counts is not None:
+            counts[rows][0] += 1
         return False
     local.add(key)
     return shared is None or shared.claim(rows, key)
@@ -64,6 +69,7 @@ def work(task):
     spectrum = _spectrum(vklu)
     seen = defaultdict(set)
     seen_done = set()
+    counts = defaultdict(lambda: [0, 0])
     stack = [PartialSRG(m) for m in reversed(roots)]  # roots[0] is explored first
     solutions, explored = [], 0
     while stack and time.time() < deadline:
@@ -76,9 +82,11 @@ def work(task):
                 if solver._fresh(seen_done, child._matrix, isomorph_free):
                     solutions.append(child._matrix)
             elif spectral.feasible(child._matrix, spectrum) \
-                    and _fresh_shared(seen[rows], shared, rows, child._matrix, isomorph_free):
+                    and _fresh_shared(seen[rows], shared, rows, child._matrix, isomorph_free, counts):
                 children.append(child)
         stack.extend(reversed(children))
+    if shared is not None and counts:
+        shared.record_local(dict(counts))
     return solutions, [p._matrix for p in stack], explored, time.process_time() - t0
 
 
@@ -87,8 +95,17 @@ worker_cpu_seconds = 0.0  # CPU time used by the workers of the last/running sol
 
 def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAULT_MAX_SOLUTIONS,
                    progress: Optional[Callable[[str], None]] = None, isomorph_free: bool = True,
-                   workers: Optional[int] = None, slice_seconds: float = SLICE_SECONDS, share_seen: bool = True):
-    """Same contract as solver.solve (yields one matrix per isomorphism class of solution), on `workers` processes."""
+                   workers: Optional[int] = None, slice_seconds: float = SLICE_SECONDS, share_seen: bool = True,
+                   dedup_progress: Optional[Callable[[dict], None]] = None):
+    """Yield one solution per isomorphism class, using `workers` processes.
+
+    Shared partial-key metrics are appended as JSON to progress lines and sent
+    as dictionaries to dedup_progress, periodically and before manager shutdown.
+    Metrics exclude complete-solution deduplication. With share_seen=False or
+    isomorph_free=False they are unavailable (no dedup snapshot is emitted).
+    Worker-local hit/skip counts lag until slices return; capped runs can omit
+    counts from terminated slices. Exact storage/shared hits are sampled live.
+    """
     global worker_cpu_seconds
     worker_cpu_seconds = 0.0
     workers = workers or multiprocessing.cpu_count()
@@ -105,11 +122,14 @@ def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAUL
     explored = yielded = 0
     results = queue.Queue()
 
+    snapshot = None
+
     def status() -> str:
         rows = sorted(set(reached) | set(pending))
         per_row = ' '.join(f'{r}:{pending[r]}/{reached[r]}' for r in rows)
         return (f'explored {explored} partial matrices, {yielded} solutions, {time.time() - t_start:.0f}s elapsed; '
-                f'pending/reached by rows built: {per_row}')
+                f'pending/reached by rows built: {per_row}'
+                + ('; dedup: ' + json.dumps(snapshot, sort_keys=True) if snapshot is not None else ''))
 
     # 'spawn' on macOS: the worker function is importable, nothing is inherited
     ctx = multiprocessing.get_context()
@@ -117,6 +137,15 @@ def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAUL
         # the isomorphism classes reached so far, shared by all workers (a worker that finds one already claimed drops
         # it), so the parallel search expands about as many partial matrices as the serial one
         shared = manager.SharedSeen() if share_seen and isomorph_free else None
+        def sample_dedup(state):
+            nonlocal snapshot
+            if shared is not None:
+                snapshot = shared.stats()
+                snapshot.update(elapsed_sec=time.time() - t_start, state=state,
+                                local_counts_complete=not in_flight)
+                if dedup_progress:
+                    dedup_progress(snapshot)
+
         def submit():
             nonlocal in_flight
             while stack and in_flight < workers:
@@ -127,6 +156,7 @@ def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAUL
                 pool.apply_async(work, (task,), callback=results.put, error_callback=results.put)
                 in_flight += 1
 
+        sample_dedup('started')
         submit()
         while in_flight and (max_solutions is None or yielded < max_solutions):
             try:
@@ -154,9 +184,13 @@ def solve_parallel(srg: PartialSRG, max_solutions: Optional[int] = solver.DEFAUL
                         stack.append(m)
                         pending[rows] += 1
                 submit()
-            if progress and time.time() - last >= solver.PROGRESS_INTERVAL:
+            if (progress or dedup_progress) and time.time() - last >= solver.PROGRESS_INTERVAL:
                 last = time.time()
-                progress(status())
+                sample_dedup('running')
+                if progress:
+                    progress(status())
         pool.terminate()
+        pool.join()
+        sample_dedup('finished' if not stack and not in_flight else 'stopped at max_solutions')
     if progress:
         progress(('finished' if not stack and not in_flight else 'stopped at max_solutions') + ': ' + status())
