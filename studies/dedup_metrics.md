@@ -85,3 +85,25 @@ speed benchmarks; scheduling can change the local/shared split and hit counts.
 
 Neither run encountered a canonicalization skip. Both final snapshots had
 `local_counts_complete=true`.
+
+## Interactive heatmap and row table
+
+Render either the structured JSONL history above or a parallel solver stderr log:
+
+```bash
+python studies/dedup_heatmap.py dedup_history.jsonl dedup_heatmap.html --quest 28 12 6 4
+```
+
+The standalone HTML contains a selectable heatmap metric (duplicate hits,
+retained keys, candidates, payload bytes, or allocated slot bytes) and the exact
+per-row candidate/key/hit table for a selected snapshot. Click a heatmap column
+or use the snapshot slider to update the table. The adjacent CSV exports every
+recorded row/snapshot. All metrics use the same elapsed time coordinate; short
+runs display seconds, longer runs hours. Values are cumulative, unlike the
+pending-queue heatmap. Columns represent recorded snapshots, with midpoint
+boundaries; they are not interpolated counts or hourly backfills.
+
+The renderer does not modify the source history or any cron configuration.
+Earlier runs without deduplication snapshots cannot supply this heatmap. It
+ignores an unfinished last log line and refuses to combine restarted runs whose
+elapsed time decreases.
