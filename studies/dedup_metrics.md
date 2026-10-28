@@ -107,3 +107,21 @@ The renderer does not modify the source history or any cron configuration.
 Earlier runs without deduplication snapshots cannot supply this heatmap. It
 ignores an unfinished last log line and refuses to combine restarted runs whose
 elapsed time decreases.
+
+## Standard quest report
+
+Use one phone-readable figure with five stacked panels on the same elapsed-time
+axis: (1) cumulative solution harvests, (2) pending partial matrices by rows
+built, (3) retained canonical keys by rows built, (4) cumulative duplicate hits
+by rows built, and (5) combined solver-process-tree RSS. The three distributions
+are heatmaps; zero and unavailable observations must remain distinguishable.
+Key and duplicate-hit counts are cumulative, while pending counts describe the
+parent queue at a snapshot. Keep local/shared hit definitions and RSS caveats
+from above. Provide totals and links to the underlying measurements alongside
+the figure, without a per-row text table.
+
+For the full SRG(36,14,4,6) run requested on 2026-10-28, take hourly measurements
+and deliver reports every four elapsed hours, plus a terminal report. There is
+no runtime limit. The prior one-hour observation is a separate run; its saved
+solutions remain banked, but its search stack was not persisted. Runtime logs,
+monitoring scripts, and cron configuration live outside the repository.
