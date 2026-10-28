@@ -28,9 +28,11 @@ else:
         from srg.database import build
         extra = [a for a in sys.argv[6:] if not a.startswith('--')]
         limit = [a for a in sys.argv[6:] if a.startswith('--time-limit=')]
+        wall_limit = [a for a in sys.argv[6:] if a.startswith('--wall-time-limit=')]
         nworkers = [a for a in sys.argv[6:] if a.startswith('--workers=')]
         print(build.build(v, k, l, u, *(int(e) for e in extra),
                           time_limit=float(limit[0].split('=')[1]) if limit else None,
+                          wall_time_limit=float(wall_limit[0].split('=')[1]) if wall_limit else None,
                           workers=int(nworkers[0].split('=')[1]) if nworkers else 1))
     elif cmd == 'construct':
         from srg.database import build

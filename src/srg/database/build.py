@@ -195,10 +195,12 @@ def write_problem(v, k, l, u, matrices, notes: str, force: bool = False, perf: d
 class TimeLimit(Exception): pass
 
 
-def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, time_limit=None, workers=1):
+def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, time_limit=None, workers=1, wall_time_limit=None):
     '''
     solve and write the problem file. If solve() supports checkpoints the search
     is checkpointed, so an interrupted build resumes where it left off.
+    time_limit budgets CPU seconds; wall_time_limit budgets elapsed seconds,
+    checked at progress callbacks. A timed stop preserves verified partial results.
     '''
     assert SRGProperties(v, k, l, u).is_srg(), f'{(v, k, l, u)} do not form an SRG'
     resumable = 'checkpoint' in inspect.signature(solver.solve).parameters
@@ -217,11 +219,17 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
         return time.process_time() - c0 + (parallel.worker_cpu_seconds if workers > 1 else 0.0)
 
     def progress_limited(msg):
+        nonlocal limit_description
         progress(msg)
+        if wall_time_limit is not None and time.time() - t0 >= wall_time_limit:
+            limit_description = f'{wall_time_limit:g}s wall-clock'
+            raise TimeLimit
         # CPU seconds, not wall-clock: a process that is paused or starved by other jobs must not use up its budget
         if time_limit is not None and cpu_used() > time_limit:
+            limit_description = f'{time_limit:g}s'
             raise TimeLimit
 
+    limit_description = None
     found, stopped = [], False
     try:
         search = (parallel.solve_parallel(PartialSRG(solver._seed(v, k, l, u)), max_solutions=max_solutions,
@@ -235,12 +243,12 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
     elapsed, cpu = time.time() - t0, cpu_used()
     if stopped and not found:
         # not a proof of anything: do not write a 'no solution' file
-        print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {time_limit}s', file=sys.stderr, flush=True)
+        print(f'[srg {v},{k},{l},{u}] undecided: no solution found within {limit_description}', file=sys.stderr, flush=True)
         details = f'{_hardware()}\nsearch stopped after {elapsed:.0f}s without finishing; not a proof of non-existence'
         if is_placeholder(problem_path(v, k, l, u)):
-            mark_status(v, k, l, u, f'tackled - UNDECIDED: no solution found within the {time_limit:g}s time limit', details)
+            mark_status(v, k, l, u, f'tackled - UNDECIDED: no solution found within the {limit_description} time limit', details)
         elif os.path.exists(problem_path(v, k, l, u)):  # a graph is already recorded (e.g. constructed): note the attempt
-            note_attempt(v, k, l, u, f'solver attempt: found no graph within the {time_limit:g}s time limit '
+            note_attempt(v, k, l, u, f'solver attempt: found no graph within the {limit_description} time limit '
                                      f'({cpu:.0f}s CPU, {elapsed:.0f}s wall-clock); this says nothing about existence\n{_hardware()}')
         return None
     if resumable:
@@ -248,7 +256,7 @@ def build(v, k, l, u, max_solutions=solver.DEFAULT_MAX_SOLUTIONS, force=False, t
             elapsed = json.loads(str(z['state']))['elapsed']  # total compute time across resumed runs
     n = len(standardize(found))
     if stopped:
-        status = (f'STATUS: partially tackled - {n} graph(s) found; the search hit the {time_limit:g}s time limit before '
+        status = (f'STATUS: partially tackled - {n} graph(s) found; the search hit the {limit_description} time limit before '
                   f'finishing, so more graphs may exist')
     elif n >= max_solutions:
         status = f'STATUS: tackled - stopped at the cap of {max_solutions} graphs; more may exist'
