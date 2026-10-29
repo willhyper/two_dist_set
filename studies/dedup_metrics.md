@@ -112,11 +112,12 @@ elapsed time decreases.
 
 Use one phone-readable figure with five stacked panels on the same elapsed-time
 axis: (1) cumulative solution harvests, (2) pending partial matrices by rows
-built, (3) retained canonical keys by rows built, (4) cumulative duplicate hits
-by rows built, and (5) combined solver-process-tree RSS. The three distributions
+built, (3) duplicate hits added between adjacent hourly measurements by rows built,
+(4) retained canonical keys by rows built, and (5) combined solver-process-tree RSS. The three distributions
 are heatmaps; zero and unavailable observations must remain distinguishable.
-Key and duplicate-hit counts are cumulative, while pending counts describe the
-parent queue at a snapshot. Keep local/shared hit definitions and RSS caveats
+Retained-key counts are cumulative. Duplicate-hit heatmap cells are differences
+between adjacent hourly cumulative counters, not running totals; missing
+intervals remain unavailable. Pending counts describe the parent queue at a snapshot. Keep local/shared hit definitions and RSS caveats
 from above. Provide totals and links to the underlying measurements alongside
 the figure, without a per-row text table.
 
