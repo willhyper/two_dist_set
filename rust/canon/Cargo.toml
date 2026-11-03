@@ -1,0 +1,15 @@
+[package]
+name = "srg-canon"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+license = "MIT"
+publish = false
+
+[lib]
+name = "srg_canon"
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+codegen-units = 1

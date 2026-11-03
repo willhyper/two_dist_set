@@ -12,3 +12,9 @@ src/srg/*.c
 src/srg/*.so
 src/srg/*.pyx
 .venv/
+
+# Optional Rust canonicalizer build artifacts
+rust/canon/target/
+src/srg/_canon_rust.dylib
+src/srg/_canon_rust.dll
+src/srg/_canon_rust.*.tmp

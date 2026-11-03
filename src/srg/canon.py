@@ -188,7 +188,7 @@ def _triu(n: int):
     return _TRIU[n]
 
 
-def _canonical(M: np.ndarray, leaf_budget: int):
+def _canonical_python(M: np.ndarray, leaf_budget: int):
     R, n, adj, color, wts = _build(M)
 
     A = np.zeros((n, n), dtype=np.uint8)
@@ -212,6 +212,19 @@ def _canonical(M: np.ndarray, leaf_budget: int):
         return _Search(adj, color, certificate, leaf_budget).best_cert
     except BudgetExceeded:
         return None
+
+
+# The reference remains callable for exact differential tests and benchmarks.
+# Native builds are opt-in; source-only installations retain the Python path.
+from ._canon_native import load as _load_native
+_rust_canonical = _load_native()
+CANON_BACKEND = 'rust' if _rust_canonical is not None else 'python'
+
+
+def _canonical(M: np.ndarray, leaf_budget: int):
+    if _rust_canonical is not None:
+        return _rust_canonical(M, leaf_budget)
+    return _canonical_python(M, leaf_budget)
 
 
 def canonical_key(M: np.ndarray, leaf_budget: int = LEAF_BUDGET):

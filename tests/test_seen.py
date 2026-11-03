@@ -56,3 +56,27 @@ def test_packed_storage_scales_with_payload():
     assert stats['keys'] == 10000
     assert stats['payload_bytes'] == 50000
     assert stats['table_bytes'] < 16 * stats['keys']
+
+
+def test_duplicate_metrics_separate_collisions_from_duplicates(monkeypatch):
+    monkeypatch.setattr(seen, 'hash', lambda key: 0, raising=False)
+    store = seen.SharedSeen()
+    assert store.claim(4, b'abc')
+    assert store.claim(4, b'def')  # same hash, different canonical key
+    assert not store.claim(4, b'abc')
+    assert not store.claim(4, b'abc')
+    store.record_local({4: [3, 2], 5: [0, 1]})
+    store.record_local({4: [1, 0]})
+    stats = store.stats()
+    assert stats['keys'] == 2
+    assert stats['shared_duplicate_hits'] == 2
+    assert stats['local_duplicate_hits'] == 4
+    assert stats['duplicate_hits'] == 6
+    assert stats['canonicalization_skips'] == 3
+    assert stats['candidates'] == 11
+    assert stats['duplicate_fraction'] == 6 / 11
+    assert stats['payload_bytes'] == 6
+    assert stats['by_rows'][4]['duplicate_hits'] == 6
+    assert stats['by_rows'][5]['canonicalization_skips'] == 1
+    assert stats['by_key_size'][0]['key_bytes'] == 3
+    assert stats['by_key_size'][0]['shared_duplicate_hits'] == 2

@@ -148,3 +148,23 @@ def test_build_stores_its_timing_in_the_variables_not_the_docstring(tmp_db):
     assert cpu is not None and wall is not None and cpu > 0 and wall > 0
     doc = open(path).read().split("'" * 3)[1]
     assert 'CPU (' not in doc and 'wall-clock' not in doc
+
+
+def test_wall_clock_observation_limit_preserves_partial_solutions(tmp_db, monkeypatch):
+    A = db.get_solutions(5, 2, 0, 1)[0]
+    times = iter([100.0, 102.0, 102.0])
+    monkeypatch.setattr(build.time, 'time', lambda: next(times))
+    def search(start, max_solutions, progress, **kwargs):
+        yield A
+        progress('explored 1 partial matrices')
+        raise AssertionError('wall-clock limit failed to stop the search')
+    monkeypatch.setattr(build.solver, 'solve', search)
+    path = build.build(5, 2, 0, 1, wall_time_limit=1)
+    text = open(path).read()
+    assert 'STATUS: partially tackled' in text
+    assert '1s wall-clock time limit' in text
+    assert 'cpu_sec = None' in text
+    assert 'wall_clock_sec = None' in text
+    namespace = {}
+    exec(text, namespace)
+    assert len(namespace['solutions']) == 1

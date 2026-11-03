@@ -1,0 +1,23 @@
+{
+  "workers": 4,
+  "notes": "Paired Python/Rust solves of the 29 benchmark quests, exactness first.\n\nRequires python build_rust.py. Run in the matching Python environment:\n  PYTHONPATH=src python studies/compare_canon_backends.py --output ~/.srg_runs/canon_comparison --workers 4\n\nBoth backends use the same source tree, Python/NumPy, worker count and settings.\nAlternates which backend runs first. Full canonical certificates from the\nPython reference are the oracle, including all zero-solution quests. Timings\nexclude validation and include parent, manager, workers and process startup\ninside solve. RSS is sampled process-tree RSS on macOS, not unique physical RAM.\nOne paired pass under concurrent system load is not a statistical speed claim.\n",
+  "sources": {
+    "src/srg/canon.py": "8f63bc054e55f1c16c93ca435cb63098d39bfc0190b2149dc06d04e68101e044",
+    "src/srg/_canon_native.py": "d7754ac5bfaadf5013368c593ff9d1997ea2003d75eec1aa59f16fda92a60330",
+    "rust/canon/src/lib.rs": "faea9919aefb69dabe19700c3d61c19063ab14334871b52f4dcd3d50b8514231",
+    "rust/canon/Cargo.lock": "5c7446631a5e0396f1f75ae535991c6065be341b3e1181ec71d84bf73c18450d"
+  },
+  "rustc": "1.99.1",
+  "cargo": "1.99.1",
+  "native_library_sha256": "eac438b958cd40f5551fc49867c8034e0ffbd8c28096429ba5de342c33adc68c",
+  "source_note": "Initial source hashes describe release-build inputs. Rust source was subsequently rustfmt-formatted and its unit-test assertion tightened; runtime logic is unchanged.",
+  "final_source_sha256": {
+    "rust/canon/src/lib.rs": "f896cc497f7fcc606af13e8455ee80e72394258a121b09a361c5f44f8e74f998",
+    "src/srg/canon.py": "8f63bc054e55f1c16c93ca435cb63098d39bfc0190b2149dc06d04e68101e044",
+    "src/srg/_canon_native.py": "d7754ac5bfaadf5013368c593ff9d1997ea2003d75eec1aa59f16fda92a60330"
+  },
+  "rss_note": "Process-tree RSS is sampled over the child lifetime including post-timing reference validation; shared pages may be counted more than once.",
+  "python_version": "3.9.6",
+  "platform": "macOS arm64",
+  "privacy_note": "Local source paths, local timestamps, and full environment version strings omitted from published artifacts."
+}

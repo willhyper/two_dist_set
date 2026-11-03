@@ -1,0 +1,3 @@
+include build_rust.py
+recursive-include rust/canon *.toml *.lock *.rs
+prune rust/canon/target

@@ -1,0 +1,54 @@
+{
+  "quest": [
+    4,
+    2,
+    0,
+    2
+  ],
+  "backend": "rust",
+  "exact": true,
+  "solutions": 1,
+  "canonical_keys": [
+    "cc"
+  ],
+  "cpu_sec": 0.355086,
+  "wall_sec": 0.192651791,
+  "dedup": {
+    "keys": 1,
+    "payload_bytes": 1,
+    "table_bytes": 16,
+    "shared_duplicate_hits": 0,
+    "local_duplicate_hits": 0,
+    "duplicate_hits": 0,
+    "canonicalization_skips": 0,
+    "candidates": 1,
+    "groups": 1,
+    "by_rows": {
+      "3": {
+        "keys": 1,
+        "payload_bytes": 1,
+        "table_bytes": 16,
+        "shared_duplicate_hits": 0,
+        "local_duplicate_hits": 0,
+        "canonicalization_skips": 0,
+        "duplicate_hits": 0,
+        "candidates": 1
+      }
+    },
+    "by_key_size": [
+      {
+        "rows": 3,
+        "key_bytes": 1,
+        "keys": 1,
+        "payload_bytes": 1,
+        "table_bytes": 16,
+        "shared_duplicate_hits": 0
+      }
+    ],
+    "duplicate_fraction": 0.0,
+    "elapsed_sec": 0.18202710151672363,
+    "state": "finished",
+    "local_counts_complete": true
+  },
+  "peak_combined_rss_mib": 128.078125
+}
