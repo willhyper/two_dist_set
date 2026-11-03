@@ -1,0 +1,10 @@
+{
+  "quests": 29,
+  "all_exact": true,
+  "solutions": 54,
+  "python_cpu_sec": 931.6057059999999,
+  "rust_cpu_sec": 880.178483,
+  "python_peak_rss_mib": 178.5625,
+  "rust_peak_rss_mib": 180.75,
+  "cpu_reduction_percent": 5.520277803021523
+}
